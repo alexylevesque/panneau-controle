@@ -221,7 +221,9 @@
   .cb.no span { transform: rotate(135deg); }
   .cb.yes { background: #30c46b; }
   .call-hint { color: var(--muted); font-size: 14px; }
-  .how { padding-left: 22px; margin: 14px 0 4px; }
+  .how { padding-left: 22px; margin: 6px 0 4px; }
+  .how-t { font-weight: 500; margin-top: 16px; }
+  #how .sheet-box { width: 760px; }
   .how li { color: var(--muted); font-size: 16px; line-height: 1.6; }
   .how b { color: var(--txt); font-weight: 500; }
   .how code { background: rgba(0,0,0,.3); padding: 2px 8px; border-radius: 6px; color: var(--txt); font-size: 14px; }
@@ -376,12 +378,18 @@
     <div class="sheet" id="how">
       <div class="sheet-box">
         <div class="sheet-top"><div class="sheet-meta"><b>Connecter ton iPhone</b></div><button class="x" id="howClose">✕</button></div>
+        <div class="how-t">1. Pile — appli Raccourcis sur l'iPhone</div>
         <ol class="how">
-          <li>Sur l'iPhone, ouvre <b>Raccourcis</b> &gt; <b>+</b>, nomme-le <b>Panneau</b>.</li>
-          <li>Ajoute l'action <b>Obtenir le niveau de la batterie</b>.</li>
+          <li><b>Raccourcis</b> &gt; <b>+</b>, nomme-le <b>Panneau</b>. Ajoute <b>Obtenir le niveau de la batterie</b>.</li>
           <li>Ajoute <b>Obtenir le contenu de l'URL</b> : <code id="sigUrl">…</code></li>
-          <li><b>Afficher plus</b> : Méthode <b>POST</b>, Corps <b>JSON</b> : <code>id</code> = iphone · <code>nom</code> = iPhone · <code>batterie</code> = <i>Niveau de la batterie</i></li>
-          <li>Lance-le avec ▶ (même Wi-Fi que la tablette).</li>
+          <li>Touche la flèche : Méthode <b>POST</b>, Corps <b>JSON</b> : <code>id</code> = iphone · <code>nom</code> = iPhone · <code>batterie</code> = <i>Niveau de la batterie</i></li>
+          <li>Onglet <b>Automatisation</b> : lance-le quand le <b>chargeur</b> est branché/débranché et quand tu rejoins ton <b>Wi-Fi</b> (« Exécuter immédiatement »).</li>
+        </ol>
+        <div class="how-t">2. Notifications et appels — appli Pont iPhone sur la tablette</div>
+        <ol class="how">
+          <li>Dans <b>Chrome</b> sur la tablette, télécharge et installe :<br><code>github.com/alexylevesque/panneau-controle/releases/download/pont/pont-iphone.apk</code></li>
+          <li>Ouvre <b>Pont iPhone</b>. Sur l'iPhone, avec l'appli gratuite <b>nRF Connect</b> : SCAN, puis CONNECT sur <b>Panneau</b>.</li>
+          <li>Accepte le <b>jumelage</b> et <b>Autoriser les notifications</b> sur l'iPhone.</li>
         </ol>
       </div>
     </div>
