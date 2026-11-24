@@ -49,7 +49,12 @@ async function load() {
             if (pin) r = await api(`/api/${p.id}/action/${a.key}`, { method: 'POST', body: JSON.stringify({ pin }) });
             else r = { ok: true, result: null };
           }
-          r.ok ? (r.result && toast(String(r.result))) : toast(r.error || 'Erreur', true);
+          if (r.ok && r.result && r.result.reload) {
+            toast(r.result.message || 'Rechargement…');
+            setTimeout(() => location.reload(), 4000);
+          } else {
+            r.ok ? (r.result && toast(String(r.result))) : toast(r.error || 'Erreur', true);
+          }
         } catch { toast('Serveur injoignable', true); }
         b.classList.remove('busy');
       };

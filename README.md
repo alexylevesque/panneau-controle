@@ -156,11 +156,9 @@ cp config.example.json config.json
 chmod +x demarrer.sh
 ```
 
-**Pour mettre à jour plus tard** (quand on ajoute des fonctions) :
-```
-cd ~/panneau-controle && git pull
-```
-puis redémarre le panneau (**Ctrl+C** et `./demarrer.sh`). Ton `config.json` et le jumelage Fire TV sont gardés.
+**Pour mettre à jour plus tard** (quand on ajoute des fonctions) : appuie sur **🔄 Mettre à jour** dans la carte
+**Système** du panneau. Il télécharge la nouvelle version, redémarre tout seul et la page se recharge.
+Ton `config.json` et le jumelage Fire TV sont gardés. (Le panneau se met aussi à jour à chaque démarrage.)
 
 ### B4. Démarrage automatique
 
@@ -298,6 +296,7 @@ plugins/firetv       Fire TV (API de l'app officielle, ou ADB) : télécommande 
 plugins/wol          Wake-on-LAN pour réveiller le Mac et d'autres appareils
 plugins/mac          contrôle du Mac (seulement si le panneau roule sur un Mac)
 plugins/tv           autres télés (Roku, Sony), désactivé par défaut
+plugins/systeme      bouton « Mettre à jour » (depuis GitHub)
 plugins/_modele      modèle à copier pour un nouveau plugin
 public/              l'interface (HTML/CSS/JS)
 ```
