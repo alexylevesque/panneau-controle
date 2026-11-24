@@ -45,7 +45,7 @@ module.exports = (cfg) => {
     if (!po.user || !po.token) throw new Error('Configure Pushover d\'abord');
     const r = await pushover('/1/messages.json', {
       token: po.token, user: po.user, title: 'Panneau', message: '📍 Ton iPhone est ici!',
-      priority: 2, retry: 30, expire: 600, sound: 'alien',
+      priority: 2, retry: 30, expire: 600, sound: 'echo',
     });
     po.receipt = r.receipt; po.depuis = Date.now();
     fs.writeFileSync(PO_FILE, JSON.stringify(po));
