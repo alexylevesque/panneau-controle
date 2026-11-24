@@ -20,13 +20,14 @@ Dans **Termux** :
    sh installer-auto.sh
    ```
    Tu dois voir `OK!`.
-3. Ferme Termux complètement (glisse-le dans les applis récentes), puis rouvre-le.
+3. Pour tester : dans la notification Termux, appuie sur **Exit**, puis rouvre Termux.
    Le panneau doit repartir tout seul (« Panneau prêt ! »).
 
 À partir de maintenant, **ouvrir Termux = démarrer le panneau**. Si tu l'ouvres alors qu'il roule déjà,
 il te le dit et ne fait rien de plus.
 
-⚠️ Ne glisse **jamais** Termux hors des applis récentes : ça arrête le panneau.
+Tu peux glisser Termux hors des applis récentes sans crainte : il continue de rouler en arrière-plan
+(c'est la notification « Termux » qui le garde en vie). Le seul moyen de l'arrêter, c'est **Exit** dans cette notification.
 
 ---
 
