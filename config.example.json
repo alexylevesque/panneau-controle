@@ -10,12 +10,12 @@
         {
           "name": "Prime Video",
           "icon": "📦",
-          "package": "com.amazon.cloud9"
+          "package": "com.amazon.frenchpress"
         },
         {
           "name": "Netflix",
           "icon": "🎬",
-          "package": "com.netflix.ninja"
+          "package": "com.netflix.kepler"
         },
         {
           "name": "YouTube",

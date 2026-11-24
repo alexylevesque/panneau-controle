@@ -389,7 +389,7 @@
         row.innerHTML = (a.icon ? '<img src="' + a.icon + '">' : '<span class="noimg"></span>') +
           '<div><b></b><small></small></div>';
         row.getElementsByTagName('b')[0].textContent = a.name;
-        row.getElementsByTagName('small')[0].textContent = a.id + (a.shortcut ? '  ·  raccourci : ' + a.shortcut : '');
+        row.getElementsByTagName('small')[0].textContent = a.id + (a.shortcut ? '  ·  raccourci : ' + a.shortcut : '') + (a.installee === false ? '  ·  PAS INSTALLÉE' : '');
         (function (a) {
           row.onclick = function () {
             toast('Ouverture de ' + a.name + '…');

@@ -89,7 +89,7 @@ module.exports = (cfg) => {
     appsCache = list.filter(a => a && a.appId).map(a => {
       let icon = a.tvIconArt ? String(a.tvIconArt).replace(/(\.[a-z]+)$/i, '._SX210_$1') : (a.iconArtSmallUri || '');
       return {
-        id: a.appId, name: a.name || a.appId, icon,
+        id: a.appId, name: a.name || a.appId, icon, installee: a.isInstalled !== false,
         shortcut: a.isShortcutApp ? (a.appShortcutLaunchIntent || a.appId) : null,
       };
     });
@@ -100,7 +100,7 @@ module.exports = (cfg) => {
   async function findApp(a) {
     const list = await installedApps();
     const n = norm(a.name);
-    return list.find(x => x.id === a.package) || list.find(x => norm(x.name) === n) ||
+    return list.find(x => norm(x.name) === n) || list.find(x => x.id === a.package) ||
            list.find(x => norm(x.name).indexOf(n) !== -1 || n.indexOf(norm(x.name)) !== -1 && norm(x.name).length > 3);
   }
   async function openApp(a) {
