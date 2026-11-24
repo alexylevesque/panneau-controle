@@ -23,7 +23,7 @@ Sur l'iPhone, dans **Raccourcis** :
 7. Touche **Panneau**
 8. **OK**
 
-✔️ Test : débranche l'iPhone. Sur la tablette (**Appareils**), le ⚡ disparaît.
+✔️ Test : débranche l'iPhone. Sur la tablette (**Appareils**), c'est écrit « vu à l'instant ».
 
 > Facultatif : refais la même chose en choisissant **Wi-Fi** à l'étape 3 (ton réseau > **Rejoint**).
 
