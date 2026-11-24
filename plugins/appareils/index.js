@@ -63,12 +63,14 @@ module.exports = (cfg) => {
       req.end(body);
     });
   }
-  async function sonner() {
+  async function sonner(qui) {
+    // Chaque iPhone = un appareil dans le même compte Pushover, nommé comme son id (ex. iphone, iphone2)
+    qui = String(qui || 'iphone').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 25) || 'iphone';
     if (!po.user || !po.token) throw new Error('Configure Pushover d\'abord');
     const msg = { token: po.token, user: po.user, title: 'Panneau', message: '📍 Ton iPhone est ici!',
-      priority: 2, retry: 30, expire: 600, sound: 'updown', device: 'iphone' };   // seulement le cell, pas le Mac
+      priority: 2, retry: 30, expire: 600, sound: 'updown', device: qui };   // seulement ce cell, pas le Mac
     const r = await pushover('/1/messages.json', msg);
-    po.receipt = r.receipt; po.depuis = Date.now();
+    po.receipt = r.receipt; po.depuis = Date.now(); po.qui = qui;
     fs.writeFileSync(PO_FILE, JSON.stringify(po));
   }
 
@@ -154,7 +156,7 @@ module.exports = (cfg) => {
         await sonner();                     // test : ça sonne tout de suite
         return 'Configuré';
       } },
-      sonner: { label: 'Faire sonner', run: async () => { await sonner(); return 'Ça sonne'; } },
+      sonner: { label: 'Faire sonner', run: async ({ id }) => { await sonner(id); return 'Ça sonne'; } },
       arreter: { label: 'Arrêter la sonnerie', run: async () => {
         if (po.receipt) await pushover(`/1/receipts/${po.receipt}/cancel.json`, { token: po.token }).catch(() => {});
         delete po.receipt; fs.writeFileSync(PO_FILE, JSON.stringify(po));
@@ -215,7 +217,7 @@ module.exports = (cfg) => {
     async status() {
       verifierSonnerie();
       return { appareils: vue(), adresse: adresse(),
-               sonnerie: { configure: !!(po.user && po.token), active: !!po.receipt && Date.now() - (po.depuis || 0) < 600000 } };
+               sonnerie: { configure: !!(po.user && po.token), active: !!po.receipt && Date.now() - (po.depuis || 0) < 600000, qui: po.qui || 'iphone' } };
     },
   };
 };

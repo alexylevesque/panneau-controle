@@ -639,7 +639,7 @@
            '<div class="nt-b"><div class="nt-a">' + esc(nomApp(t)) + '</div><div class="nt-t"><b>' + esc(t.titre) + '</b><small>' + esc(t.heure) + '</small></div>' +
            '<div class="nt-x">' + esc(t.texte) + '</div></div></div>';
     }
-    $('notifs').innerHTML = h || (d.bluetooth ? '<div class="bt-vide">Aucune notification.</div>'
+    $('notifs').innerHTML = h || (real && real.id !== 'iphone' ? '<div class="bt-vide">Les notifications et les appels sont seulement reliés à ton iPhone pour l\'instant.</div>' : d.bluetooth ? '<div class="bt-vide">Aucune notification.</div>'
       : '<div class="bt-vide">Les notifications s\'afficheront ici quand l\'iPhone sera connecté. <a id="howBtn">Comment faire</a></div>');
     if ($('howBtn')) $('howBtn').onclick = function () { $('how').className = 'sheet show'; };
     var nts = $('notifs').getElementsByClassName('nt');
@@ -656,7 +656,7 @@
     var its = $('devMenu').getElementsByClassName('it');
     for (var m = 0; m < its.length; m++) its[m].onclick = function () {
       devSel = this.getAttribute('data-id'); try { localStorage.setItem('appareil', devSel); } catch (e) {}
-      $('devMenu').className = 'devmenu'; renderDevices(); show('appareils');
+      $('devMenu').className = 'devmenu'; renderDevices(); ringUi(); show('appareils');
     };
   }
 
@@ -679,12 +679,14 @@
   function ringUi() {
     var b = $('ringBtn');
     b.className = 'ring-btn' + (ringOn ? ' on' : '');
-    b.innerHTML = ringOn ? '<span>🔕</span>Arrêter la sonnerie' : '<span>🔔</span>Faire sonner l\'iPhone';
+    var d = current();
+    b.innerHTML = ringOn ? '<span>🔕</span>Arrêter la sonnerie' : '<span>🔔</span>Faire sonner ' + esc(d ? d.nom : 'l\'iPhone');
   }
   $('ringBtn').onclick = function () {
     if (!ringCfg) { $('po').className = 'sheet show'; return; }
     var act = ringOn ? 'arreter' : 'sonner';
-    api('POST', '/api/appareils/action/' + act, {}, function (r) {
+    var d = current();
+    api('POST', '/api/appareils/action/' + act, { id: d ? d.id : 'iphone' }, function (r) {
       if (!r || !r.ok) return toast((r && r.error) || 'Erreur', true);
       ringOn = !ringOn; ringUi();
       toast(ringOn ? 'L\'iPhone sonne… 🔔' : 'Sonnerie arrêtée');
@@ -729,7 +731,7 @@
       var c = current();
       if (c && c.appel && c.appel.uid !== callUid) { callUid = c.appel.uid; showCall(c.appel); }
       if (c && !c.appel && callUid) { callUid = null; $('call').className = 'call'; }
-      if (r.sonnerie) { ringCfg = r.sonnerie.configure; ringOn = r.sonnerie.active; ringUi(); }
+      if (r.sonnerie) { var d = current(); ringCfg = r.sonnerie.configure; ringOn = r.sonnerie.active && (!d || r.sonnerie.qui === d.id); ringUi(); }
       if (r.adresse) $('sigUrl').textContent = r.adresse + '/api/appareils/action/signal';
       renderDevices();
     });
