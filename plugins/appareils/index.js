@@ -44,7 +44,7 @@ module.exports = (cfg) => {
   async function sonner() {
     if (!po.user || !po.token) throw new Error('Configure Pushover d\'abord');
     const msg = { token: po.token, user: po.user, title: 'Panneau', message: '📍 Ton iPhone est ici!',
-      priority: 2, retry: 30, expire: 600, sound: 'updown' };
+      priority: 2, retry: 30, expire: 600, sound: 'updown', device: 'iphone' };   // seulement le cell, pas le Mac
     const r = await pushover('/1/messages.json', msg);
     po.receipt = r.receipt; po.depuis = Date.now();
     fs.writeFileSync(PO_FILE, JSON.stringify(po));
