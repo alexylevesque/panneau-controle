@@ -165,6 +165,7 @@ public class PontService extends Service {
     // ---------- AirPods : la tablette capte le signal qu'ils envoient (étui ouvert ou écouteurs sortis) ----------
     private BluetoothLeScanner scanneur;
     private String dernierAirPods = "";
+    private long dernierLogApple = 0;
     private long dernierEnvoiAirPods = 0;
     private final ScanCallback rappelScan = new ScanCallback() {
         @Override public void onScanResult(int type, ScanResult r) { airPods(r); }
@@ -176,9 +177,10 @@ public class PontService extends Service {
             scanneur = ba.getBluetoothLeScanner();
             if (scanneur == null) return;
             try { scanneur.stopScan(rappelScan); } catch (Exception e) { }
-            ScanFilter f = new ScanFilter.Builder().setManufacturerData(76, new byte[] { 7, 25 }, new byte[] { (byte) 0xff, (byte) 0xff }).build();
-            ScanSettings st = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_BALANCED).build();
-            scanneur.startScan(Collections.singletonList(f), st, rappelScan);
+            // Sans filtre : le filtre matériel des vieilles Samsung laisse rien passer. On trie nous-mêmes.
+            try { scanneur.stopScan(rappelScan); } catch (Exception e) { }
+            ScanSettings st = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
+            scanneur.startScan(null, st, rappelScan);
             log("Recherche des AirPods active");
         } catch (SecurityException e) {
             log("AirPods : permission de localisation manquante (ouvre l'appli Pont iPhone)");
@@ -191,9 +193,15 @@ public class PontService extends Service {
 
     // Format du signal (comme l'appli OpenPods) : 27 octets, piles en demi-octets (0-10 = 0-100 %, 15 = inconnu)
     private void airPods(ScanResult r) {
-        if (r.getScanRecord() == null || r.getRssi() < -70) return;      // trop loin : sûrement les AirPods du voisin
+        if (r.getScanRecord() == null) return;
         byte[] d = r.getScanRecord().getManufacturerSpecificData(76);
-        if (d == null || d.length != 27) return;
+        if (d == null || d.length < 2 || d[0] != 7) return;              // pas un signal d'écouteurs Apple
+        long t = System.currentTimeMillis();
+        if (t - dernierLogApple > 60000) {                                // diagnostic, au plus 1 fois par minute
+            dernierLogApple = t;
+            log("Signal Apple vu : " + d.length + " octets, " + r.getRssi() + " dBm");
+        }
+        if (d.length < 25 || r.getRssi() < -85) return;                  // trop loin : sûrement les AirPods du voisin
         StringBuilder hex = new StringBuilder();
         for (byte x : d) hex.append(String.format("%02x", x));
         String s = hex.toString();
