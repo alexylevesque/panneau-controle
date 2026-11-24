@@ -46,7 +46,7 @@ module.exports = (cfg) => {
     const msg = { token: po.token, user: po.user, title: 'Panneau', message: '📍 Ton iPhone est ici!',
       priority: 2, retry: 30, expire: 600, sound: 'echo' };
     // On essaie les noms possibles du son perso, puis Echo si aucun n'existe
-    const sons = po.son ? [po.son] : ['ping', 'oublie', 'Oublie', 'Ping'];
+    const sons = po.son && po.son !== 'ping' ? [po.son] : ['pingdoux', 'ping', 'oublie', 'Oublie', 'Ping'];
     let r;
     for (const son of sons.concat('echo')) {
       try { r = await pushover('/1/messages.json', Object.assign(msg, { sound: son })); if (son !== 'echo') po.son = son; break; }
