@@ -98,9 +98,11 @@
   .media .rb.play { flex: 1.4; background: var(--glass-on); font-size: 34px; }
 
   .apps { display: flex; flex-wrap: wrap; margin-right: -14px; }
-  .app-t { width: calc(50% - 14px); margin: 0 14px 14px 0; height: 84px; border-radius: 22px; border: 0; color: #fff;
+  .app-t { width: calc(50% - 14px); margin: 0 14px 14px 0; height: 76px; border-radius: 22px; border: 0; color: #fff;
            display: flex; align-items: center; padding: 0 20px; font-size: 18px; font-weight: 500; text-align: left; }
   .app-t span { font-size: 28px; margin-right: 14px; }
+  .app-t img { width: 96px; height: 54px; border-radius: 10px; margin: 0 14px 0 -6px; object-fit: cover; background: #000;
+               box-shadow: 0 2px 8px rgba(0,0,0,.35); }
   .app-t:active { transform: scale(.97); filter: brightness(1.1); }
   .a-netflix { background: linear-gradient(135deg, #e50914, #8f0610); }
   .a-youtube { background: linear-gradient(135deg, #ff3b3b, #c4161c); }
@@ -179,6 +181,12 @@
         <button class="rb" data-k="rew">⏪</button>
         <button class="rb play" data-k="play">⏯</button>
         <button class="rb" data-k="ff">⏩</button>
+      </div>
+      <div class="section">Volume</div>
+      <div class="media">
+        <button class="rb" data-k="vdown">🔉</button>
+        <button class="rb play" data-k="mute">🔇</button>
+        <button class="rb" data-k="vup">🔊</button>
       </div>
       <div class="section">Applications</div>
       <div class="apps" id="apps">
@@ -284,8 +292,28 @@
       if (list[i].id !== 'firetv') continue;
       var acts = list[i].actions;
       for (var a = 0; a < acts.length; a++) if (/^app\d+$/.test(acts[a].key)) appKeys[acts[a].label] = acts[a].key;
+      loadLogos();
     }
   });
+
+  // Vrais logos, fournis par la Fire TV elle-même
+  function loadLogos() {
+    api('POST', '/api/firetv/action/logos', {}, function (r) {
+      if (!r || !r.ok || !r.result) return;
+      for (var k = 0; k < appBtns.length; k++) {
+        var url = r.result[appBtns[k].getAttribute('data-app')];
+        if (!url) continue;
+        (function (btn, url) {
+          var img = new Image();
+          img.onload = function () {
+            var old = btn.getElementsByTagName('span')[0];
+            if (old) btn.replaceChild(img, old);
+          };
+          img.src = url;
+        })(appBtns[k], url);
+      }
+    });
+  }
 
   // Jumelage
   $('pairBtn').onclick = function () {
