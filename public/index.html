@@ -605,7 +605,7 @@
     $('devRing').style.background = 'conic-gradient(' + batColor(pct) + ' ' + deg + 'deg, rgba(255,255,255,0.10) ' + deg + 'deg)';
     $('devSub').innerHTML = d.aucun ? '<span class="etat"><span class="dot"></span>Pas encore connecté</span>'
       : d.bluetooth ? '<span class="etat ok"><span class="dot ok"></span>Connecté</span>'
-      : '<span class="etat"><span class="dot"></span>Pas connecté · vu ' + ago(d.ilYa) + '</span>';
+      : '<span class="etat"><span class="dot"></span>Pile mise à jour ' + ago(d.ilYa) + '</span>';
 
     // AirPods
     var ap = d.airpods;
