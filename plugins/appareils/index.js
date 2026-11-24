@@ -40,6 +40,14 @@ module.exports = (cfg) => {
   const EN_LIGNE_MS = (cfg.minutesEnLigne || 20) * 60 * 1000;
   let liste = {};
   try { liste = JSON.parse(fs.readFileSync(FILE, 'utf8')); } catch (e) {}
+  // Ménage : le cell de ta blonde avait été lié au vieux « iphone2 » au lieu de « iphone16 »
+  const ALIAS = {};
+  if (liste.iphone2 && liste.iphone16) {
+    if (liste.iphone2.btAdresse && !liste.iphone16.btAdresse) liste.iphone16.btAdresse = liste.iphone2.btAdresse;
+    delete liste.iphone2;
+    ALIAS.iphone2 = 'iphone16';
+    try { fs.writeFileSync(FILE, JSON.stringify(liste)); } catch (e) {}
+  }
   const save = () => { try { fs.writeFileSync(FILE, JSON.stringify(liste, null, 2)); } catch (e) {} };
 
   // ---- Pushover (faire sonner) ----
@@ -103,6 +111,7 @@ module.exports = (cfg) => {
   // Le pont dit de quel iPhone il parle avec « qui » (l'id du panneau). Sans « qui » : ton iPhone.
   function iphone(qui) {
     qui = String(qui || 'iphone');
+    if (ALIAS[qui]) qui = ALIAS[qui];
     const a = liste[qui] || (liste[qui] = { nom: 'iPhone', type: 'iphone' });
     a.notifs = a.notifs || [];
     return a;
@@ -176,7 +185,8 @@ module.exports = (cfg) => {
       ancs: { label: 'Notification iPhone', run: async (p) => {
         const a = iphone(p.qui);
         a.vu = Date.now();
-        if (p.connecte !== undefined) a.bt = !!p.connecte;
+        // Si on reçoit quelque chose de cet iPhone, c'est qu'il est relié
+        a.bt = p.connecte !== undefined ? !!p.connecte : true;
         if (p.batterie !== undefined) {
           const b = Math.round(+p.batterie);
           // La pile monte = en charge, elle baisse = débranché
@@ -208,7 +218,8 @@ module.exports = (cfg) => {
         let id = null;
         if (ancien) id = 'iphone';
         else {
-          const libres = Object.keys(liste).filter(k => !liste[k].btAdresse && k !== 'iphone' && (liste[k].type || 'iphone') === 'iphone')
+          const libres = Object.keys(liste).filter(k => !liste[k].btAdresse && k !== 'iphone' && (liste[k].type || 'iphone') === 'iphone'
+              && Date.now() - (liste[k].vu || 0) < 60 * 60 * 1000)   // raccourci lancé dans la dernière heure
             .sort((a, b) => (liste[b].vu || 0) - (liste[a].vu || 0));
           id = libres[0] || (liste.iphone && liste.iphone.btAdresse ? 'iphone-' + adresse.replace(/:/g, '').slice(-4).toLowerCase() : 'iphone');
         }
@@ -216,7 +227,17 @@ module.exports = (cfg) => {
         return id;
       } },
       // Le pont vient chercher les commandes en attente
-      commandes: { label: 'Commandes', run: async () => { pontVu = Date.now(); const c = commandes; commandes = []; return c; } },
+      // « prets » = les iPhone vraiment reliés en ce moment (envoyé chaque seconde par le pont 2.1+)
+      commandes: { label: 'Commandes', run: async ({ prets } = {}) => {
+        pontVu = Date.now();
+        if (Array.isArray(prets)) prets = prets.map(q => ALIAS[q] || String(q));
+        if (Array.isArray(prets)) Object.keys(liste).forEach(k => {
+          const on = prets.indexOf(k) >= 0;
+          if (on) liste[k].vu = Date.now();
+          if (liste[k].bt !== on && (on || liste[k].btAdresse)) { liste[k].bt = on; save(); }
+        });
+        const c = commandes; commandes = []; return c;
+      } },
       // Depuis l'écran : accepter / refuser l'appel
       appel: { label: 'Répondre à l\'appel', run: async ({ accepter, id }) => {
         const a = iphone(id);

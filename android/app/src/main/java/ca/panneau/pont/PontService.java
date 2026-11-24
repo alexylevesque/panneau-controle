@@ -189,7 +189,9 @@ public class PontService extends Service {
                     log("Un appareil s'est connecté : " + d.getAddress());
                     h.post(() -> {
                         Lien l = lien(d.getAddress(), false);
-                        if (l.gatt == null) l.connecter(false);
+                        // L'iPhone est là : si notre lien vers lui n'est pas encore établi, on abandonne
+                        // l'attente automatique (lente) et on se connecte directement tout de suite
+                        if (!l.relie) { l.fermer(); l.connecter(false); }
                     });
                     // On continue de s'annoncer pour qu'un autre iPhone puisse aussi se connecter
                     h.postDelayed(PontService.this::annoncer, 1500);
@@ -242,6 +244,7 @@ public class PontService extends Service {
         boolean ecritureEnCours = false;
         int etape = 0;                   // 0 = rien, 1 = Data Source activé, 2 = tout activé
         int dernierePile = -1;
+        boolean relie = false;           // connexion client établie
 
         Lien(String adresse, boolean ancien) { this.adresse = adresse; this.ancien = ancien; }
 
@@ -259,7 +262,7 @@ public class PontService extends Service {
 
         void fermer() {
             if (gatt != null) { try { gatt.close(); } catch (Exception e) { } gatt = null; }
-            etape = 0; enCours = null; aDemander.clear(); ecritures.clear(); ecritureEnCours = false; tampon.reset();
+            relie = false; etape = 0; enCours = null; aDemander.clear(); ecritures.clear(); ecritureEnCours = false; tampon.reset();
         }
 
         // Envoie au panneau en disant de quel iPhone il s'agit
@@ -289,6 +292,7 @@ public class PontService extends Service {
             @Override public void onConnectionStateChange(BluetoothGatt g, int status, int newState) {
                 h.post(() -> {
                     if (newState == BluetoothProfile.STATE_CONNECTED) {
+                        relie = true;
                         log(nom() + " : connecté, recherche des notifications…");
                         g.discoverServices();
                     } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -510,14 +514,18 @@ public class PontService extends Service {
     }
 
     // Va chercher chaque seconde les commandes du panneau (accepter / refuser un appel) et les donne au bon iPhone
-    private volatile boolean unPret = false;
+    private volatile String prets = "[]";
     private void boucleCommandes() {
         while (actif) {
             try {
                 Thread.sleep(1000);
-                h.post(() -> { boolean p = false; for (Lien l : liens.values()) p |= l.pret(); unPret = p; });
-                if (!unPret) continue;
-                String r = poster("commandes", "{}");
+                h.post(() -> {
+                    JSONArray a = new JSONArray();
+                    for (Lien l : liens.values()) if (l.pret()) a.put(l.qui);
+                    prets = a.toString();
+                });
+                // Chaque seconde : dit au panneau quels iPhone sont reliés, et ramasse les commandes
+                String r = poster("commandes", "{\"prets\":" + prets + "}");
                 if (r == null) continue;
                 JSONArray l = new JSONObject(r).optJSONArray("result");
                 if (l == null) continue;
