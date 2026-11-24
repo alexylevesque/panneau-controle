@@ -153,7 +153,17 @@
   .dev-ring-in b { font-size: 28px; font-weight: 300; }
   .dev-title { font-size: 24px; font-weight: 500; }
   .dev-sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
-  .dev-chg { color: var(--ok); font-size: 14px; margin-top: 6px; }
+  /* Pile façon iPhone : barre pleine, rayures qui défilent quand ça charge */
+  .batt { position: relative; width: 150px; height: 16px; margin-top: 12px; border-radius: 6px; background: rgba(255,255,255,0.10); overflow: hidden; }
+  .batt.vide { display: none; }
+  .batt-in { height: 100%; border-radius: 6px; transition: width .6s; }
+  .batt.chg .batt-in { background-color: var(--ok); background-size: 24px 16px;
+    background-image: linear-gradient(-45deg, rgba(255,255,255,.28) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.28) 50%, rgba(255,255,255,.28) 75%, transparent 75%);
+    -webkit-animation: charge 1s linear infinite; animation: charge 1s linear infinite; box-shadow: 0 0 12px var(--ok); }
+  .batt-z { display: none; position: absolute; left: 0; right: 0; top: 0; text-align: center; font-size: 12px; line-height: 16px; }
+  .batt.chg .batt-z { display: block; }
+  @-webkit-keyframes charge { from { background-position: 0 0; } to { background-position: 24px 0; } }
+  @keyframes charge { from { background-position: 0 0; } to { background-position: 24px 0; } }
   .ring-btn { height: 64px; border-radius: 20px; border: 0; margin-bottom: 22px; color: #1b1200; font-size: 18px; font-weight: 600; font-family: inherit;
               background: linear-gradient(135deg, #ffd36b, #ffb347); display: flex; align-items: center; justify-content: center; }
   .ring-btn span { font-size: 24px; margin-right: 10px; }
@@ -321,12 +331,10 @@
           <div>
             <div class="dev-title" id="devTitle">iPhone</div>
             <div class="dev-sub" id="devSub">–</div>
-            <div class="dev-chg" id="devChg"></div>
+            <div class="batt" id="devBatt"><div class="batt-in" id="devFill"></div><span class="batt-z">⚡</span></div>
           </div>
         </div>
         <button class="ring-btn" id="ringBtn"><span>🔔</span>Faire sonner l'iPhone</button>
-        <div class="section">AirPods</div>
-        <div class="ph-card bt" id="btList"></div>
       </div>
       <!-- Colonne droite : notifications -->
       <div class="ph-right">
@@ -393,7 +401,7 @@
         </ol>
         <div class="how-t">2. Notifications et appels — appli Pont iPhone sur la tablette</div>
         <ol class="how">
-          <li>Dans <b>Chrome</b> sur la tablette, télécharge et installe (et active la <b>Localisation</b> de la tablette pour les AirPods) :<br><code>github.com/alexylevesque/panneau-controle/releases/download/pont/pont-iphone.apk</code></li>
+          <li>Dans <b>Chrome</b> sur la tablette, télécharge et installe :<br><code>github.com/alexylevesque/panneau-controle/releases/download/pont/pont-iphone.apk</code></li>
           <li>Ouvre <b>Pont iPhone</b>. Sur l'iPhone, avec l'appli gratuite <b>nRF Connect</b> : SCAN, puis CONNECT sur <b>Panneau</b>.</li>
           <li>Accepte le <b>jumelage</b> et <b>Autoriser les notifications</b> sur l'iPhone.</li>
         </ol>
@@ -600,23 +608,15 @@
     var pct = d.batterie, deg = Math.round((pct || 0) * 3.6);
     $('devTitle').textContent = d.nom;
     $('devPct').textContent = pct === undefined ? '–' : pct + '%';
-    $('devChg').textContent = d.enCharge ? '⚡ En charge' : '';
+    $('devBatt').className = 'batt' + (d.enCharge ? ' chg' : '') + (pct === undefined ? ' vide' : '');
+    $('devFill').style.width = (pct || 0) + '%';
+    $('devFill').style.background = d.enCharge ? '' : batColor(pct);
     $('devRing').style.background = 'conic-gradient(' + batColor(pct) + ' ' + deg + 'deg, rgba(255,255,255,0.10) ' + deg + 'deg)';
     $('devSub').innerHTML = d.aucun ? '<span class="etat"><span class="dot"></span>Pas encore connecté</span>'
       : d.bluetooth ? '<span class="etat ok"><span class="dot ok"></span>Connecté</span>'
       : '<span class="etat"><span class="dot"></span>Pile mise à jour ' + ago(d.ilYa) + '</span>';
 
-    // AirPods
-    var ap = d.airpods;
-    var h = '';
-    if (ap && ap.actifs) {
-      var cell = function (v, ch, lbl) { return v === undefined || v === null ? '' : '<div' + (v <= 20 ? ' class="low"' : '') + '>' + (ch ? '⚡' : '') + v + '%<small>' + lbl + '</small></div>'; };
-      h = '<div class="bt-it"><div class="bt-ic">🎧</div><div class="bt-n">' + esc(ap.nom) + '<small>Actifs près de la tablette</small></div><div class="bt-bat">' +
-          cell(ap.gauche, ap.chargeGauche, 'G') + cell(ap.droite, ap.chargeDroite, 'D') + cell(ap.etui, ap.chargeEtui, 'Étui') + '</div></div>';
-    } else {
-      h = '<div class="bt-vide">🎧 Pas détectés. Ouvre l\'étui ou mets-les près de la tablette.</div>';
-    }
-    $('btList').innerHTML = h;
+    var h;
 
     // Notifications
     h = '';

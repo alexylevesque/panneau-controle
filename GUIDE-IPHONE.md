@@ -33,7 +33,7 @@ Son : **Up Down** (inclus dans Pushover), seulement sur l'iPhone. Pour l'arrête
 
 ---
 
-## 👉 Tu es ici : Étape 4 : notifications, appels et AirPods (10 min)
+## ✅ Étape 4 : notifications et appels (fait)
 
 Sur la tablette :
 
@@ -42,7 +42,7 @@ Sur la tablette :
    `github.com/alexylevesque/panneau-controle/releases/download/pont/pont-iphone.apk`
 3. Ouvre le fichier téléchargé > **Installer**
    (si Android bloque : touche **Paramètres** > active **Sources inconnues**, puis reviens)
-4. Ouvre **Pont iPhone** > accepte tout (Bluetooth, localisation)
+4. Ouvre **Pont iPhone** > accepte tout
 
 Sur l'iPhone :
 
