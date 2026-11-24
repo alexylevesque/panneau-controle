@@ -36,8 +36,8 @@ module.exports = (cfg) => {
   const app = pkg => () => shell(`monkey -p ${pkg} -c android.intent.category.LAUNCHER 1`).then(() => null);
 
   const actions = {
-    on:      { label: 'Allumer', icon: '⏻', color: 'green', run: key(224) },  // KEYCODE_WAKEUP (allume aussi la télé via HDMI-CEC)
-    off:     { label: 'Éteindre', icon: '⏻', color: 'red', run: key(223) },   // KEYCODE_SLEEP
+    on:      { label: 'Allumer', icon: '☀️', color: 'green', run: key(224) },  // KEYCODE_WAKEUP (allume aussi la télé via HDMI-CEC)
+    off:     { label: 'Éteindre', icon: '🌙', color: 'red', run: key(223) },   // KEYCODE_SLEEP
     volDown: { label: 'Vol −', icon: '🔉', run: key(25) },
     volUp:   { label: 'Vol +', icon: '🔊', run: key(24) },
     mute:    { label: 'Muet', icon: '🔇', run: key(164) },

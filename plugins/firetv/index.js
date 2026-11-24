@@ -83,8 +83,8 @@ module.exports = (cfg) => {
       fs.writeFileSync(TOKEN_FILE, JSON.stringify({ token }));
       return 'Jumelé ✔';
     } },
-    on:    { label: 'Réveiller', icon: '⏻', color: 'green', run: async () => { await wakeService(); return key('home')(); } },
-    off:   { label: 'Veille', icon: '⏻', color: 'red', run: key('sleep') },
+    on:    { label: 'Réveiller', icon: '☀️', color: 'green', run: async () => { await wakeService(); return key('home')(); } },
+    off:   { label: 'Veille', icon: '🌙', color: 'red', run: key('sleep') },
     home:  { label: 'Accueil', icon: '🏠', run: key('home') },
     back:  { label: 'Retour', icon: '↩', run: key('back') },
     menu:  { label: 'Menu', icon: '☰', run: key('menu') },
