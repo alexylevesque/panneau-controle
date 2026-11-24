@@ -83,7 +83,7 @@
 
   .remote-right { width: 520px; display: flex; flex-direction: column; }
   .section { color: var(--muted); font-size: 14px; letter-spacing: 1px; text-transform: uppercase; margin: 0 0 12px 4px; }
-  .power { display: flex; margin-bottom: 26px; }
+  .power { display: flex; margin-bottom: 20px; }
   .pw { flex: 1; height: 72px; border-radius: 20px; border: 0; color: #fff; font-size: 18px; font-weight: 500;
         display: flex; align-items: center; justify-content: center; }
   .pw span { font-size: 22px; margin-right: 10px; }
@@ -91,13 +91,14 @@
   .pw.off { background: var(--glass); border: 1px solid var(--glass-b); color: var(--txt); }
   .pw:active { transform: scale(.97); }
 
-  .media { display: flex; margin-bottom: 26px; }
+  .media { display: flex; margin-bottom: 20px; }
   .media .rb { flex: 1; margin: 0 14px 0 0; height: 64px; }
   .media .rb:last-child { margin-right: 0; }
+  .media .rb { font-size: 28px; }
   .media .rb.play { flex: 1.4; background: var(--glass-on); font-size: 34px; }
 
   .apps { display: flex; flex-wrap: wrap; margin-right: -14px; }
-  .app-t { width: calc(50% - 14px); margin: 0 14px 14px 0; height: 84px; border-radius: 22px; border: 0; color: #fff;
+  .app-t { width: calc(50% - 14px); margin: 0 14px 14px 0; height: 76px; border-radius: 22px; border: 0; color: #fff;
            display: flex; align-items: center; padding: 0 20px; font-size: 18px; font-weight: 500; text-align: left; }
   .app-t span { font-size: 28px; margin-right: 14px; }
   .app-t:active { transform: scale(.97); filter: brightness(1.1); }
@@ -172,6 +173,12 @@
         <button class="rb" data-k="rew">⏪</button>
         <button class="rb play" data-k="play">⏯</button>
         <button class="rb" data-k="ff">⏩</button>
+      </div>
+      <div class="section">Volume</div>
+      <div class="media">
+        <button class="rb" data-k="vdown">🔉</button>
+        <button class="rb play" data-k="mute">🔇</button>
+        <button class="rb" data-k="vup">🔊</button>
       </div>
       <div class="section">Applications</div>
       <div class="apps" id="apps">

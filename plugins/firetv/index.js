@@ -96,6 +96,9 @@ module.exports = (cfg) => {
     rew:   { label: 'Reculer', icon: '⏪', run: scan('back') },
     play:  { label: 'Play/Pause', icon: '⏯', run: () => send('media?action=play').then(() => null) },
     ff:    { label: 'Avancer', icon: '⏩', run: scan('forward') },
+    vdown: { label: 'Volume -', icon: '🔉', run: key('volume_down') },
+    mute:  { label: 'Muet', icon: '🔇', run: key('volume_mute') },
+    vup:   { label: 'Volume +', icon: '🔊', run: key('volume_up') },
   };
   (cfg.apps || []).forEach((a, i) => {
     actions[`app${i}`] = { label: a.name, icon: a.icon || '📱', run: () => send(`FireTV/app/${a.package}`).then(() => null) };
