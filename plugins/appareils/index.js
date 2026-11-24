@@ -63,14 +63,18 @@ module.exports = (cfg) => {
       req.end(body);
     });
   }
+  // Arrête TOUTES les sonneries du panneau encore actives (sur tous les iPhone)
+  function toutArreter() {
+    return pushover('/1/receipts/cancel_by_tag/panneau.json', { token: po.token }).catch(() => {});
+  }
   async function sonner(qui) {
     // Chaque iPhone = un appareil dans le même compte Pushover, nommé comme son id (ex. iphone, iphone2)
     qui = String(qui || 'iphone').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 25) || 'iphone';
     if (!po.user || !po.token) throw new Error('Configure Pushover d\'abord');
     const msg = { token: po.token, user: po.user, title: 'Panneau', message: '📍 Ton iPhone est ici!',
-      priority: 2, retry: 30, expire: 600, sound: 'updown', device: qui };   // seulement ce cell, pas le Mac
+      priority: 2, retry: 30, expire: 600, sound: 'updown', device: qui, tags: 'panneau' };   // seulement ce cell, pas le Mac
     // Une sonnerie d'avant (même sur l'autre iPhone) continuerait aux 30 s : on l'arrête d'abord
-    if (po.receipt) await pushover(`/1/receipts/${po.receipt}/cancel.json`, { token: po.token }).catch(() => {});
+    await toutArreter();
     const r = await pushover('/1/messages.json', msg);
     po.receipt = r.receipt; po.depuis = Date.now(); po.qui = qui;
     fs.writeFileSync(PO_FILE, JSON.stringify(po));
@@ -161,6 +165,7 @@ module.exports = (cfg) => {
       sonner: { label: 'Faire sonner', run: async ({ id }) => { await sonner(id); return 'Ça sonne'; } },
       arreter: { label: 'Arrêter la sonnerie', run: async () => {
         if (po.receipt) await pushover(`/1/receipts/${po.receipt}/cancel.json`, { token: po.token }).catch(() => {});
+        await toutArreter();
         delete po.receipt; fs.writeFileSync(PO_FILE, JSON.stringify(po));
         return 'Arrêté';
       } },
