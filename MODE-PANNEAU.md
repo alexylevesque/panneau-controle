@@ -124,12 +124,12 @@ Une WebView à jour = page plus rapide.
 
 ## Si la tablette redémarre
 
-Sur Android 6, Termux ne peut pas toujours se lancer tout seul au démarrage. Après un redémarrage :
+Après un redémarrage (rare, vu qu'elle reste branchée), le panneau ne repart pas tout seul. Fais juste ça :
 
-1. Fully Kiosk s'ouvre tout seul et affiche « Serveur injoignable ». C'est normal.
-2. Ouvre **Termux** une fois (glisse depuis le bord gauche dans Fully > Settings > Exit, ou par la liste des applis).
-   Le panneau démarre tout seul.
-3. Appuie sur le bouton **Accueil** : tu reviens au panneau, qui se recharge tout seul.
+1. Fully Kiosk s'ouvre et affiche une erreur. C'est normal : le panneau n'est pas encore lancé.
+2. Appuie sur le bouton **Accueil** (le bouton physique du milieu) : tu arrives sur l'écran Samsung.
+3. Ouvre l'appli **Termux**. Attends « Panneau prêt ! ». Tu n'as rien à taper.
+4. Retourne à l'accueil et ouvre l'appli **Fully Kiosk**. Le panneau s'affiche.
 
 Comme la tablette reste toujours branchée, ça ne devrait arriver que rarement.
 
