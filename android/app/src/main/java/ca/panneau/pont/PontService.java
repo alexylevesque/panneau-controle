@@ -66,6 +66,8 @@ public class PontService extends Service {
     static final UUID NOTIF_SOURCE = UUID.fromString("9FBF120D-6301-42D9-8C58-25E699A21DBD");
     static final UUID CONTROL_POINT = UUID.fromString("69D1D8F3-45E1-49A8-9821-9BBDFDAAD9D9");
     static final UUID DATA_SOURCE = UUID.fromString("22EAC6E9-24D6-4BB5-BE44-B36ACE7C7BFB");
+    static final UUID BATTERIE = UUID.fromString("0000180f-0000-1000-8000-00805f9b34fb");
+    static final UUID NIVEAU = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
     static final UUID CCCD = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
     // Notre propre service (pour que l'iPhone nous trouve sous le nom « Panneau »)
     static final UUID MON_SERVICE = UUID.fromString("5a1e0001-7a3b-4c2d-9e10-70616e6e6561");
@@ -329,6 +331,10 @@ public class PontService extends Service {
                     if (g.getDevice().getBondState() == BluetoothDevice.BOND_NONE) g.getDevice().createBond();
                     return;   // on réessaie quand le jumelage est fait
                 }
+                if (NIVEAU.equals(d.getCharacteristic().getUuid())) {   // pile activée : on lit la valeur actuelle
+                    g.readCharacteristic(d.getCharacteristic());
+                    return;
+                }
                 if (status != BluetoothGatt.GATT_SUCCESS) { log("Erreur d'activation (" + status + ")"); return; }
                 BluetoothGattService s = g.getService(ANCS);
                 if (s == null) return;
@@ -339,6 +345,10 @@ public class PontService extends Service {
                     etapeActivation = 2;
                     setEtat("iPhone connecté ✔");
                     envoyer("ancs", "{\"connecte\":true}");
+                    // Pile de l'iPhone en continu (service Batterie standard)
+                    BluetoothGattService b = g.getService(BATTERIE);
+                    if (b != null && b.getCharacteristic(NIVEAU) != null) activer(b.getCharacteristic(NIVEAU));
+                    else log("Pile : service non disponible sur l'iPhone");
                 }
             });
         }
@@ -347,15 +357,31 @@ public class PontService extends Service {
             final byte[] v = c.getValue().clone();
             final UUID u = c.getUuid();
             h.post(() -> {
-                if (NOTIF_SOURCE.equals(u)) recuNotif(v);
+                if (NIVEAU.equals(u)) recuPile(v);
+                else if (NOTIF_SOURCE.equals(u)) recuNotif(v);
                 else if (DATA_SOURCE.equals(u)) recuDonnees(v);
             });
+        }
+
+        @Override public void onCharacteristicRead(BluetoothGatt g, BluetoothGattCharacteristic c, int status) {
+            final byte[] v = c.getValue() == null ? new byte[0] : c.getValue().clone();
+            if (status == BluetoothGatt.GATT_SUCCESS && NIVEAU.equals(c.getUuid())) h.post(() -> recuPile(v));
         }
 
         @Override public void onCharacteristicWrite(BluetoothGatt g, BluetoothGattCharacteristic c, int status) {
             h.post(() -> { ecritureEnCours = false; ecrireSuivant(); });
         }
     };
+
+    private int dernierePile = -1;
+    private void recuPile(byte[] v) {
+        if (v.length < 1) return;
+        int p = v[0] & 0xff;
+        if (p > 100 || p == dernierePile) return;
+        dernierePile = p;
+        log("Pile de l'iPhone : " + p + " %");
+        envoyer("ancs", "{\"batterie\":" + p + "}");
+    }
 
     private void activer(BluetoothGattCharacteristic c) {
         if (gatt == null || c == null) return;

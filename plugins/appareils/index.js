@@ -123,6 +123,12 @@ module.exports = (cfg) => {
         const a = iphone();
         a.vu = Date.now();
         if (p.connecte !== undefined) a.bt = !!p.connecte;
+        if (p.batterie !== undefined) {
+          const b = Math.round(+p.batterie);
+          // La pile monte = en charge, elle baisse = débranché
+          if (a.batterie !== undefined && b !== a.batterie) a.enCharge = b > a.batterie;
+          a.batterie = b;
+        }
         const uid = String(p.uid);
         if (p.evt === 'retrait') {
           a.notifs = a.notifs.filter(n => n.id !== uid);
