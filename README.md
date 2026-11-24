@@ -16,6 +16,8 @@ Le panneau roule **directement sur la tablette**. Le Mac n'a pas besoin d'être 
 
 ---
 
+> **Tablette Android 6 (SM-T580)?** Une fois le panneau installé, suis plutôt [MODE-PANNEAU.md](MODE-PANNEAU.md) pour la configuration plein écran et les réglages de vitesse.
+
 ## Partie A — Préparer la tablette
 
 ### A1. Charger et mettre à jour
