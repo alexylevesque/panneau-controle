@@ -10,8 +10,29 @@ const qs = require('querystring');
 const APPS = {
   'com.apple.MobileSMS': 'messages', 'com.apple.mobilephone': 'telephone', 'com.apple.mobilemail': 'mail',
   'com.facebook.Messenger': 'messenger', 'com.burbn.instagram': 'instagram', 'com.toyopagroup.picaboo': 'snapchat',
-  'com.apple.mobilecal': 'calendrier',
+  'com.apple.mobilecal': 'calendrier', 'com.apple.facetime': 'facetime', 'net.whatsapp.WhatsApp': 'whatsapp',
+  'com.zhiliaoapp.musically': 'tiktok', 'com.hammerandchisel.discord': 'discord', 'com.facebook.Facebook': 'facebook',
+  'com.google.Gmail': 'gmail', 'com.google.ios.youtube': 'youtube',
 };
+
+// Vraies icônes des autres applis : demandées à l'App Store depuis la tablette, gardées en cache
+const ICONES_FILE = path.join(__dirname, '..', '..', 'icones.json');
+let icones = {};
+try { icones = JSON.parse(fs.readFileSync(ICONES_FILE, 'utf8')); } catch (e) {}
+const enCours = {};
+function chercherIcone(appId) {
+  if (!appId || APPS[appId] || icones[appId] !== undefined || enCours[appId]) return;
+  enCours[appId] = true;
+  https.get({ host: 'itunes.apple.com', path: '/lookup?country=ca&bundleId=' + encodeURIComponent(appId), timeout: 8000 }, res => {
+    let out = ''; res.on('data', c => (out += c));
+    res.on('end', () => {
+      delete enCours[appId];
+      let r = null; try { r = JSON.parse(out).results[0]; } catch (e) { return; }
+      icones[appId] = r ? { url: r.artworkUrl100 || r.artworkUrl60, nom: r.trackName } : null;
+      try { fs.writeFileSync(ICONES_FILE, JSON.stringify(icones)); } catch (e) {}
+    });
+  }).on('error', () => { delete enCours[appId]; }).on('timeout', function () { this.destroy(); });
+}
 
 module.exports = (cfg) => {
   const FILE = path.join(__dirname, '..', '..', 'appareils.json');
@@ -94,6 +115,11 @@ module.exports = (cfg) => {
       const a = liste[id];
       const o = Object.assign({}, a, { id, connecte: now - a.vu < EN_LIGNE_MS, ilYa: Math.round((now - a.vu) / 60000) });
       // Connecté pour vrai : le pont Bluetooth dit que l'iPhone est relié ET le pont répond encore
+      if (o.notifs) o.notifs = o.notifs.map(n => {
+        const ic = icones[n.appId];
+        if (ic === undefined) chercherIcone(n.appId);
+        return ic ? Object.assign({}, n, { icone: ic.url, nomApp: ic.nom }) : n;
+      });
       o.bluetooth = !!(a.bt && now - pontVu < 15000);
       if (o.airpods) o.airpods = Object.assign({}, o.airpods, { actifs: now - o.airpods.vu < 2 * 60 * 1000 });
       return o;

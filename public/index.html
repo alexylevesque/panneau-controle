@@ -153,17 +153,17 @@
   .dev-ring-in b { font-size: 28px; font-weight: 300; }
   .dev-title { font-size: 24px; font-weight: 500; }
   .dev-sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
-  /* Pile façon iPhone : barre pleine, rayures qui défilent quand ça charge */
-  .batt { position: relative; width: 150px; height: 16px; margin-top: 12px; border-radius: 6px; background: rgba(255,255,255,0.10); overflow: hidden; }
-  .batt.vide { display: none; }
-  .batt-in { height: 100%; border-radius: 6px; transition: width .6s; }
-  .batt.chg .batt-in { background-color: var(--ok); background-size: 24px 16px;
-    background-image: linear-gradient(-45deg, rgba(255,255,255,.28) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.28) 50%, rgba(255,255,255,.28) 75%, transparent 75%);
-    -webkit-animation: charge 1s linear infinite; animation: charge 1s linear infinite; box-shadow: 0 0 12px var(--ok); }
-  .batt-z { display: none; position: absolute; left: 0; right: 0; top: 0; text-align: center; font-size: 12px; line-height: 16px; }
-  .batt.chg .batt-z { display: block; }
-  @-webkit-keyframes charge { from { background-position: 0 0; } to { background-position: 24px 0; } }
-  @keyframes charge { from { background-position: 0 0; } to { background-position: 24px 0; } }
+  /* En charge : rayures qui tournent dans la roue */
+  .dev-ring { position: relative; }
+  .dev-ring-in { position: relative; z-index: 1; }
+  .ring-chg { display: none; position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 50%; overflow: hidden; }
+  .dev-ring.chg .ring-chg { display: block; }
+  .dev-ring.chg { box-shadow: 0 0 22px rgba(95,211,154,.35); }
+  .ring-chg div { width: 100%; height: 100%; border-radius: 50%;
+    background: repeating-conic-gradient(rgba(255,255,255,.32) 0deg 7deg, transparent 7deg 14deg);
+    -webkit-animation: tourne 2.5s linear infinite; animation: tourne 2.5s linear infinite; }
+  @-webkit-keyframes tourne { to { -webkit-transform: rotate(360deg); } }
+  @keyframes tourne { to { transform: rotate(360deg); } }
   .ring-btn { height: 64px; border-radius: 20px; border: 0; margin-bottom: 22px; color: #1b1200; font-size: 18px; font-weight: 600; font-family: inherit;
               background: linear-gradient(135deg, #ffd36b, #ffb347); display: flex; align-items: center; justify-content: center; }
   .ring-btn span { font-size: 24px; margin-right: 10px; }
@@ -196,7 +196,10 @@
   .nt { display: flex; align-items: flex-start; padding: 14px 12px; border-radius: 16px; }
   .nt:active { background: var(--glass-on); }
   .nt.unread .nt-t b:after { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-left: 8px; vertical-align: middle; }
-  .nicon { width: 44px; height: 44px; border-radius: 12px; flex: none; margin-right: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .nicon { width: 44px; height: 44px; border-radius: 11px; flex: none; margin-right: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; background: #55607f; }
+  .nicon img { width: 100%; height: 100%; display: block; }
+  .nicon .cal { width: 100%; height: 100%; background: #fff; color: #111; text-align: center; font-size: 22px; font-weight: 300; line-height: 26px; }
+  .nicon .cal small { display: block; color: #ff3b30; font-size: 9px; font-weight: 600; line-height: 14px; }
   .nt-b { flex: 1; min-width: 0; }
   .nt-t { display: flex; justify-content: space-between; }
   .nt-t b { font-weight: 500; font-size: 16px; }
@@ -327,11 +330,10 @@
       <!-- Colonne gauche : pile, sonner, Bluetooth -->
       <div class="ph-left">
         <div class="ph-card ph-bat">
-          <div class="dev-ring" id="devRing"><div class="dev-ring-in"><b id="devPct">–</b></div></div>
+          <div class="dev-ring" id="devRing"><div class="ring-chg" id="ringChg"><div></div></div><div class="dev-ring-in"><b id="devPct">–</b></div></div>
           <div>
             <div class="dev-title" id="devTitle">iPhone</div>
             <div class="dev-sub" id="devSub">–</div>
-            <div class="batt" id="devBatt"><div class="batt-in" id="devFill"></div><span class="batt-z">⚡</span></div>
           </div>
         </div>
         <button class="ring-btn" id="ringBtn"><span>🔔</span>Faire sonner l'iPhone</button>
@@ -583,9 +585,18 @@
   var devices = [], devSel = '';
   try { devSel = localStorage.getItem('appareil') || ''; } catch (e) {}
   var TYPE_ICON = { iphone: '📱', ipad: '📱', mac: '💻', macmini: '🖥️', android: '📱' };
-  var APPS = { messages: ['💬', '#30c46b', 'Messages'], telephone: ['📞', '#30c46b', 'Téléphone'], mail: ['✉️', '#2f7cf6', 'Mail'],
-               messenger: ['💭', '#7b5cff', 'Messenger'], instagram: ['📷', '#d6307a', 'Instagram'], snapchat: ['👻', '#f5e33b', 'Snapchat'],
-               calendrier: ['📅', '#ffffff', 'Calendrier'], autre: ['🔔', '#55607f', 'Notification'] };
+  // Applis connues : vraie icône locale (public/icones). Les autres : icône de l'App Store envoyée par le serveur.
+  var APPS = { messages: 'Messages', telephone: 'Téléphone', mail: 'Mail', facetime: 'FaceTime', messenger: 'Messenger',
+               instagram: 'Instagram', snapchat: 'Snapchat', whatsapp: 'WhatsApp', tiktok: 'TikTok', discord: 'Discord',
+               facebook: 'Facebook', gmail: 'Gmail', youtube: 'YouTube', calendrier: 'Calendrier' };
+  var JOURS = ['DIM.', 'LUN.', 'MAR.', 'MER.', 'JEU.', 'VEN.', 'SAM.'];
+  function nomApp(t) { return APPS[t.app] || t.nomApp || 'Notification'; }
+  function iconeApp(t) {
+    if (t.icone) return '<img src="' + esc(t.icone) + '" alt="">';
+    if (t.app === 'calendrier') { var d = new Date(); return '<div class="cal"><small>' + JOURS[d.getDay()] + '</small>' + d.getDate() + '</div>'; }
+    if (APPS[t.app]) return '<img src="/icones/' + t.app + '.svg" alt="">';
+    return '<span class="ic-def">🔔</span>';
+  }
   function esc(t) { return String(t === undefined ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function current() {
     for (var i = 0; i < devices.length; i++) if (devices[i].id === devSel) return devices[i];
@@ -608,9 +619,10 @@
     var pct = d.batterie, deg = Math.round((pct || 0) * 3.6);
     $('devTitle').textContent = d.nom;
     $('devPct').textContent = pct === undefined ? '–' : pct + '%';
-    $('devBatt').className = 'batt' + (d.enCharge ? ' chg' : '') + (pct === undefined ? ' vide' : '');
-    $('devFill').style.width = (pct || 0) + '%';
-    $('devFill').style.background = d.enCharge ? '' : batColor(pct);
+    // En charge : rayures qui tournent dans la partie remplie de la roue
+    $('devRing').className = 'dev-ring' + (d.enCharge ? ' chg' : '');
+    var masque = 'conic-gradient(#000 ' + deg + 'deg, transparent ' + deg + 'deg)';
+    $('ringChg').style.webkitMaskImage = masque; $('ringChg').style.maskImage = masque;
     $('devRing').style.background = 'conic-gradient(' + batColor(pct) + ' ' + deg + 'deg, rgba(255,255,255,0.10) ' + deg + 'deg)';
     $('devSub').innerHTML = d.aucun ? '<span class="etat"><span class="dot"></span>Pas encore connecté</span>'
       : d.bluetooth ? '<span class="etat ok"><span class="dot ok"></span>Connecté</span>'
@@ -621,9 +633,9 @@
     // Notifications
     h = '';
     for (var n = 0; n < shown.notifs.length; n++) {
-      var t = shown.notifs[n], a = APPS[t.app] || APPS.autre;
-      h += '<div class="nt' + (t.nonLu ? ' unread' : '') + '" data-i="' + n + '"><div class="nicon" style="background:' + a[1] + '">' + a[0] + '</div>' +
-           '<div class="nt-b"><div class="nt-a">' + a[2] + '</div><div class="nt-t"><b>' + esc(t.titre) + '</b><small>' + esc(t.heure) + '</small></div>' +
+      var t = shown.notifs[n];
+      h += '<div class="nt' + (t.nonLu ? ' unread' : '') + '" data-i="' + n + '"><div class="nicon">' + iconeApp(t) + '</div>' +
+           '<div class="nt-b"><div class="nt-a">' + esc(nomApp(t)) + '</div><div class="nt-t"><b>' + esc(t.titre) + '</b><small>' + esc(t.heure) + '</small></div>' +
            '<div class="nt-x">' + esc(t.texte) + '</div></div></div>';
     }
     $('notifs').innerHTML = h || (d.bluetooth ? '<div class="bt-vide">Aucune notification.</div>'
@@ -650,11 +662,10 @@
   // Lire une notif / répondre
   var QUICK = ['Oui 👍', 'Non', 'J\'arrive!', 'Je te rappelle', 'Ok parfait'];
   function openNotif(t) {
-    var a = APPS[t.app] || APPS.autre;
     if (t.nonLu && !shown.demo) api('POST', '/api/appareils/action/lu', { id: t.id });
     t.nonLu = false;
-    $('shIcon').style.background = a[1]; $('shIcon').textContent = a[0];
-    $('shApp').textContent = a[2]; $('shTime').textContent = t.heure;
+    $('shIcon').innerHTML = iconeApp(t);
+    $('shApp').textContent = nomApp(t); $('shTime').textContent = t.heure;
     $('shTitle').textContent = t.titre; $('shText').textContent = t.texte;
     $('sheet').className = 'sheet show';
     renderDevices();
