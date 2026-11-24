@@ -29,7 +29,7 @@ Sur l'iPhone, dans **Raccourcis** :
 
 ## ✅ Étape 3 : faire sonner l'iPhone (fait)
 
-Son perso : **ping** téléversé sur pushover.net. Pour l'arrêter sur l'iPhone, ouvre le message dans Pushover > **Acknowledge**.
+Son : **Up Down** (inclus dans Pushover), seulement sur l'iPhone. Pour l'arrêter sur l'iPhone, ouvre le message dans Pushover > **Acknowledge**.
 
 ---
 
@@ -41,6 +41,7 @@ Sur la tablette :
 2. Dans **Chrome**, ouvre :
    `github.com/alexylevesque/panneau-controle/releases/download/pont/pont-iphone.apk`
 3. Ouvre le fichier téléchargé > **Installer**
+   (si Android bloque : touche **Paramètres** > active **Sources inconnues**, puis reviens)
 4. Ouvre **Pont iPhone** > accepte tout (Bluetooth, localisation)
 
 Sur l'iPhone :
