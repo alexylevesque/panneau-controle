@@ -10,7 +10,7 @@ Fais les 4 étapes dans l'ordre. Une ligne = une action.
 
 ---
 
-## 👉 Tu es ici : Étape 2b, savoir s'il est en charge (2 min)
+## Étape 2b : savoir s'il est en charge (2 min, si pas encore fait)
 
 Sur l'iPhone, dans **Raccourcis** :
 
@@ -27,31 +27,13 @@ Sur l'iPhone, dans **Raccourcis** :
 
 ---
 
-## Étape 3 : faire sonner l'iPhone (5 min)
+## ✅ Étape 3 : faire sonner l'iPhone (fait)
 
-Sur l'iPhone :
-
-1. Installe **Pushover** (App Store) et crée un compte
-2. Dans Pushover : **Settings** > active **Critical Alerts**
-3. Copie ta **User Key** (écran principal de Pushover)
-
-Sur un navigateur (iPhone ou ordi) :
-
-4. Va sur **pushover.net** et connecte-toi
-5. **Create an Application/API Token**, nom : **Panneau**
-6. Copie l'**API Token**
-
-Sur la tablette :
-
-7. **Appareils** > **Faire sonner l'iPhone**
-8. Colle la **User Key** et l'**API Token**
-9. **Enregistrer et tester**
-
-✔️ Test : l'iPhone sonne.
+Son perso : **ping** téléversé sur pushover.net. Pour l'arrêter sur l'iPhone, ouvre le message dans Pushover > **Acknowledge**.
 
 ---
 
-## Étape 4 : notifications, appels et AirPods (10 min)
+## 👉 Tu es ici : Étape 4 : notifications, appels et AirPods (10 min)
 
 Sur la tablette :
 
