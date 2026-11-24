@@ -100,35 +100,6 @@ module.exports = (cfg) => {
     mute:  { label: 'Muet', icon: '🔇', run: key('volume_mute') },
     vup:   { label: 'Volume +', icon: '🔊', run: key('volume_up') },
   };
-  // Essais pour trouver la commande de volume qu'utilise l'appli officielle (Réglages > Essais volume)
-  const KD = { keyAction: { keyActionType: 'keyDown' } }, KU = { keyAction: { keyActionType: 'keyUp' } };
-  const ESSAIS = [
-    ['FireTV?action=volume_up'],
-    ['FireTV?action=volume_up', KD, KU],
-    ['FireTV?action=volumeUp'],
-    ['FireTV?action=VOLUME_UP'],
-    ['FireTV?action=volume_up', {}],
-    ['media?action=volume_up', KD, KU],
-    ['media?action=volumeUp'],
-    ['FireTV?action=volumeup'],
-    ['FireTV?action=vol_up'],
-    ['FireTV?action=mute'],
-    ['FireTV?action=MUTE'],
-    ['FireTV?action=volume_mute', KD, KU],
-  ];
-  actions.essai = { label: 'Essai volume', icon: '🧪', run: async ({ n }) => {
-    const e = ESSAIS[Number(n)];
-    if (!e) throw new Error('Essai inconnu');
-    try {
-      await send(e[0], e[1]);
-      if (e[2]) await send(e[0], e[2]);
-      return `Essai ${Number(n) + 1} accepté (${e[0]})`;
-    } catch (err) {
-      return `Essai ${Number(n) + 1} refusé : ${err.message}`;
-    }
-  } };
-  actions.essais = { label: 'Liste essais', run: async () => ESSAIS.map(e => e[0] + (e[1] ? ' +corps' : '')) };
-
   (cfg.apps || []).forEach((a, i) => {
     actions[`app${i}`] = { label: a.name, icon: a.icon || '📱', run: () => send(`FireTV/app/${a.package}`).then(() => null) };
   });

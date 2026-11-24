@@ -98,7 +98,7 @@
   .media .rb.play { flex: 1.4; background: var(--glass-on); font-size: 34px; }
 
   .apps { display: flex; flex-wrap: wrap; margin-right: -14px; }
-  .app-t { width: calc(50% - 14px); margin: 0 14px 14px 0; height: 76px; border-radius: 22px; border: 0; color: #fff;
+  .app-t { width: calc(50% - 14px); margin: 0 14px 14px 0; height: 84px; border-radius: 22px; border: 0; color: #fff;
            display: flex; align-items: center; padding: 0 20px; font-size: 18px; font-weight: 500; text-align: left; }
   .app-t span { font-size: 28px; margin-right: 14px; }
   .app-t:active { transform: scale(.97); filter: brightness(1.1); }
@@ -184,12 +184,6 @@
         <button class="rb play" data-k="play">⏯</button>
         <button class="rb" data-k="ff">⏩</button>
       </div>
-      <div class="section">Volume</div>
-      <div class="media">
-        <button class="rb" data-k="vdown">🔉</button>
-        <button class="rb play" data-k="mute">🔇</button>
-        <button class="rb" data-k="vup">🔊</button>
-      </div>
       <div class="section">Applications</div>
       <div class="apps" id="apps">
         <button class="app-t a-netflix" data-app="Netflix"><span>🎬</span>Netflix</button>
@@ -207,8 +201,6 @@
       <div class="section">Système</div>
       <div class="reg-ver" id="ver">…</div>
       <button class="pw on" id="updBtn"><span>🔄</span>Mettre à jour</button>
-      <div class="section">Essais volume</div>
-      <div class="essais" id="essais"></div>
       <a class="reg-link" href="/classique.html">Ancien panneau</a>
     </div>
   </div>
@@ -350,21 +342,6 @@
     });
   };
   refreshVer();
-  (function () {
-    var box = $('essais');
-    for (var n = 0; n < 12; n++) {
-      var b = document.createElement('button');
-      b.textContent = (n < 9 ? '🔊 ' : '🔇 ') + (n + 1);
-      b.setAttribute('data-n', n);
-      b.onclick = function () {
-        var n = this.getAttribute('data-n');
-        api('POST', '/api/firetv/action/essai', { n: n }, function (r) {
-          toast(r && r.ok ? r.result : ((r && r.error) || 'Erreur'), !(r && r.ok && String(r.result).indexOf('accepté') > 0));
-        });
-      };
-      box.appendChild(b);
-    }
-  })();
 
   refreshTv(); refreshMeteo();
   setInterval(refreshTv, 30000); setInterval(refreshMeteo, 60000);
