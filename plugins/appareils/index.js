@@ -69,6 +69,8 @@ module.exports = (cfg) => {
     if (!po.user || !po.token) throw new Error('Configure Pushover d\'abord');
     const msg = { token: po.token, user: po.user, title: 'Panneau', message: '📍 Ton iPhone est ici!',
       priority: 2, retry: 30, expire: 600, sound: 'updown', device: qui };   // seulement ce cell, pas le Mac
+    // Une sonnerie d'avant (même sur l'autre iPhone) continuerait aux 30 s : on l'arrête d'abord
+    if (po.receipt) await pushover(`/1/receipts/${po.receipt}/cancel.json`, { token: po.token }).catch(() => {});
     const r = await pushover('/1/messages.json', msg);
     po.receipt = r.receipt; po.depuis = Date.now(); po.qui = qui;
     fs.writeFileSync(PO_FILE, JSON.stringify(po));
