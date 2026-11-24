@@ -1,0 +1,28 @@
+:root { --bg:#0f1115; --card:#1a1d24; --btn:#262a33; --btnOn:#3a4050; --txt:#e8eaf0; --muted:#8a90a0; --accent:#4f8cff; --red:#e5484d; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
+html,body { margin:0; background:var(--bg); color:var(--txt); font-family:-apple-system,system-ui,Roboto,sans-serif; }
+header { display:flex; align-items:baseline; gap:16px; padding:20px 24px 8px; }
+header h1 { margin:0; font-size:48px; font-weight:600; font-variant-numeric:tabular-nums; }
+#date { color:var(--muted); font-size:18px; flex:1; text-transform:capitalize; }
+#fs { background:var(--btn); color:var(--txt); border:0; border-radius:12px; font-size:22px; width:48px; height:48px; }
+main { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; padding:16px 24px 32px; }
+.card { background:var(--card); border-radius:20px; padding:18px; }
+.card h2 { margin:0 0 4px; font-size:20px; }
+.card .status { color:var(--muted); font-size:14px; min-height:18px; margin-bottom:12px; }
+.btns { display:grid; grid-template-columns:repeat(auto-fill,minmax(88px,1fr)); gap:10px; }
+.btns button { background:var(--btn); color:var(--txt); border:0; border-radius:14px; min-height:80px; font-size:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; transition:transform .08s, background .15s; }
+.btns button .i { font-size:26px; }
+.btns button:active { transform:scale(.94); background:var(--btnOn); }
+.btns button.red { background:var(--red); }
+.btns button.busy { opacity:.5; }
+#toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(100px); background:#000c; padding:12px 20px; border-radius:12px; transition:transform .25s; max-width:90vw; }
+#toast.show { transform:translateX(-50%) translateY(0); }
+#toast.err { background:var(--red); }
+.btns button.green { background:#2f9e5b; }
+.card.wide { grid-column:span 2; }
+@media (max-width:700px) { .card.wide { grid-column:auto; } }
+.dpad { display:grid; grid-template-areas:". u ." "l c r" ". d ."; grid-template-columns:repeat(3,96px); grid-template-rows:repeat(3,80px); gap:10px; justify-content:center; margin-bottom:14px; }
+.dpad button { background:var(--btn); color:var(--txt); border:0; border-radius:14px; font-size:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+.dpad button .i { font-size:26px; }
+.dpad button:active { transform:scale(.94); background:var(--btnOn); }
+.dpad button.center { border-radius:50%; background:var(--accent); }

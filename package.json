@@ -1,0 +1,9 @@
+{
+  "name": "panneau-ipad",
+  "version": "0.1.0",
+  "description": "Panneau de contrôle pour iPad servi par le Mac mini, avec plugins",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}

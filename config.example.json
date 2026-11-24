@@ -1,0 +1,52 @@
+{
+  "port": 8080,
+  "token": "",
+  "plugins": {
+    "firetv": {
+      "enabled": true,
+      "mode": "app",
+      "ip": "192.168.1.60",
+      "apps": [
+        {
+          "name": "Prime Video",
+          "icon": "📦",
+          "package": "com.amazon.cloud9"
+        },
+        {
+          "name": "Netflix",
+          "icon": "🎬",
+          "package": "com.netflix.ninja"
+        },
+        {
+          "name": "YouTube",
+          "icon": "▶️",
+          "package": "com.amazon.firetv.youtube"
+        },
+        {
+          "name": "Disney+",
+          "icon": "🏰",
+          "package": "com.disney.disneyplus"
+        }
+      ]
+    },
+    "mac": {
+      "enabled": true
+    },
+    "wol": {
+      "enabled": true,
+      "devices": [
+        {
+          "name": "Mac mini",
+          "mac": "AA:BB:CC:DD:EE:FF",
+          "broadcast": "192.168.1.255"
+        }
+      ]
+    },
+    "tv": {
+      "enabled": false,
+      "brand": "demo",
+      "ip": "192.168.1.50",
+      "psk": "0000"
+    }
+  }
+}
