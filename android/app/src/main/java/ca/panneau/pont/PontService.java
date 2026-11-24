@@ -167,6 +167,7 @@ public class PontService extends Service {
     private String dernierAirPods = "";
     private long dernierLogApple = 0;
     private int vus = 0;
+    private final java.util.TreeMap<String, Integer> typesApple = new java.util.TreeMap<>();
     // Diagnostic : combien de signaux Bluetooth la recherche capte (0 = la recherche ne marche pas)
     private final Runnable bilanScan = new Runnable() { @Override public void run() {
         boolean loc = true;
@@ -174,7 +175,8 @@ public class PontService extends Service {
             android.location.LocationManager lm = (android.location.LocationManager) getSystemService(LOCATION_SERVICE);
             loc = lm.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER) || lm.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
         } catch (Exception e) { }
-        log("Recherche : " + vus + " signaux en 30 s" + (loc ? "" : " · Localisation ÉTEINTE"));
+        log("Recherche : " + vus + " signaux en 30 s" + (loc ? "" : " · Localisation ÉTEINTE") + " · Apple proche : " + typesApple);
+        typesApple.clear();
         vus = 0;
         if (System.currentTimeMillis() - debutBilan < 5 * 60 * 1000) h.postDelayed(this, 30000);
     } };
@@ -209,12 +211,12 @@ public class PontService extends Service {
     private void airPods(ScanResult r) {
         if (r.getScanRecord() == null) return;
         byte[] d = r.getScanRecord().getManufacturerSpecificData(76);
-        if (d == null || d.length < 2 || d[0] != 7) return;              // pas un signal d'écouteurs Apple
-        long t = System.currentTimeMillis();
-        if (t - dernierLogApple > 60000) {                                // diagnostic, au plus 1 fois par minute
-            dernierLogApple = t;
-            log("Signal Apple vu : " + d.length + " octets, " + r.getRssi() + " dBm");
+        if (d == null || d.length < 2) return;
+        if (r.getRssi() > -60) {                                          // diagnostic : types Apple tout proches
+            String k = String.format("%02x", d[0]) + "/" + d.length;
+            Integer n = typesApple.get(k); typesApple.put(k, n == null ? 1 : n + 1);
         }
+        if (d[0] != 7) return;                                            // pas un signal d'écouteurs Apple
         if (d.length < 25 || r.getRssi() < -85) return;                  // trop loin : sûrement les AirPods du voisin
         StringBuilder hex = new StringBuilder();
         for (byte x : d) hex.append(String.format("%02x", x));
