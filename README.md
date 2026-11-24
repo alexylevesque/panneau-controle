@@ -158,8 +158,8 @@ cp config.example.json config.json
 chmod +x demarrer.sh
 ```
 
-**Pour mettre à jour plus tard** (quand on ajoute des fonctions) : appuie sur **🔄 Mettre à jour** dans la carte
-**Système** du panneau. Il télécharge la nouvelle version, redémarre tout seul et la page se recharge.
+**Pour mettre à jour plus tard** (quand on ajoute des fonctions) : appuie sur **🔄 Mettre à jour** dans l'onglet
+**Réglages** du panneau. Il télécharge la nouvelle version, redémarre tout seul et la page se recharge.
 Ton `config.json` et le jumelage Fire TV sont gardés. (Le panneau se met aussi à jour à chaque démarrage.)
 
 ### B4. Démarrage automatique

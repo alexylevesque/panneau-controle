@@ -137,4 +137,4 @@ Comme la tablette reste toujours branchée, ça ne devrait arriver que rarement.
 
 ## Mises à jour du panneau
 
-Carte **⚙️ Système** > **🔄 Mettre à jour**. C'est tout.
+Onglet **Réglages** (en bas) > **🔄 Mettre à jour**. C'est tout.

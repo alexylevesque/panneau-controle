@@ -2,23 +2,351 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0f1115">
-<link rel="manifest" href="/manifest.webmanifest">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 <title>Panneau</title>
-<link rel="stylesheet" href="/style.css">
+<style>
+  :root {
+    --bg1: #0b1020; --bg2: #141a33; --glass: rgba(255,255,255,0.06); --glass-b: rgba(255,255,255,0.10);
+    --glass-on: rgba(255,255,255,0.14);
+    --txt: #f2f4fb; --muted: #9aa3c0; --accent: #7aa2ff; --warm: #ffb86b; --ok: #5fd39a; --bad: #ff6b6b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none; user-select: none; }
+  html, body { height: 100%; }
+  body {
+    font-family: Roboto, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: var(--txt);
+    background: radial-gradient(1200px 700px at 15% 10%, #26306a 0%, transparent 60%),
+                radial-gradient(900px 600px at 95% 100%, #3b2350 0%, transparent 55%),
+                linear-gradient(160deg, var(--bg1), var(--bg2));
+    overflow: hidden;
+  }
+  .app { height: 100%; display: flex; flex-direction: column; padding: 30px 44px 22px; }
+
+  /* Haut */
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .top .mid { color: var(--muted); font-size: 16px; font-variant-numeric: tabular-nums; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; background: var(--glass); border: 1px solid var(--glass-b);
+          padding: 8px 14px; border-radius: 999px; font-size: 15px; color: var(--txt); }
+  .pill b { font-weight: 500; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .dot.ok { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+  .dot.bad { background: var(--bad); box-shadow: 0 0 10px var(--bad); }
+  .bars { display: inline-flex; align-items: flex-end; height: 16px; }
+  .bars i { display: block; width: 4px; margin-right: 3px; border-radius: 2px; background: rgba(255,255,255,0.2); }
+  .bars i:nth-child(1) { height: 25%; } .bars i:nth-child(2) { height: 50%; }
+  .bars i:nth-child(3) { height: 75%; } .bars i:nth-child(4) { height: 100%; margin-right: 0; }
+  .bars.q4 i, .bars.q3 i:nth-child(-n+3) { background: var(--ok); }
+  .bars.q2 i:nth-child(-n+2) { background: var(--warm); }
+  .bars.q1 i:nth-child(1) { background: var(--bad); }
+
+  /* Vues */
+  .view { flex: 1; display: none; min-height: 0; }
+  .view.on { display: flex; }
+
+  /* ---- Accueil ---- */
+  #v-accueil { align-items: center; justify-content: space-between; }
+  .clock { font-size: 168px; font-weight: 200; letter-spacing: -4px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .clock .sec { font-size: 48px; color: var(--muted); letter-spacing: 0; margin-left: 10px; font-weight: 300; }
+  .date { font-size: 30px; font-weight: 300; color: var(--muted); margin-top: 14px; text-transform: capitalize; }
+  .greet { font-size: 22px; color: var(--accent); margin-bottom: 10px; }
+  .weather { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 28px; padding: 26px 30px; min-width: 300px; }
+  .weather .row { display: flex; align-items: center; }
+  .weather .icon { font-size: 64px; line-height: 1; margin-right: 18px; }
+  .weather .temp { font-size: 64px; font-weight: 200; }
+  .weather .desc { color: var(--muted); font-size: 18px; margin-top: 8px; }
+  .weather .mini { display: flex; margin-top: 18px; color: var(--muted); font-size: 15px; }
+  .weather .mini span { margin-right: 18px; }
+  .weather .mini b { color: var(--txt); font-weight: 500; }
+
+  /* ---- Télé ---- */
+  #v-tele { align-items: center; justify-content: space-between; padding: 10px 0; }
+  .remote-left { display: flex; flex-direction: column; align-items: center; }
+  .dpad { position: relative; width: 380px; height: 380px; border-radius: 50%;
+          background: var(--glass); border: 1px solid var(--glass-b); }
+  .dpad button { position: absolute; background: transparent; border: 0; color: var(--txt); font-size: 34px;
+                 display: flex; align-items: center; justify-content: center; border-radius: 20px; }
+  .dpad .u { top: 14px; left: 50%; width: 120px; height: 100px; margin-left: -60px; }
+  .dpad .d { bottom: 14px; left: 50%; width: 120px; height: 100px; margin-left: -60px; }
+  .dpad .l { left: 14px; top: 50%; width: 100px; height: 120px; margin-top: -60px; }
+  .dpad .r { right: 14px; top: 50%; width: 100px; height: 120px; margin-top: -60px; }
+  .dpad .ok { top: 50%; left: 50%; width: 150px; height: 150px; margin: -75px 0 0 -75px; border-radius: 50%;
+              background: linear-gradient(145deg, #6f93ff, #7a5bff); font-size: 22px; font-weight: 500;
+              box-shadow: 0 10px 30px rgba(110,130,255,0.35); }
+  .dpad button:active { background: var(--glass-on); }
+  .dpad .ok:active { transform: scale(.96); background: linear-gradient(145deg, #5f83ef, #6a4bef); }
+
+  .row-btns { display: flex; margin-top: 22px; }
+  .rb { width: 84px; height: 64px; margin: 0 7px; border-radius: 18px; background: var(--glass); border: 1px solid var(--glass-b);
+        color: var(--txt); font-size: 24px; display: flex; align-items: center; justify-content: center; }
+  .rb:active { background: var(--glass-on); transform: scale(.96); }
+
+  .remote-right { width: 520px; display: flex; flex-direction: column; }
+  .section { color: var(--muted); font-size: 14px; letter-spacing: 1px; text-transform: uppercase; margin: 0 0 12px 4px; }
+  .power { display: flex; margin-bottom: 20px; }
+  .pw { flex: 1; height: 72px; border-radius: 20px; border: 0; color: #fff; font-size: 18px; font-weight: 500;
+        display: flex; align-items: center; justify-content: center; }
+  .pw span { font-size: 22px; margin-right: 10px; }
+  .pw.on { background: linear-gradient(135deg, #2fd2a0, #22a57d); margin-right: 14px; }
+  .pw.off { background: var(--glass); border: 1px solid var(--glass-b); color: var(--txt); }
+  .pw:active { transform: scale(.97); }
+
+  .media { display: flex; margin-bottom: 20px; }
+  .media .rb { flex: 1; margin: 0 14px 0 0; height: 64px; }
+  .media .rb:last-child { margin-right: 0; }
+  .media .rb { font-size: 28px; }
+  .media .rb.play { flex: 1.4; background: var(--glass-on); font-size: 34px; }
+
+  .apps { display: flex; flex-wrap: wrap; margin-right: -14px; }
+  .app-t { width: calc(50% - 14px); margin: 0 14px 14px 0; height: 76px; border-radius: 22px; border: 0; color: #fff;
+           display: flex; align-items: center; padding: 0 20px; font-size: 18px; font-weight: 500; text-align: left; }
+  .app-t span { font-size: 28px; margin-right: 14px; }
+  .app-t:active { transform: scale(.97); filter: brightness(1.1); }
+  .a-netflix { background: linear-gradient(135deg, #e50914, #8f0610); }
+  .a-youtube { background: linear-gradient(135deg, #ff3b3b, #c4161c); }
+  .a-prime { background: linear-gradient(135deg, #1fa2ff, #1462c9); }
+  .a-disney { background: linear-gradient(135deg, #3b4fd8, #1b2a7a); }
+
+  .pair { display: none; margin-top: 6px; padding: 14px 18px; border-radius: 18px; background: rgba(255,184,107,0.12);
+          border: 1px solid rgba(255,184,107,0.35); color: var(--txt); font-size: 15px; text-align: left; }
+  .pair.show { display: block; }
+
+  /* Navigation */
+  .nav { display: flex; justify-content: center; margin-top: 16px; }
+  .nav a { color: var(--muted); font-size: 15px; padding: 10px 22px; margin: 0 5px; border-radius: 999px; }
+  .nav a.on { background: rgba(122,162,255,0.16); color: var(--txt); }
+  .nav a.off { opacity: .4; }
+
+  #v-reglages { align-items: center; justify-content: center; }
+  .reg { width: 460px; text-align: center; }
+  .reg .section { text-align: left; }
+  .reg-ver { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 18px; padding: 18px; margin-bottom: 16px; color: var(--muted); }
+  .reg .pw { width: 100%; margin: 0 0 22px 0; }
+  .reg-link { color: var(--muted); font-size: 14px; }
+  #toast { position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); background: rgba(0,0,0,0.75);
+           padding: 12px 20px; border-radius: 14px; font-size: 15px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  #toast.show { opacity: 1; }
+  #toast.err { background: rgba(200,40,40,0.9); }
+</style>
 </head>
 <body>
-<header>
-  <h1 id="clock">--:--</h1>
-  <div id="date"></div>
-  <button id="fs" title="Plein écran">⛶</button>
-</header>
-<main id="grid"></main>
+<div class="app">
+  <div class="top">
+    <div class="pill"><span class="dot" id="tvDot"></span> <span id="tvTxt">Fire TV…</span></div>
+    <div class="mid" id="miniClock"></div>
+    <div class="pill" id="wifi"><span class="bars q4"><i></i><i></i><i></i><i></i></span> Wi-Fi · <b id="wifiTxt">…</b></div>
+  </div>
+
+  <!-- Accueil -->
+  <div class="view on" id="v-accueil">
+    <div>
+      <div class="greet" id="greet">Bonjour</div>
+      <div class="clock"><span id="hm">--:--</span><span class="sec" id="s">00</span></div>
+      <div class="date" id="date"></div>
+    </div>
+    <div class="weather">
+      <div class="row"><div class="icon" id="wIcon">⛅</div><div class="temp" id="wTemp">–</div></div>
+      <div class="desc" id="wDesc">Sorel-Tracy</div>
+      <div class="mini"><span>Max <b id="wMax">–</b></span><span>Min <b id="wMin">–</b></span><span>Vent <b id="wVent">–</b></span></div>
+    </div>
+  </div>
+
+  <!-- Télé -->
+  <div class="view" id="v-tele">
+    <div class="remote-left">
+      <div class="dpad">
+        <button class="u" data-k="up">▲</button>
+        <button class="l" data-k="left">◀</button>
+        <button class="ok" data-k="ok">OK</button>
+        <button class="r" data-k="right">▶</button>
+        <button class="d" data-k="down">▼</button>
+      </div>
+      <div class="row-btns">
+        <button class="rb" data-k="back" title="Retour">↩</button>
+        <button class="rb" data-k="home" title="Accueil">⌂</button>
+        <button class="rb" data-k="menu" title="Menu">☰</button>
+      </div>
+    </div>
+
+    <div class="remote-right">
+      <div class="section">Alimentation</div>
+      <div class="power">
+        <button class="pw on" data-k="on"><span>☀️</span>Allumer</button>
+        <button class="pw off" data-k="off"><span>🌙</span>Veille</button>
+      </div>
+      <div class="section">Lecture</div>
+      <div class="media">
+        <button class="rb" data-k="rew">⏪</button>
+        <button class="rb play" data-k="play">⏯</button>
+        <button class="rb" data-k="ff">⏩</button>
+      </div>
+      <div class="section">Volume</div>
+      <div class="media">
+        <button class="rb" data-k="vdown">🔉</button>
+        <button class="rb play" data-k="mute">🔇</button>
+        <button class="rb" data-k="vup">🔊</button>
+      </div>
+      <div class="section">Applications</div>
+      <div class="apps" id="apps">
+        <button class="app-t a-netflix" data-app="Netflix"><span>🎬</span>Netflix</button>
+        <button class="app-t a-youtube" data-app="YouTube"><span>▶️</span>YouTube</button>
+        <button class="app-t a-prime" data-app="Prime Video"><span>📦</span>Prime Video</button>
+        <button class="app-t a-disney" data-app="Disney+"><span>🏰</span>Disney+</button>
+      </div>
+      <button class="pair" id="pairBtn">🔗 La Fire TV n'est pas jumelée : appuie ici pour la jumeler</button>
+    </div>
+  </div>
+
+  <!-- Réglages (pour l'instant : juste la mise à jour) -->
+  <div class="view" id="v-reglages">
+    <div class="reg">
+      <div class="section">Système</div>
+      <div class="reg-ver" id="ver">…</div>
+      <button class="pw on" id="updBtn"><span>🔄</span>Mettre à jour</button>
+      <a class="reg-link" href="/classique.html">Ancien panneau</a>
+    </div>
+  </div>
+
+  <div class="nav" id="nav">
+    <a class="on" data-v="accueil">Accueil</a><a data-v="tele">Télé</a><a class="off">Maison</a><a data-v="reglages">Réglages</a>
+  </div>
+</div>
 <div id="toast"></div>
-<script src="/app.js"></script>
+
+<script>
+  function $(id) { return document.getElementById(id); }
+  var TOKEN = ''; try { TOKEN = localStorage.getItem('token') || ''; } catch (e) {}
+
+  function api(method, path, body, cb) {
+    var x = new XMLHttpRequest();
+    x.open(method, path);
+    x.setRequestHeader('Content-Type', 'application/json');
+    if (TOKEN) x.setRequestHeader('X-Token', TOKEN);
+    x.onload = function () { var r = null; try { r = JSON.parse(x.responseText); } catch (e) {} cb && cb(r); };
+    x.onerror = function () { cb && cb({ ok: false, error: 'Serveur injoignable' }); };
+    x.send(body ? JSON.stringify(body) : null);
+  }
+
+  var toastTimer;
+  function toast(msg, err) {
+    var t = $('toast'); t.textContent = msg; t.className = 'show' + (err ? ' err' : '');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.className = ''; }, 2200);
+  }
+
+  // ---- Horloge ----
+  function two(n) { return (n < 10 ? '0' : '') + n; }
+  function tick() {
+    var d = new Date(), h = d.getHours(), m = d.getMinutes();
+    $('hm').textContent = h + ':' + two(m);
+    $('s').textContent = two(d.getSeconds());
+    $('miniClock').textContent = h + ':' + two(m);
+    $('date').textContent = d.toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long' });
+    $('greet').textContent = h < 5 ? 'Bonne nuit' : h < 12 ? 'Bon matin' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
+  }
+  tick(); setInterval(tick, 1000);
+
+  // ---- Navigation ----
+  var navLinks = $('nav').getElementsByTagName('a');
+  function show(v) {
+    for (var i = 0; i < navLinks.length; i++) {
+      var a = navLinks[i]; if (!a.getAttribute('data-v')) continue;
+      a.className = a.getAttribute('data-v') === v ? 'on' : '';
+      $('v-' + a.getAttribute('data-v')).className = 'view' + (a.getAttribute('data-v') === v ? ' on' : '');
+    }
+    $('miniClock').style.visibility = v === 'accueil' ? 'hidden' : 'visible';
+  }
+  for (var i = 0; i < navLinks.length; i++) {
+    navLinks[i].onclick = function () {
+      var v = this.getAttribute('data-v');
+      if (v) show(v); else toast('Bientôt disponible');
+    };
+  }
+  show('accueil');
+
+  // ---- Télécommande ----
+  var appKeys = {}; // nom d'app -> clé d'action (app0, app1…)
+  function press(key) {
+    if (navigator.vibrate) navigator.vibrate(15);
+    api('POST', '/api/firetv/action/' + key, {}, function (r) {
+      if (!r || !r.ok) toast((r && r.error) || 'Erreur', true);
+    });
+  }
+  var btns = document.querySelectorAll('[data-k]');
+  for (var j = 0; j < btns.length; j++) {
+    btns[j].onclick = function () { press(this.getAttribute('data-k')); };
+  }
+  var appBtns = document.querySelectorAll('[data-app]');
+  for (var k = 0; k < appBtns.length; k++) {
+    appBtns[k].onclick = function () {
+      var key = appKeys[this.getAttribute('data-app')];
+      if (key) { press(key); toast('Ouverture de ' + this.getAttribute('data-app') + '…'); }
+      else toast('Appli pas configurée', true);
+    };
+  }
+  // Associe les boutons d'apps aux actions configurées dans config.json
+  api('GET', '/api/plugins', null, function (list) {
+    if (!list || !list.length) return;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id !== 'firetv') continue;
+      var acts = list[i].actions;
+      for (var a = 0; a < acts.length; a++) if (/^app\d+$/.test(acts[a].key)) appKeys[acts[a].label] = acts[a].key;
+    }
+  });
+
+  // Jumelage
+  $('pairBtn').onclick = function () {
+    api('POST', '/api/firetv/action/pair', {}, function (r) {
+      if (!r || !r.ok) return toast((r && r.error) || 'Erreur', true);
+      if (r.result && r.result.askPin) {
+        var pin = prompt('Entre le code affiché sur la télé');
+        if (!pin) return;
+        api('POST', '/api/firetv/action/pair', { pin: pin }, function (r2) {
+          if (r2 && r2.ok) { toast('Jumelée ✔'); refreshTv(); } else toast((r2 && r2.error) || 'Code refusé', true);
+        });
+      }
+    });
+  };
+
+  // ---- État Fire TV, météo, Wi-Fi ----
+  function refreshTv() {
+    api('GET', '/api/firetv/status', null, function (r) {
+      var paired = r && r.texte && r.texte.indexOf('Pas encore') === -1;
+      $('tvDot').className = 'dot ' + (r ? (paired ? 'ok' : 'bad') : '');
+      $('tvTxt').textContent = !r ? 'Fire TV' : paired ? 'Fire TV connectée' : 'Fire TV non jumelée';
+      $('pairBtn').className = 'pair' + (r && !paired ? ' show' : '');
+    });
+  }
+  function refreshMeteo() {
+    api('GET', '/api/meteo/status', null, function (r) {
+      if (!r) return;
+      if (r.meteo) {
+        var m = r.meteo;
+        $('wIcon').textContent = m.icone; $('wTemp').textContent = m.temp + '°';
+        $('wDesc').textContent = m.description + ' · ' + m.ville;
+        $('wMax').textContent = m.max + '°'; $('wMin').textContent = m.min + '°'; $('wVent').textContent = m.vent + ' km/h';
+      }
+      if (r.reseau) {
+        document.querySelector('#wifi .bars').className = 'bars q' + r.reseau.niveau;
+        $('wifiTxt').textContent = r.reseau.texte;
+      }
+    });
+  }
+  // ---- Réglages : mise à jour ----
+  function refreshVer() {
+    api('GET', '/api/systeme/status', null, function (r) { if (r && r.texte) $('ver').textContent = r.texte; });
+  }
+  $('updBtn').onclick = function () {
+    toast('Mise à jour…');
+    api('POST', '/api/systeme/action/update', {}, function (r) {
+      if (!r || !r.ok) return toast((r && r.error) || 'Erreur', true);
+      if (r.result && r.result.reload) { toast(r.result.message || 'Mis à jour, redémarrage…'); setTimeout(function () { location.reload(); }, 4000); }
+      else toast((r.result && r.result.message) || r.result || 'Déjà à jour ✔');
+    });
+  };
+  refreshVer();
+
+  refreshTv(); refreshMeteo();
+  setInterval(refreshTv, 30000); setInterval(refreshMeteo, 60000);
+</script>
 </body>
 </html>
