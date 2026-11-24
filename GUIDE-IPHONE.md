@@ -14,8 +14,8 @@ Ton raccourci **Panneau** envoie la pile de l'iPhone à la tablette. Il fonction
 
 Sur l'iPhone, dans **Raccourcis** :
 
-1. Onglet **Automatisation** (en bas)
-2. **+** (en haut à droite)
+1. Si tu vois « Tous les raccourcis », touche **<** en haut à gauche pour revenir à l'écran principal
+2. Touche **Automatisation**, puis **+** (en haut à droite)
 3. **Chargeur**
 4. Coche **Est connecté** et **Est déconnecté**
 5. **Exécuter immédiatement**
