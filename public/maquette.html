@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Accueil — maquette</title>
+<style>
+  :root {
+    --bg1: #0b1020; --bg2: #141a33; --glass: rgba(255,255,255,0.06); --glass-b: rgba(255,255,255,0.10);
+    --txt: #f2f4fb; --muted: #9aa3c0; --accent: #7aa2ff; --warm: #ffb86b; --ok: #5fd39a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+  html, body { height: 100%; }
+  body {
+    font-family: Roboto, -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: var(--txt);
+    background: radial-gradient(1200px 700px at 15% 10%, #26306a 0%, transparent 60%),
+                radial-gradient(900px 600px at 95% 100%, #3b2350 0%, transparent 55%),
+                linear-gradient(160deg, var(--bg1), var(--bg2));
+    overflow: hidden;
+  }
+  .app { height: 100%; display: flex; flex-direction: column; padding: 36px 44px 24px; }
+
+  /* Haut : salutation + statut */
+  .top { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 18px; }
+  .pill { display: inline-flex; align-items: center; gap: 8px; background: var(--glass); border: 1px solid var(--glass-b);
+          padding: 8px 14px; border-radius: 999px; font-size: 15px; color: var(--txt); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+
+  /* Centre : horloge */
+  .hero { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 40px; }
+  .clock { font-size: 168px; font-weight: 200; letter-spacing: -4px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .clock .sec { font-size: 48px; color: var(--muted); letter-spacing: 0; margin-left: 10px; font-weight: 300; }
+  .date { font-size: 30px; font-weight: 300; color: var(--muted); margin-top: 14px; text-transform: capitalize; }
+  .greet { font-size: 22px; color: var(--accent); margin-bottom: 10px; font-weight: 400; }
+
+  .weather { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 28px; padding: 26px 30px; min-width: 300px; }
+  .weather .row { display: flex; align-items: center; gap: 18px; }
+  .weather .icon { font-size: 64px; line-height: 1; }
+  .weather .temp { font-size: 64px; font-weight: 200; }
+  .weather .desc { color: var(--muted); font-size: 18px; margin-top: 8px; }
+  .weather .mini { display: flex; gap: 18px; margin-top: 18px; color: var(--muted); font-size: 15px; }
+  .weather .mini b { color: var(--txt); font-weight: 500; }
+
+  /* Bas : raccourcis */
+  .tiles { display: flex; gap: 16px; }
+  .tile { flex: 1; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 22px; padding: 20px;
+          display: flex; align-items: center; gap: 14px; transition: transform .1s, background .2s; }
+  .tile:active { transform: scale(.97); background: rgba(255,255,255,0.12); }
+  .tile .ic { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; }
+  .tile .t { font-size: 17px; font-weight: 500; }
+  .tile .s { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .c1 { background: linear-gradient(135deg, #ff8a5b, #ff5f6d); }
+  .c2 { background: linear-gradient(135deg, #5b8cff, #7a5bff); }
+  .c3 { background: linear-gradient(135deg, #2fd2a0, #1fa2ff); }
+  .c4 { background: linear-gradient(135deg, #ffcf5b, #ff9f43); }
+
+  /* Barre de navigation */
+  .nav { display: flex; justify-content: center; gap: 10px; margin-top: 22px; }
+  .nav a { color: var(--muted); text-decoration: none; font-size: 15px; padding: 10px 20px; border-radius: 999px; }
+  .nav a.on { background: rgba(122,162,255,0.16); color: var(--txt); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="pill"><span class="dot"></span> Fire TV connectée</div>
+    <div class="pill">📶 Maison</div>
+  </div>
+
+  <div class="hero">
+    <div>
+      <div class="greet" id="greet">Bon après-midi</div>
+      <div class="clock"><span id="hm">15:26</span><span class="sec" id="s">00</span></div>
+      <div class="date" id="date">mardi 24 novembre</div>
+    </div>
+    <div class="weather">
+      <div class="row"><div class="icon">⛅</div><div class="temp">-2°</div></div>
+      <div class="desc">Partiellement nuageux · Québec</div>
+      <div class="mini"><span>Max <b>1°</b></span><span>Min <b>-7°</b></span><span>Vent <b>15 km/h</b></span></div>
+    </div>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><div class="ic c1">📺</div><div><div class="t">Télé</div><div class="s">Télécommande Fire TV</div></div></div>
+    <div class="tile"><div class="ic c2">🎬</div><div><div class="t">Netflix</div><div class="s">Ouvrir sur la télé</div></div></div>
+    <div class="tile"><div class="ic c3">🖥️</div><div><div class="t">Mac mini</div><div class="s">Réveiller</div></div></div>
+    <div class="tile"><div class="ic c4">💡</div><div><div class="t">Lumières</div><div class="s">Bientôt</div></div></div>
+  </div>
+
+  <div class="nav">
+    <a class="on">Accueil</a><a>Télé</a><a>Maison</a><a>Réglages</a>
+  </div>
+</div>
+<script>
+  function tick() {
+    var d = new Date();
+    var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
+    document.getElementById('hm').textContent = h + ':' + (m < 10 ? '0' : '') + m;
+    document.getElementById('s').textContent = (s < 10 ? '0' : '') + s;
+    document.getElementById('date').textContent = d.toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long' });
+    document.getElementById('greet').textContent = h < 5 ? 'Bonne nuit' : h < 12 ? 'Bon matin' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
+  }
+  tick(); setInterval(tick, 1000);
+</script>
+</body>
+</html>
