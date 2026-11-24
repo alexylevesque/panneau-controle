@@ -176,8 +176,12 @@
   .bt { flex: none; }
   .bt-vide { color: var(--muted); padding: 16px 8px; font-size: 14px; }
   .ph-head { display: flex; justify-content: space-between; align-items: baseline; }
-  .demo { color: var(--warm); font-size: 13px; }
-  .demo a { text-decoration: underline; cursor: pointer; }
+  .bt-vide a { color: var(--txt); text-decoration: underline; cursor: pointer; }
+  .etat { display: inline-flex; align-items: center; padding: 4px 12px 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.07); font-size: 14px; }
+  .etat .dot { margin-right: 8px; }
+  .etat.ok { background: rgba(95,211,154,0.16); color: var(--ok); font-weight: 600; }
+  .devbtn.live #devName:after { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-left: 8px; vertical-align: middle;
+             background: var(--ok); box-shadow: 0 0 8px var(--ok); }
   .notifs { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 6px; }
   .nt { display: flex; align-items: flex-start; padding: 14px 12px; border-radius: 16px; }
   .nt:active { background: var(--glass-on); }
@@ -328,7 +332,6 @@
       <div class="ph-right">
         <div class="ph-head">
           <div class="section">Notifications</div>
-          <div class="demo" id="demoTag">Aperçu · données d'exemple · <a id="howBtn">Connecter mon iPhone</a></div>
         </div>
         <div class="ph-card notifs" id="notifs"></div>
       </div>
@@ -576,18 +579,6 @@
   var APPS = { messages: ['💬', '#30c46b', 'Messages'], telephone: ['📞', '#30c46b', 'Téléphone'], mail: ['✉️', '#2f7cf6', 'Mail'],
                messenger: ['💭', '#7b5cff', 'Messenger'], instagram: ['📷', '#d6307a', 'Instagram'], snapchat: ['👻', '#f5e33b', 'Snapchat'],
                calendrier: ['📅', '#ffffff', 'Calendrier'], autre: ['🔔', '#55607f', 'Notification'] };
-  // Données d'exemple, affichées tant que l'iPhone n'envoie rien de vrai
-  var DEMO = {
-    id: 'demo', nom: 'iPhone', type: 'iphone', batterie: 76, enCharge: false, connecte: true, ilYa: 0, demo: true,
-    notifs: [
-      { id: 'n1', app: 'messages', titre: 'Maman', texte: 'Tu viens souper dimanche? Ton père fait du pâté chinois 😄', heure: '16:02', repondre: true, nonLu: true },
-      { id: 'n2', app: 'snapchat', titre: 'Snapchat', texte: 'Jérémy t\'a envoyé un snap', heure: '15:47', nonLu: true },
-      { id: 'n3', app: 'messages', titre: 'Max', texte: 'Yo on game à soir? Je suis en ligne vers 8h', heure: '15:30', repondre: true },
-      { id: 'n4', app: 'mail', titre: 'Hydro-Québec', texte: 'Votre facture est disponible. Montant : 84,12 $. Date d\'échéance : 15 décembre.', heure: '14:12' },
-      { id: 'n5', app: 'calendrier', titre: 'Dentiste', texte: 'Demain à 10:30 — Clinique dentaire Sorel', heure: '12:00' },
-      { id: 'n6', app: 'instagram', titre: 'Instagram', texte: 'sarah.b a aimé ta photo', heure: '11:05' }
-    ]
-  };
   function esc(t) { return String(t === undefined ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function current() {
     for (var i = 0; i < devices.length; i++) if (devices[i].id === devSel) return devices[i];
@@ -601,21 +592,23 @@
   function renderDevices() {
     var real = current();
     // Les parties pas encore branchées gardent les exemples
-    var d = real ? real : DEMO;
-    shown = { info: d, notifs: d.notifs || DEMO.notifs, demo: !real || !d.notifs };
+    var d = real ? real : { nom: 'iPhone', type: 'iphone', aucun: true };
+    shown = { info: d, notifs: d.notifs || [], demo: false };
     $('devName').textContent = real ? real.nom : 'Appareils';
     $('devIcon').textContent = real ? (TYPE_ICON[real.type] || '📱') : '📱';
-    $('demoTag').style.display = shown.demo ? 'block' : 'none';
+    $('devBtn').className = 'pill devbtn' + (d.bluetooth ? ' live' : '');
 
     var pct = d.batterie, deg = Math.round((pct || 0) * 3.6);
     $('devTitle').textContent = d.nom;
     $('devPct').textContent = pct === undefined ? '–' : pct + '%';
     $('devChg').textContent = d.enCharge ? '⚡ En charge' : '';
     $('devRing').style.background = 'conic-gradient(' + batColor(pct) + ' ' + deg + 'deg, rgba(255,255,255,0.10) ' + deg + 'deg)';
-    $('devSub').textContent = d.demo ? 'Exemple' : (d.connecte ? 'Connecté' : 'Hors ligne') + ' · vu ' + ago(d.ilYa);
+    $('devSub').innerHTML = d.aucun ? '<span class="etat"><span class="dot"></span>Pas encore connecté</span>'
+      : d.bluetooth ? '<span class="etat ok"><span class="dot ok"></span>Connecté</span>'
+      : '<span class="etat"><span class="dot"></span>Pas connecté · vu ' + ago(d.ilYa) + '</span>';
 
     // AirPods
-    var ap = d.airpods || (shown.demo ? { nom: 'AirPods Pro', gauche: 80, droite: 80, etui: 60, chargeEtui: true, actifs: true } : null);
+    var ap = d.airpods;
     var h = '';
     if (ap && ap.actifs) {
       var cell = function (v, ch, lbl) { return v === undefined || v === null ? '' : '<div' + (v <= 20 ? ' class="low"' : '') + '>' + (ch ? '⚡' : '') + v + '%<small>' + lbl + '</small></div>'; };
@@ -634,7 +627,9 @@
            '<div class="nt-b"><div class="nt-a">' + a[2] + '</div><div class="nt-t"><b>' + esc(t.titre) + '</b><small>' + esc(t.heure) + '</small></div>' +
            '<div class="nt-x">' + esc(t.texte) + '</div></div></div>';
     }
-    $('notifs').innerHTML = h || '<div class="bt-vide">Aucune notification.</div>';
+    $('notifs').innerHTML = h || (d.bluetooth ? '<div class="bt-vide">Aucune notification.</div>'
+      : '<div class="bt-vide">Les notifications s\'afficheront ici quand l\'iPhone sera connecté. <a id="howBtn">Comment faire</a></div>');
+    if ($('howBtn')) $('howBtn').onclick = function () { $('how').className = 'sheet show'; };
     var nts = $('notifs').getElementsByClassName('nt');
     for (var k = 0; k < nts.length; k++) nts[k].onclick = function () { openNotif(shown.notifs[+this.getAttribute('data-i')]); };
 
@@ -712,13 +707,8 @@
   }
   $('callYes').onclick = function () { answer(true); };
   $('callNo').onclick = function () { answer(false); };
-  var pressT;
-  $('devRing').addEventListener('touchstart', function () { if (!shown.demo) return; pressT = setTimeout(function () { showCall({ de: 'Maman' }); }, 700); });
-  $('devRing').addEventListener('touchend', function () { clearTimeout(pressT); });
-  $('devRing').ondblclick = function () { if (shown.demo) showCall({ de: 'Maman' }); };
 
   // Aide connexion
-  $('howBtn').onclick = function () { $('how').className = 'sheet show'; };
   $('howClose').onclick = function () { $('how').className = 'sheet'; };
 
   function refreshDevices() {

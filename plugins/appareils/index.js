@@ -71,11 +71,14 @@ module.exports = (cfg) => {
     } catch (e) { return ''; }
   }
 
+  let pontVu = 0;
   function vue() {
     const now = Date.now();
     return Object.keys(liste).map(id => {
       const a = liste[id];
       const o = Object.assign({}, a, { id, connecte: now - a.vu < EN_LIGNE_MS, ilYa: Math.round((now - a.vu) / 60000) });
+      // Connecté pour vrai : le pont Bluetooth dit que l'iPhone est relié ET le pont répond encore
+      o.bluetooth = !!(a.bt && now - pontVu < 15000);
       if (o.airpods) o.airpods = Object.assign({}, o.airpods, { actifs: now - o.airpods.vu < 2 * 60 * 1000 });
       return o;
     }).sort((a, b) => b.vu - a.vu);
@@ -137,7 +140,7 @@ module.exports = (cfg) => {
         return 'OK';
       } },
       // Le pont vient chercher les commandes en attente
-      commandes: { label: 'Commandes', run: async () => { const c = commandes; commandes = []; return c; } },
+      commandes: { label: 'Commandes', run: async () => { pontVu = Date.now(); const c = commandes; commandes = []; return c; } },
       // Depuis l'écran : accepter / refuser l'appel
       appel: { label: 'Répondre à l\'appel', run: async ({ accepter }) => {
         const a = iphone();
