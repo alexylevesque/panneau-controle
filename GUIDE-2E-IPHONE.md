@@ -22,7 +22,7 @@ Sur **son** iPhone :
 4. Touche **Panneau** pour l'ouvrir
 5. Dans **Obtenir le contenu de l'URL**, touche la flèche pour voir les champs
 6. **id** : remplace `iphone` par **iphone2**
-7. **nom** : écris le nom à afficher, par exemple **iPhone de Emy**
+7. **nom** : écris le nom à afficher, par exemple **iPhone de** suivi de son prénom
 8. **OK**
 
 ✔️ Test : touche **Panneau** une fois. Sur la tablette, en haut à droite, son iPhone apparaît dans la liste.
