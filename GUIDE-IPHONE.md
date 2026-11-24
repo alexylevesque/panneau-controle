@@ -24,11 +24,20 @@ Sur l'iPhone :
      - `batterie` = la variable **Niveau de la batterie** (choisis-la dans la barre au-dessus du clavier)
 5. Touche ▶ pour tester. Sur la tablette, ton iPhone et sa pile apparaissent dans **Appareils**.
 
-**Pour que ça se mette à jour tout seul** : onglet **Automatisation** > **+** :
+**Pour que ça se mette à jour tout seul : automatisation du chargeur**
 
-- **Chargeur** > « Est connecté » et « Est déconnecté » > **Exécuter immédiatement** > raccourci **Panneau**.
-- **Wi-Fi** > ton réseau > **Exécuter immédiatement** > **Panneau**.
-- (Optionnel) **Niveau de la batterie** > « Descend sous 50 % », puis « 20 % », pareil.
+1. Dans **Raccourcis**, touche l'onglet **Automatisation** (en bas).
+2. Touche **+** en haut à droite (ou **Nouvelle automatisation**).
+3. Descends et touche **Chargeur**.
+4. Coche **Est connecté** ET **Est déconnecté**.
+5. En bas : **Exécuter immédiatement**. Désactive **Avertir lors de l'exécution** si l'option est là.
+6. **Suivant**.
+7. Touche ton raccourci **Panneau** dans la liste. S'il n'y est pas : **Nouveau raccourci vide** > ajoute l'action **Exécuter le raccourci** > touche « Raccourci » en bleu > **Panneau**.
+8. **OK** (ou **<**) pour enregistrer.
+
+**Automatisation du Wi-Fi** : pareil, mais à l'étape 3, choisis **Wi-Fi** > **Réseau** > ton Wi-Fi de la maison > coche **Rejoint**.
+
+Pour vérifier : débranche l'iPhone. Dans **Appareils** sur la tablette, la pile et le ⚡ se mettent à jour en quelques secondes.
 
 > Si l'adresse de la tablette change un jour (après un redémarrage du routeur), mets la nouvelle adresse dans le raccourci.
 > Pour l'éviter : dans ton routeur, réserve une adresse IP fixe pour la tablette.
