@@ -21,7 +21,7 @@ let icones = {};
 try { icones = JSON.parse(fs.readFileSync(ICONES_FILE, 'utf8')); } catch (e) {}
 const enCours = {};
 function chercherIcone(appId) {
-  if (!appId || APPS[appId] || icones[appId] !== undefined || enCours[appId]) return;
+  if (!appId || /^com\.apple\./.test(appId) || icones[appId] !== undefined || enCours[appId]) return;   // applis Apple : icône locale
   enCours[appId] = true;
   https.get({ host: 'itunes.apple.com', path: '/lookup?country=ca&bundleId=' + encodeURIComponent(appId), timeout: 8000 }, res => {
     let out = ''; res.on('data', c => (out += c));
