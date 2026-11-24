@@ -47,6 +47,12 @@
       "brand": "demo",
       "ip": "192.168.1.50",
       "psk": "0000"
+    },
+    "meteo": {
+      "enabled": true,
+      "ville": "Sorel-Tracy",
+      "latitude": 46.04,
+      "longitude": -73.11
     }
   }
 }

@@ -27,6 +27,14 @@
           padding: 8px 14px; border-radius: 999px; font-size: 15px; color: var(--txt); }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 10px var(--ok); }
 
+  .bars { display: inline-flex; align-items: flex-end; gap: 3px; height: 16px; }
+  .bars i { display: block; width: 4px; border-radius: 2px; background: rgba(255,255,255,0.2); }
+  .bars i:nth-child(1) { height: 25%; } .bars i:nth-child(2) { height: 50%; }
+  .bars i:nth-child(3) { height: 75%; } .bars i:nth-child(4) { height: 100%; }
+  .bars.q1 i:nth-child(-n+1), .bars.q2 i:nth-child(-n+2), .bars.q3 i:nth-child(-n+3), .bars.q4 i { background: var(--ok); }
+  .bars.q1 i:nth-child(-n+1) { background: #ff6b6b; } .bars.q2 i:nth-child(-n+2) { background: var(--warm); }
+  .pill b { font-weight: 500; }
+
   /* Centre : horloge */
   .hero { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 40px; }
   .clock { font-size: 168px; font-weight: 200; letter-spacing: -4px; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -65,7 +73,7 @@
 <div class="app">
   <div class="top">
     <div class="pill"><span class="dot"></span> Fire TV connectée</div>
-    <div class="pill">📶 Maison</div>
+    <div class="pill" id="wifi"><span class="bars q4"><i></i><i></i><i></i><i></i></span> Wi-Fi · <b id="wifiTxt">Excellent</b></div>
   </div>
 
   <div class="hero">
@@ -75,9 +83,9 @@
       <div class="date" id="date">mardi 24 novembre</div>
     </div>
     <div class="weather">
-      <div class="row"><div class="icon">⛅</div><div class="temp">-2°</div></div>
-      <div class="desc">Partiellement nuageux · Québec</div>
-      <div class="mini"><span>Max <b>1°</b></span><span>Min <b>-7°</b></span><span>Vent <b>15 km/h</b></span></div>
+      <div class="row"><div class="icon" id="wIcon">⛅</div><div class="temp" id="wTemp">-2°</div></div>
+      <div class="desc" id="wDesc">Partiellement nuageux · Sorel-Tracy</div>
+      <div class="mini"><span>Max <b id="wMax">1°</b></span><span>Min <b id="wMin">-7°</b></span><span>Vent <b id="wVent">15 km/h</b></span></div>
     </div>
   </div>
 
@@ -95,6 +103,28 @@
     document.getElementById('greet').textContent = h < 5 ? 'Bonne nuit' : h < 12 ? 'Bon matin' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
   }
   tick(); setInterval(tick, 1000);
+
+  // Vraies données (quand la page est servie par le panneau)
+  function $(id) { return document.getElementById(id); }
+  function refresh() {
+    var x = new XMLHttpRequest();
+    x.open('GET', '/api/meteo/status');
+    x.onload = function () {
+      try { var r = JSON.parse(x.responseText); } catch (e) { return; }
+      if (r.meteo) {
+        var m = r.meteo;
+        $('wIcon').textContent = m.icone; $('wTemp').textContent = m.temp + '°';
+        $('wDesc').textContent = m.description + ' · ' + m.ville;
+        $('wMax').textContent = m.max + '°'; $('wMin').textContent = m.min + '°'; $('wVent').textContent = m.vent + ' km/h';
+      }
+      if (r.reseau) {
+        document.querySelector('#wifi .bars').className = 'bars q' + r.reseau.niveau;
+        $('wifiTxt').textContent = r.reseau.texte;
+      }
+    };
+    x.send();
+  }
+  refresh(); setInterval(refresh, 60000);
 </script>
 </body>
 </html>
