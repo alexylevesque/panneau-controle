@@ -40,13 +40,21 @@ module.exports = (cfg) => {
   const EN_LIGNE_MS = (cfg.minutesEnLigne || 20) * 60 * 1000;
   let liste = {};
   try { liste = JSON.parse(fs.readFileSync(FILE, 'utf8')); } catch (e) {}
-  // Ménage : le cell de ta blonde avait été lié au vieux « iphone2 » au lieu de « iphone16 »
-  const ALIAS = {};
-  if (liste.iphone2 && liste.iphone16) {
-    if (liste.iphone2.btAdresse && !liste.iphone16.btAdresse) liste.iphone16.btAdresse = liste.iphone2.btAdresse;
-    delete liste.iphone2;
-    ALIAS.iphone2 = 'iphone16';
-    try { fs.writeFileSync(FILE, JSON.stringify(liste)); } catch (e) {}
+  // Les noms que le pont a déjà en tête mais qui ont été fusionnés dans un autre appareil (ex. iphone-4456 → iphone16)
+  const ALIAS_FILE = path.join(__dirname, '..', '..', 'alias.json');
+  let ALIAS = {};
+  try { ALIAS = JSON.parse(fs.readFileSync(ALIAS_FILE, 'utf8')); } catch (e) {}
+  if (liste.iphone2 && liste.iphone16) { delete liste.iphone2; ALIAS.iphone2 = 'iphone16'; }
+  const saveAlias = () => { try { fs.writeFileSync(ALIAS_FILE, JSON.stringify(ALIAS)); } catch (e) {} };
+  saveAlias();
+  // Un appareil créé par le pont faute de mieux (« iphone-xxxx », sans raccourci)
+  // (le raccourci donne toujours un vrai nom, ex. « iPhone 16 » ; le pont, lui, crée juste « iPhone »)
+  const parPont = k => !!liste[k] && !liste[k].raccourci && (liste[k].nom || 'iPhone') === 'iPhone';
+  // Les appareils du panneau (avec raccourci) qui peuvent recevoir un iPhone Bluetooth inconnu :
+  // pas déjà relié en ce moment, sans Bluetooth d'abord, puis le plus récemment vu
+  function candidats(exclure) {
+    return Object.keys(liste).filter(k => !parPont(k) && (liste[k].type || 'iphone') === 'iphone' && exclure.indexOf(k) < 0)
+      .sort((a, b) => (!!liste[a].btAdresse - !!liste[b].btAdresse) || ((liste[b].vu || 0) - (liste[a].vu || 0)));
   }
   const save = () => { try { fs.writeFileSync(FILE, JSON.stringify(liste, null, 2)); } catch (e) {} };
 
@@ -163,6 +171,7 @@ module.exports = (cfg) => {
         }
         if (p.enCharge !== undefined) a.enCharge = p.enCharge === true || /^(1|true|oui|yes|vrai)$/i.test(String(p.enCharge));
         a.vu = Date.now();
+        a.raccourci = true;
         liste[id] = a;
         save();
         return 'OK';
@@ -215,14 +224,11 @@ module.exports = (cfg) => {
         adresse = String(adresse || '').toUpperCase();
         if (!adresse) throw new Error('adresse manquante');
         for (const id of Object.keys(liste)) if (liste[id].btAdresse === adresse) return id;
-        let id = null;
-        if (ancien) id = 'iphone';
-        else {
-          const libres = Object.keys(liste).filter(k => !liste[k].btAdresse && k !== 'iphone' && (liste[k].type || 'iphone') === 'iphone'
-              && Date.now() - (liste[k].vu || 0) < 60 * 60 * 1000)   // raccourci lancé dans la dernière heure
-            .sort((a, b) => (liste[b].vu || 0) - (liste[a].vu || 0));
-          id = libres[0] || (liste.iphone && liste.iphone.btAdresse ? 'iphone-' + adresse.replace(/:/g, '').slice(-4).toLowerCase() : 'iphone');
-        }
+        // Adresse inconnue (l'iPhone peut changer d'adresse Bluetooth) : on la donne à un appareil
+        // du panneau qui n'est pas relié en ce moment. Les iPhone reliés sont dans « bt ».
+        const relies = Object.keys(liste).filter(k => liste[k].bt && Date.now() - pontVu < 15000);
+        let id = ancien && !relies.includes('iphone') && liste.iphone && !liste.iphone.btAdresse ? 'iphone' : candidats(relies)[0];
+        if (!id) id = 'iphone-' + adresse.replace(/:/g, '').slice(-4).toLowerCase();
         iphone(id).btAdresse = adresse; save();
         return id;
       } },
@@ -231,6 +237,20 @@ module.exports = (cfg) => {
       commandes: { label: 'Commandes', run: async ({ prets } = {}) => {
         pontVu = Date.now();
         if (Array.isArray(prets)) prets = prets.map(q => ALIAS[q] || String(q));
+        // Un iPhone relié sous un nom « iphone-xxxx » : on le fusionne dans le bon appareil (celui pas relié)
+        if (Array.isArray(prets)) prets = prets.map(q => {
+          if (!parPont(q) || !liste[q]) return q;
+          const t = candidats(prets)[0];
+          if (!t) return q;
+          const x = liste[q], a = liste[t];
+          a.btAdresse = x.btAdresse; a.bt = true;
+          if (x.batterie !== undefined) a.batterie = x.batterie;
+          if (x.enCharge !== undefined) a.enCharge = x.enCharge;
+          a.notifs = (x.notifs || []).concat(a.notifs || []).slice(0, 40);
+          if (x.appel) a.appel = x.appel;
+          delete liste[q]; ALIAS[q] = t; saveAlias(); save();
+          return t;
+        });
         if (Array.isArray(prets)) Object.keys(liste).forEach(k => {
           const on = prets.indexOf(k) >= 0;
           if (on) liste[k].vu = Date.now();
@@ -242,7 +262,9 @@ module.exports = (cfg) => {
       appel: { label: 'Répondre à l\'appel', run: async ({ accepter, id }) => {
         const a = iphone(id);
         if (!a.appel) throw new Error('Pas d\'appel en cours');
-        commandes.push({ qui: String(id || 'iphone'), uid: a.appel.uid, action: accepter ? 'positive' : 'negative' });
+        let q = String(id || 'iphone');
+        const vieux = Object.keys(ALIAS).filter(k => ALIAS[k] === q);   // le pont connaît peut-être encore l'ancien nom
+        vieux.concat([q]).forEach(qq => commandes.push({ qui: qq, uid: a.appel.uid, action: accepter ? 'positive' : 'negative' }));
         a.appel = null; save();
         return accepter ? 'Accepté' : 'Refusé';
       } },
