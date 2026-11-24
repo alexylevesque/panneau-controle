@@ -53,7 +53,6 @@ Fully Kiosk remplace Chrome : il ouvre le panneau en plein écran, sans barre d'
 | Device Management | Keep Screen On | ✅ |
 | Device Management | Launch on Boot | ✅ |
 | Device Management | Screen Brightness | 100 (échelle de 0 à 255; vide = luminosité d'Android) |
-| Advanced Web Settings | Enable Hardware Acceleration | ✅ |
 
 ### Faire de Fully Kiosk l'écran d'accueil
 
