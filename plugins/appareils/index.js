@@ -44,14 +44,8 @@ module.exports = (cfg) => {
   async function sonner() {
     if (!po.user || !po.token) throw new Error('Configure Pushover d\'abord');
     const msg = { token: po.token, user: po.user, title: 'Panneau', message: '📍 Ton iPhone est ici!',
-      priority: 2, retry: 30, expire: 600, sound: 'echo' };
-    // On essaie les noms possibles du son perso, puis Echo si aucun n'existe
-    const sons = po.son && po.son !== 'ping' ? [po.son] : ['pingdoux', 'ping', 'oublie', 'Oublie', 'Ping'];
-    let r;
-    for (const son of sons.concat('echo')) {
-      try { r = await pushover('/1/messages.json', Object.assign(msg, { sound: son })); if (son !== 'echo') po.son = son; break; }
-      catch (e) { if (!/sound/i.test(e.message) || son === 'echo') throw e; }
-    }
+      priority: 2, retry: 30, expire: 600, sound: 'updown' };
+    const r = await pushover('/1/messages.json', msg);
     po.receipt = r.receipt; po.depuis = Date.now();
     fs.writeFileSync(PO_FILE, JSON.stringify(po));
   }
