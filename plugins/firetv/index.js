@@ -154,7 +154,11 @@ module.exports = (cfg) => {
       return out;
     } },
     // Toutes les applis installées (pour plus tard)
-    applis: { label: 'Applis installées', run: () => installedApps() },
+    applis: { label: 'Applis installées', run: () => { appsTime = 0; return installedApps(); } },
+    ouvrir: { label: 'Ouvrir une appli', run: ({ id, shortcut }) => {
+      if (!id) throw new Error('Appli manquante');
+      return send(shortcut ? 'FireTV/shortcut/' + encodeURIComponent(shortcut) : 'FireTV/app/' + encodeURIComponent(id)).then(() => null);
+    } },
   };
   (cfg.apps || []).forEach((a, i) => {
     actions[`app${i}`] = { label: a.name, icon: a.icon || '📱', run: () => openApp(a) };

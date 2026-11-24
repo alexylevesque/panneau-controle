@@ -119,7 +119,16 @@
   .nav a.on { background: rgba(122,162,255,0.16); color: var(--txt); }
   .nav a.off { opacity: .4; }
 
-  #v-reglages { align-items: center; justify-content: center; }
+  #v-reglages { align-items: stretch; justify-content: space-between; padding: 10px 0; }
+  #v-reglages .reg { align-self: center; }
+  .reg-apps { width: 640px; display: flex; flex-direction: column; min-height: 0; }
+  .alist { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: var(--glass); border: 1px solid var(--glass-b);
+           border-radius: 18px; padding: 6px; }
+  .arow { display: flex; align-items: center; padding: 8px; border-radius: 12px; }
+  .arow:active { background: var(--glass-on); }
+  .arow img, .arow .noimg { width: 64px; height: 36px; border-radius: 6px; margin-right: 12px; object-fit: cover; background: #000; flex: none; }
+  .arow b { display: block; font-weight: 500; font-size: 16px; }
+  .arow small { color: var(--muted); font-size: 12px; word-break: break-all; }
   .reg { width: 460px; text-align: center; }
   .reg .section { text-align: left; }
   .reg-ver { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 18px; padding: 18px; margin-bottom: 16px; color: var(--muted); }
@@ -201,6 +210,10 @@
       <button class="pw on" id="updBtn"><span>🔄</span>Mettre à jour</button>
       <a class="reg-link" href="/classique.html">Ancien panneau</a>
     </div>
+    <div class="reg-apps">
+      <div class="section">Applis de la Fire TV</div>
+      <div class="alist" id="alist"><div class="reg-ver">Chargement…</div></div>
+    </div>
   </div>
 
   <div class="nav" id="nav">
@@ -255,6 +268,7 @@
     navLinks[i].onclick = function () {
       var v = this.getAttribute('data-v');
       if (v) show(v); else toast('Bientôt disponible');
+      if (v === 'reglages' && !appsLoaded) loadAppList();
     };
   }
   show('accueil');
@@ -360,6 +374,34 @@
     });
   };
   refreshVer();
+
+  // Liste des applis déclarées par la Fire TV (toucher = ouvrir)
+  var appsLoaded = false;
+  function loadAppList() {
+    api('POST', '/api/firetv/action/applis', {}, function (r) {
+      var box = $('alist');
+      if (!r || !r.ok || !r.result) { box.innerHTML = '<div class="reg-ver">' + ((r && r.error) || 'Erreur') + '</div>'; return; }
+      appsLoaded = true;
+      box.innerHTML = '';
+      for (var i = 0; i < r.result.length; i++) {
+        var a = r.result[i], row = document.createElement('div');
+        row.className = 'arow';
+        row.innerHTML = (a.icon ? '<img src="' + a.icon + '">' : '<span class="noimg"></span>') +
+          '<div><b></b><small></small></div>';
+        row.getElementsByTagName('b')[0].textContent = a.name;
+        row.getElementsByTagName('small')[0].textContent = a.id + (a.shortcut ? '  ·  raccourci : ' + a.shortcut : '');
+        (function (a) {
+          row.onclick = function () {
+            toast('Ouverture de ' + a.name + '…');
+            api('POST', '/api/firetv/action/ouvrir', { id: a.id, shortcut: a.shortcut }, function (r2) {
+              if (!r2 || !r2.ok) toast((r2 && r2.error) || 'Erreur', true);
+            });
+          };
+        })(a);
+        box.appendChild(row);
+      }
+    });
+  }
 
   refreshTv(); refreshMeteo();
   setInterval(refreshTv, 30000); setInterval(refreshMeteo, 60000);
