@@ -28,7 +28,8 @@ function chercherIcone(appId) {
     res.on('end', () => {
       delete enCours[appId];
       let r = null; try { r = JSON.parse(out).results[0]; } catch (e) { return; }
-      icones[appId] = r ? { url: r.artworkUrl100 || r.artworkUrl60, nom: r.trackName } : null;
+      // 256 px au lieu de 100 px : plus net
+      icones[appId] = r ? { url: String(r.artworkUrl512 || r.artworkUrl100 || r.artworkUrl60 || '').replace(/\/\d+x\d+bb\./, '/256x256bb.'), nom: r.trackName } : null;
       try { fs.writeFileSync(ICONES_FILE, JSON.stringify(icones)); } catch (e) {}
     });
   }).on('error', () => { delete enCours[appId]; }).on('timeout', function () { this.destroy(); });
