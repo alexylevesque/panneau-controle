@@ -33,7 +33,8 @@ public class MainActivity extends Activity {
         aide.setText("Cette appli relie ton iPhone au panneau par Bluetooth. Laisse-la tourner : "
             + "la notification « Pont iPhone actif » la garde en vie.\n\n"
             + "Première fois : sur l'iPhone, ouvre l'appli gratuite « nRF Connect », touche SCAN, "
-            + "puis CONNECT à côté de « Panneau ». Accepte le jumelage et « Partager les notifications ».");
+            + "puis CONNECT à côté de « Panneau ». Accepte le jumelage et « Partager les notifications ».\n\n"
+            + "AirPods : accepte la permission de localisation et laisse la Localisation de la tablette activée.");
         aide.setTextSize(16); aide.setTextColor(Color.rgb(170, 178, 205));
         aide.setPadding(0, 16, 0, 24);
         l.addView(aide);
@@ -59,6 +60,11 @@ public class MainActivity extends Activity {
 
         BluetoothAdapter ba = BluetoothAdapter.getDefaultAdapter();
         if (ba != null && !ba.isEnabled()) startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+        // Android 6 : la recherche des AirPods demande la permission de localisation
+        if (android.os.Build.VERSION.SDK_INT >= 23
+            && checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] { android.Manifest.permission.ACCESS_COARSE_LOCATION }, 1);
+        }
         PontService.demarrer(this);
         rafraichir();
     }
@@ -67,6 +73,12 @@ public class MainActivity extends Activity {
         etat.setText(PontService.etat);
         journal.setText(PontService.journal());
         h.postDelayed(this::rafraichir, 1000);
+    }
+
+    @Override public void onRequestPermissionsResult(int code, String[] p, int[] r) {
+        // On relance le service pour qu'il recommence la recherche des AirPods
+        stopService(new Intent(this, PontService.class));
+        PontService.demarrer(this);
     }
 
     @Override protected void onDestroy() { h.removeCallbacksAndMessages(null); super.onDestroy(); }

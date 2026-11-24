@@ -20,6 +20,11 @@ import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -43,6 +48,7 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
 import java.util.Date;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Locale;
@@ -151,6 +157,72 @@ public class PontService extends Service {
         ouvrirServeur();
         annoncer();
         reconnecter();
+        ecouterAirPods();
+    }
+
+    // ---------- AirPods : la tablette capte le signal qu'ils envoient (étui ouvert ou écouteurs sortis) ----------
+    private BluetoothLeScanner scanneur;
+    private String dernierAirPods = "";
+    private long dernierEnvoiAirPods = 0;
+    private final ScanCallback rappelScan = new ScanCallback() {
+        @Override public void onScanResult(int type, ScanResult r) { airPods(r); }
+        @Override public void onScanFailed(int code) { log("Recherche des AirPods impossible (code " + code + ")"); }
+    };
+
+    private void ecouterAirPods() {
+        try {
+            scanneur = ba.getBluetoothLeScanner();
+            if (scanneur == null) return;
+            try { scanneur.stopScan(rappelScan); } catch (Exception e) { }
+            ScanFilter f = new ScanFilter.Builder().setManufacturerData(76, new byte[] { 7, 25 }, new byte[] { (byte) 0xff, (byte) 0xff }).build();
+            ScanSettings st = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_BALANCED).build();
+            scanneur.startScan(Collections.singletonList(f), st, rappelScan);
+            log("Recherche des AirPods active");
+        } catch (SecurityException e) {
+            log("AirPods : permission de localisation manquante (ouvre l'appli Pont iPhone)");
+        } catch (Exception e) { log("AirPods : " + e.getMessage()); }
+        // Android coupe parfois les longues recherches : on relance aux 10 minutes
+        h.removeCallbacks(relanceScan);
+        h.postDelayed(relanceScan, 10 * 60 * 1000);
+    }
+    private final Runnable relanceScan = this::ecouterAirPods;
+
+    // Format du signal (comme l'appli OpenPods) : 27 octets, piles en demi-octets (0-10 = 0-100 %, 15 = inconnu)
+    private void airPods(ScanResult r) {
+        if (r.getScanRecord() == null || r.getRssi() < -70) return;      // trop loin : sûrement les AirPods du voisin
+        byte[] d = r.getScanRecord().getManufacturerSpecificData(76);
+        if (d == null || d.length != 27) return;
+        StringBuilder hex = new StringBuilder();
+        for (byte x : d) hex.append(String.format("%02x", x));
+        String s = hex.toString();
+        boolean inverse = (Character.digit(s.charAt(10), 16) & 0x02) == 0;
+        int g = Character.digit(s.charAt(inverse ? 12 : 13), 16);
+        int dr = Character.digit(s.charAt(inverse ? 13 : 12), 16);
+        int etui = Character.digit(s.charAt(15), 16);
+        int charge = Character.digit(s.charAt(14), 16);
+        boolean chG = (charge & (inverse ? 0b010 : 0b001)) != 0;
+        boolean chD = (charge & (inverse ? 0b001 : 0b010)) != 0;
+        boolean chE = (charge & 0b100) != 0;
+        String modele = s.substring(6, 10);
+        String nom = "AirPods";
+        if ("0e20".equals(modele)) nom = "AirPods Pro";
+        else if ("1420".equals(modele) || "2420".equals(modele)) nom = "AirPods Pro 2";
+        else if ("1320".equals(modele)) nom = "AirPods 3";
+        else if ("1920".equals(modele) || "1b20".equals(modele)) nom = "AirPods 4";
+        else if ("0a20".equals(modele)) nom = "AirPods Max";
+        try {
+            JSONObject o = new JSONObject();
+            o.put("nom", nom);
+            if (g <= 10) o.put("gauche", g * 10);
+            if (dr <= 10) o.put("droite", dr * 10);
+            if (etui <= 10) o.put("etui", etui * 10);
+            o.put("chargeGauche", chG); o.put("chargeDroite", chD); o.put("chargeEtui", chE);
+            String j = o.toString();
+            long now = System.currentTimeMillis();
+            if (j.equals(dernierAirPods) && now - dernierEnvoiAirPods < 30000) return;   // pas de changement
+            dernierAirPods = j; dernierEnvoiAirPods = now;
+            envoyer("airpods", j);
+        } catch (Exception e) { }
     }
 
     // ---------- Côté « périphérique » : l'iPhone se connecte à nous ----------
@@ -444,6 +516,7 @@ public class PontService extends Service {
         actif = false;
         try { unregisterReceiver(recepteur); } catch (Exception e) { }
         fermer();
+        try { if (scanneur != null) scanneur.stopScan(rappelScan); } catch (Exception e) { }
         if (serveur != null) serveur.close();
         super.onDestroy();
     }

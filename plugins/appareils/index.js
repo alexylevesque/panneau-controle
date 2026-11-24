@@ -75,7 +75,9 @@ module.exports = (cfg) => {
     const now = Date.now();
     return Object.keys(liste).map(id => {
       const a = liste[id];
-      return Object.assign({}, a, { id, connecte: now - a.vu < EN_LIGNE_MS, ilYa: Math.round((now - a.vu) / 60000) });
+      const o = Object.assign({}, a, { id, connecte: now - a.vu < EN_LIGNE_MS, ilYa: Math.round((now - a.vu) / 60000) });
+      if (o.airpods) o.airpods = Object.assign({}, o.airpods, { actifs: now - o.airpods.vu < 2 * 60 * 1000 });
+      return o;
     }).sort((a, b) => b.vu - a.vu);
   }
 
@@ -143,6 +145,14 @@ module.exports = (cfg) => {
         commandes.push({ uid: a.appel.uid, action: accepter ? 'positive' : 'negative' });
         a.appel = null; save();
         return accepter ? 'Accepté' : 'Refusé';
+      } },
+      // Pile des AirPods captée par la tablette
+      airpods: { label: 'AirPods', run: async (p) => {
+        const a = iphone();
+        a.airpods = { nom: p.nom || 'AirPods', gauche: p.gauche, droite: p.droite, etui: p.etui,
+                      chargeGauche: !!p.chargeGauche, chargeDroite: !!p.chargeDroite, chargeEtui: !!p.chargeEtui, vu: Date.now() };
+        save();
+        return 'OK';
       } },
       lu: { label: 'Marquer lu', run: async ({ id }) => {
         const a = iphone(); a.notifs.forEach(n => { if (n.id === String(id)) n.nonLu = false; }); save(); return 'OK';

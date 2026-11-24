@@ -172,6 +172,8 @@
   .bt-bat { display: flex; }
   .bt-bat div { text-align: center; margin-left: 12px; font-size: 14px; }
   .bt-bat small { display: block; color: var(--muted); font-size: 11px; }
+  .bt-bat .low { color: var(--bad); }
+  .bt { flex: none; }
   .bt-vide { color: var(--muted); padding: 16px 8px; font-size: 14px; }
   .ph-head { display: flex; justify-content: space-between; align-items: baseline; }
   .demo { color: var(--warm); font-size: 13px; }
@@ -319,7 +321,8 @@
           </div>
         </div>
         <button class="ring-btn" id="ringBtn"><span>🔔</span>Faire sonner l'iPhone</button>
-        <div class="ph-card ph-tip" id="ringTip">Le bouton fait sonner ton iPhone même en mode silencieux, jusqu'à ce que tu touches l'alerte.</div>
+        <div class="section">AirPods</div>
+        <div class="ph-card bt" id="btList"></div>
       </div>
       <!-- Colonne droite : notifications -->
       <div class="ph-right">
@@ -387,7 +390,7 @@
         </ol>
         <div class="how-t">2. Notifications et appels — appli Pont iPhone sur la tablette</div>
         <ol class="how">
-          <li>Dans <b>Chrome</b> sur la tablette, télécharge et installe :<br><code>github.com/alexylevesque/panneau-controle/releases/download/pont/pont-iphone.apk</code></li>
+          <li>Dans <b>Chrome</b> sur la tablette, télécharge et installe (et active la <b>Localisation</b> de la tablette pour les AirPods) :<br><code>github.com/alexylevesque/panneau-controle/releases/download/pont/pont-iphone.apk</code></li>
           <li>Ouvre <b>Pont iPhone</b>. Sur l'iPhone, avec l'appli gratuite <b>nRF Connect</b> : SCAN, puis CONNECT sur <b>Panneau</b>.</li>
           <li>Accepte le <b>jumelage</b> et <b>Autoriser les notifications</b> sur l'iPhone.</li>
         </ol>
@@ -610,6 +613,18 @@
     $('devChg').textContent = d.enCharge ? '⚡ En charge' : '';
     $('devRing').style.background = 'conic-gradient(' + batColor(pct) + ' ' + deg + 'deg, rgba(255,255,255,0.10) ' + deg + 'deg)';
     $('devSub').textContent = d.demo ? 'Exemple' : (d.connecte ? 'Connecté' : 'Hors ligne') + ' · vu ' + ago(d.ilYa);
+
+    // AirPods
+    var ap = d.airpods || (shown.demo ? { nom: 'AirPods Pro', gauche: 80, droite: 80, etui: 60, chargeEtui: true, actifs: true } : null);
+    var h = '';
+    if (ap && ap.actifs) {
+      var cell = function (v, ch, lbl) { return v === undefined || v === null ? '' : '<div' + (v <= 20 ? ' class="low"' : '') + '>' + (ch ? '⚡' : '') + v + '%<small>' + lbl + '</small></div>'; };
+      h = '<div class="bt-it"><div class="bt-ic">🎧</div><div class="bt-n">' + esc(ap.nom) + '<small>Actifs près de la tablette</small></div><div class="bt-bat">' +
+          cell(ap.gauche, ap.chargeGauche, 'G') + cell(ap.droite, ap.chargeDroite, 'D') + cell(ap.etui, ap.chargeEtui, 'Étui') + '</div></div>';
+    } else {
+      h = '<div class="bt-vide">🎧 Pas détectés. Ouvre l\'étui ou mets-les près de la tablette.</div>';
+    }
+    $('btList').innerHTML = h;
 
     // Notifications
     h = '';

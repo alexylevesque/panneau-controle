@@ -47,7 +47,7 @@ Pour arrêter la sonnerie : touche l'alerte sur l'iPhone, ou **Arrêter la sonne
 
 ---
 
-## 3. Notifications et appels (appli Pont iPhone) — 10 min
+## 3. Notifications, appels et AirPods (appli Pont iPhone) — 10 min
 
 C'est une petite appli Android pour la tablette. Elle se connecte à l'iPhone en Bluetooth, comme une montre intelligente.
 
@@ -56,20 +56,23 @@ C'est une petite appli Android pour la tablette. Elle se connecte à l'iPhone en
 1. Dans **Chrome**, va à :
    `github.com/alexylevesque/panneau-controle/releases/download/pont/pont-iphone.apk`
 2. Ouvre le fichier téléchargé > **Installer**. Si Android bloque : **Paramètres** > autorise les **Sources inconnues** le temps de l'installer.
-3. Ouvre **Pont iPhone**. Si le Bluetooth est éteint, accepte de l'allumer. Tu dois voir « Prêt : connecte l'iPhone à « Panneau » ».
+3. Ouvre **Pont iPhone**. Accepte d'allumer le Bluetooth, et **Autoriser** la localisation (c'est ce qu'Android exige pour capter les AirPods).
+4. Sur la tablette : **Paramètres** > **Connexions** > **Localisation** : **activée** (mode « Économie d'énergie », c'est suffisant). Sans ça, Android 6 cache les AirPods.
+5. Tu dois voir « Prêt : connecte l'iPhone à « Panneau » ».
 
 **Sur l'iPhone (une seule fois) :**
 
-4. Installe l'appli gratuite **nRF Connect for Mobile** (App Store).
-5. Ouvre-la > **SCAN** > trouve **Panneau** > **CONNECT**.
-6. L'iPhone demande de **jumeler** : accepte. Puis il demande d'**autoriser les notifications** pour « Panneau » : accepte.
-7. Dans Pont iPhone, sur la tablette, tu dois voir **« iPhone connecté ✔ »**.
+6. Installe l'appli gratuite **nRF Connect for Mobile** (App Store).
+7. Ouvre-la > **SCAN** > trouve **Panneau** > **CONNECT**.
+8. L'iPhone demande de **jumeler** : accepte. Puis il demande d'**autoriser les notifications** pour « Panneau » : accepte.
+9. Dans Pont iPhone, sur la tablette, tu dois voir **« iPhone connecté ✔ »**.
 
 Ensuite tu peux fermer nRF Connect. Le Bluetooth de l'iPhone garde le lien, et la tablette se reconnecte toute seule quand l'iPhone revient à la maison.
 
 **Ce que ça donne dans le panneau (onglet Appareils) :**
 
 - Tes notifications arrivent en direct. Touche-en une pour la lire.
+- 🎧 La pile de tes AirPods (gauche, droite, étui) s'affiche quand ils sont sortis ou l'étui ouvert, près de la tablette.
 - Quand quelqu'un t'appelle, l'écran d'appel s'affiche : **Accepter** ou **Refuser**. Si tu acceptes, tu parles dans ton iPhone.
 
 **Si ça ne marche pas :** ouvre Pont iPhone et envoie-moi une photo de l'écran. Le journal en bas dit ce qui bloque.
