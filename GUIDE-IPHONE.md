@@ -4,28 +4,26 @@ Fais les 4 étapes dans l'ordre. Une ligne = une action.
 
 ---
 
-## ✅ Étape 1 : le raccourci Panneau (déjà fait)
+## ✅ Étape 1 : le raccourci Panneau (fait)
 
-Ton raccourci **Panneau** envoie la pile de l'iPhone à la tablette. Il fonctionne.
+## ✅ Étape 2 : l'automatisation du chargeur (fait)
 
 ---
 
-## Étape 2 : l'automatisation du chargeur (2 min)
+## 👉 Tu es ici : Étape 2b, savoir s'il est en charge (2 min)
 
 Sur l'iPhone, dans **Raccourcis** :
 
-1. Si tu vois « Tous les raccourcis », touche **<** en haut à gauche pour revenir à l'écran principal
-2. Touche **Automatisation**, puis **+** (en haut à droite)
-3. **Chargeur**
-4. Coche **Est connecté** et **Est déconnecté**
-5. **Exécuter immédiatement**
-6. **Suivant**
-7. Touche **Panneau**
-8. **OK**
+1. Ouvre le raccourci **Panneau**
+2. Ajoute l'action **Connecté au chargeur** (cherche « chargeur »)
+3. Glisse-la juste sous **Obtenir Niveau de la batterie**
+4. Dans **Obtenir le contenu de l'URL**, touche **Ajouter un champ** > **Booléen**
+5. Clé : **enCharge**. Valeur : la variable **Connecté au chargeur**
+6. **OK**
 
-✔️ Test : débranche l'iPhone. Sur la tablette (**Appareils**), c'est écrit « vu à l'instant ».
+✔️ Test : branche l'iPhone. Sur la tablette (**Appareils**), c'est écrit « ⚡ En charge ». Débranche : le ⚡ disparaît.
 
-> Facultatif : refais la même chose en choisissant **Wi-Fi** à l'étape 3 (ton réseau > **Rejoint**).
+> Facultatif : une 2e automatisation **Wi-Fi** (ton réseau > **Rejoint**) > **Exécuter immédiatement** > **Panneau**.
 
 ---
 
@@ -71,7 +69,7 @@ Sur l'iPhone :
 8. Accepte le **jumelage**
 9. Accepte **Autoriser les notifications**
 
-✔️ Test : dans Pont iPhone, sur la tablette, c'est écrit **« iPhone connecté ✔ »**.
+✔️ Test : dans Pont iPhone, c'est écrit **« iPhone connecté ✔ »**, et dans le panneau (**Appareils**) tu vois la pastille verte **Connecté**. La pile se met alors à jour toute seule.
 
 ---
 
