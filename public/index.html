@@ -128,6 +128,44 @@
   .nav a.on { background: rgba(122,162,255,0.16); color: var(--txt); }
   .nav a.off { opacity: .4; }
 
+  .topr { display: flex; align-items: center; }
+  .devbtn { margin-right: 10px; font-family: inherit; cursor: pointer; }
+  .devbtn .car { color: var(--muted); font-size: 12px; }
+  .devmenu { display: none; position: fixed; top: 74px; right: 32px; width: 300px; background: #1b2140; border: 1px solid var(--glass-b);
+             border-radius: 18px; padding: 8px; box-shadow: 0 12px 40px rgba(0,0,0,.5); z-index: 10; }
+  .devmenu.show { display: block; }
+  .devmenu .it { display: flex; align-items: center; padding: 12px; border-radius: 12px; font-size: 16px; }
+  .devmenu .it:active, .devmenu .it.sel { background: var(--glass-on); }
+  .devmenu .it .dot { margin-right: 10px; }
+  .devmenu .it .dot.ok { background: var(--ok); }
+  .devmenu .it span.n { flex: 1; }
+  .devmenu .it small { color: var(--muted); }
+  .devmenu .vide { color: var(--muted); padding: 12px; font-size: 14px; }
+
+  #v-appareils { align-items: center; justify-content: center; }
+  .dev-empty { max-width: 720px; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 28px; padding: 30px 36px; }
+  .dev-empty .dev-big { font-size: 44px; }
+  .dev-empty h2 { margin: 8px 0; font-weight: 500; }
+  .dev-empty p, .dev-empty li { color: var(--muted); font-size: 16px; line-height: 1.5; }
+  .dev-empty b { color: var(--txt); font-weight: 500; }
+  .dev-empty ol { padding-left: 22px; margin: 10px 0 0; }
+  .dev-empty code { background: rgba(0,0,0,.3); padding: 2px 8px; border-radius: 6px; color: var(--txt); font-size: 15px; }
+  .dev-page { display: none; width: 100%; align-items: center; justify-content: space-between; }
+  .dev-card { display: flex; align-items: center; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 28px; padding: 34px 40px; width: 460px; }
+  .dev-ring { width: 150px; height: 150px; border-radius: 50%; padding: 10px; flex: none; margin-right: 30px; background: var(--glass-on); }
+  .dev-ring-in { width: 100%; height: 100%; border-radius: 50%; background: #151a33; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .dev-ring-in b { font-size: 38px; font-weight: 300; }
+  .dev-ring-in span { font-size: 14px; color: var(--ok); margin-top: 2px; }
+  .dev-title { font-size: 30px; font-weight: 500; }
+  .dev-sub { color: var(--muted); font-size: 16px; margin-top: 8px; }
+  .dev-feats { width: 520px; }
+  .feats { display: flex; flex-wrap: wrap; margin-right: -14px; }
+  .feat { width: calc(50% - 14px); margin: 0 14px 14px 0; height: 110px; border-radius: 22px; background: var(--glass); border: 1px solid var(--glass-b);
+          color: var(--txt); font-size: 17px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: inherit; }
+  .feat span { font-size: 30px; margin-bottom: 6px; }
+  .feat small { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .feat.soon { opacity: .55; }
+
   #v-reglages { align-items: center; justify-content: center; }
   .reg { width: 460px; text-align: center; }
   .reg .section { text-align: left; }
@@ -145,7 +183,10 @@
   <div class="top">
     <div class="pill"><span class="dot" id="tvDot"></span> <span id="tvTxt">Fire TV…</span></div>
     <div class="mid" id="miniClock"></div>
-    <div class="pill" id="wifi"><span class="bars q4"><i></i><i></i><i></i><i></i></span> Wi-Fi · <b id="wifiTxt">…</b></div>
+    <div class="topr">
+      <button class="pill devbtn" id="devBtn"><span id="devIcon">📱</span> <b id="devName">Appareils</b> <span class="car">▾</span></button>
+      <div class="pill" id="wifi"><span class="bars q4"><i></i><i></i><i></i><i></i></span> Wi-Fi · <b id="wifiTxt">…</b></div>
+    </div>
   </div>
 
   <!-- Accueil -->
@@ -202,6 +243,41 @@
     </div>
   </div>
 
+  <!-- Appareils -->
+  <div class="view" id="v-appareils">
+    <div class="dev-empty" id="devEmpty">
+      <div class="dev-big">📱</div>
+      <h2>Connecte ton iPhone</h2>
+      <p>Ton iPhone se signale au panneau avec l'appli <b>Raccourcis</b>. Une fois fait, il apparaît ici avec sa pile.</p>
+      <ol>
+        <li>Sur l'iPhone, ouvre <b>Raccourcis</b> &gt; <b>+</b> (nouveau raccourci), nomme-le <b>Panneau</b>.</li>
+        <li>Ajoute l'action <b>Obtenir le niveau de la batterie</b>.</li>
+        <li>Ajoute l'action <b>Obtenir le contenu de l'URL</b> avec l'adresse :<br><code id="sigUrl">…</code></li>
+        <li>Touche <b>Afficher plus</b> : Méthode <b>POST</b>, Corps <b>JSON</b>, puis ajoute :<br>
+          <code>id</code> = iphone · <code>nom</code> = iPhone · <code>batterie</code> = <i>Niveau de la batterie</i></li>
+        <li>Lance-le une fois avec ▶. L'iPhone doit être sur le même Wi-Fi que la tablette.</li>
+      </ol>
+    </div>
+    <div class="dev-page" id="devPage">
+      <div class="dev-card">
+        <div class="dev-ring" id="devRing"><div class="dev-ring-in"><b id="devPct">–</b><span id="devChg"></span></div></div>
+        <div class="dev-info">
+          <div class="dev-title" id="devTitle">iPhone</div>
+          <div class="dev-sub" id="devSub">–</div>
+        </div>
+      </div>
+      <div class="dev-feats">
+        <div class="section">Fonctions</div>
+        <div class="feats" id="devFeats">
+          <button class="feat soon"><span>🔔</span>Faire sonner<small>Bientôt</small></button>
+          <button class="feat soon"><span>📋</span>Envoyer un texte<small>Bientôt</small></button>
+          <button class="feat soon"><span>🔗</span>Envoyer un lien<small>Bientôt</small></button>
+          <button class="feat soon"><span>📱</span>Télécommande sur le cell<small>Bientôt</small></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Réglages (pour l'instant : juste la mise à jour) -->
   <div class="view" id="v-reglages">
     <div class="reg">
@@ -213,9 +289,10 @@
   </div>
 
   <div class="nav" id="nav">
-    <a class="on" data-v="accueil">Accueil</a><a data-v="tele">Télé</a><a class="off">Maison</a><a data-v="reglages">Réglages</a>
+    <a class="on" data-v="accueil">Accueil</a><a data-v="tele">Télé</a><a data-v="appareils">Appareils</a><a class="off">Maison</a><a data-v="reglages">Réglages</a>
   </div>
 </div>
+<div id="devMenu" class="devmenu"></div>
 <div id="toast"></div>
 
 <script>
@@ -371,6 +448,64 @@
   };
   refreshVer();
 
+
+  // ---- Appareils ----
+  var devices = [], devSel = '';
+  try { devSel = localStorage.getItem('appareil') || ''; } catch (e) {}
+  var TYPE_ICON = { iphone: '📱', ipad: '📱', mac: '💻', macmini: '🖥️', android: '📱' };
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function current() {
+    for (var i = 0; i < devices.length; i++) if (devices[i].id === devSel) return devices[i];
+    for (var j = 0; j < devices.length; j++) if (devices[j].connecte) return devices[j];
+    return devices[0] || null;
+  }
+  function ago(min) { return min < 1 ? "à l'instant" : min < 60 ? 'il y a ' + min + ' min' : min < 1440 ? 'il y a ' + Math.round(min / 60) + ' h' : 'il y a ' + Math.round(min / 1440) + ' j'; }
+  function renderDevices() {
+    var d = current();
+    $('devName').textContent = d ? d.nom : 'Appareils';
+    $('devIcon').textContent = d ? (TYPE_ICON[d.type] || '📱') : '📱';
+    $('devEmpty').style.display = d ? 'none' : 'block';
+    $('devPage').style.display = d ? 'flex' : 'none';
+    if (d) {
+      var pct = d.batterie;
+      $('devTitle').textContent = d.nom;
+      $('devPct').textContent = pct === undefined ? '–' : pct + '%';
+      $('devChg').textContent = d.enCharge ? '⚡ En charge' : '';
+      var col = pct === undefined ? '#555' : pct <= 20 ? '#ff6b6b' : pct <= 40 ? '#ffb86b' : '#5fd39a';
+      var deg = Math.round((pct || 0) * 3.6);
+      $('devRing').style.background = 'conic-gradient(' + col + ' ' + deg + 'deg, rgba(255,255,255,0.10) ' + deg + 'deg)';
+      $('devSub').textContent = (d.connecte ? 'Connecté' : 'Hors ligne') + ' · vu ' + ago(d.ilYa);
+    }
+    var h = '';
+    for (var i = 0; i < devices.length; i++) {
+      var x = devices[i];
+      h += '<div class="it' + (d && x.id === d.id ? ' sel' : '') + '" data-id="' + esc(x.id) + '"><span class="dot' + (x.connecte ? ' ok' : '') + '"></span>' +
+           '<span class="n">' + (TYPE_ICON[x.type] || '📱') + ' ' + esc(x.nom) + '</span><small>' + (x.batterie !== undefined ? x.batterie + '%' : '') + '</small></div>';
+    }
+    $('devMenu').innerHTML = h || '<div class="vide">Aucun appareil pour l\'instant. Va dans Appareils pour connecter ton iPhone.</div>';
+    var its = $('devMenu').getElementsByClassName('it');
+    for (var k = 0; k < its.length; k++) its[k].onclick = function () {
+      devSel = this.getAttribute('data-id'); try { localStorage.setItem('appareil', devSel); } catch (e) {}
+      $('devMenu').className = 'devmenu'; renderDevices(); show('appareils');
+    };
+  }
+  function refreshDevices() {
+    api('GET', '/api/appareils/status', null, function (r) {
+      if (!r) return;
+      devices = r.appareils || [];
+      if (r.adresse) $('sigUrl').textContent = r.adresse + '/api/appareils/action/signal';
+      renderDevices();
+    });
+  }
+  $('devBtn').onclick = function (e) {
+    e.stopPropagation();
+    $('devMenu').className = $('devMenu').className.indexOf('show') > -1 ? 'devmenu' : 'devmenu show';
+  };
+  document.addEventListener('click', function () { $('devMenu').className = 'devmenu'; });
+  $('devMenu').onclick = function (e) { e.stopPropagation(); };
+  var soon = document.querySelectorAll('.feat.soon');
+  for (var f = 0; f < soon.length; f++) soon[f].onclick = function () { toast('Bientôt disponible'); };
+  refreshDevices(); setInterval(refreshDevices, 30000);
 
   refreshTv(); refreshMeteo();
   setInterval(refreshTv, 30000); setInterval(refreshMeteo, 60000);
