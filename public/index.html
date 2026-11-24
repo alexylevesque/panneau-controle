@@ -159,6 +159,10 @@
   .ring-btn span { font-size: 24px; margin-right: 10px; }
   .ring-btn:active { transform: scale(.98); }
   .ring-btn.on { background: linear-gradient(135deg, #ff7a7a, #e04848); color: #fff; }
+  .ph-tip { padding: 16px 18px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+  .po-f input { width: 100%; height: 50px; margin-top: 10px; border-radius: 14px; border: 1px solid var(--glass-b); background: rgba(0,0,0,.25);
+                color: var(--txt); padding: 0 16px; font-size: 16px; font-family: inherit; outline: none; box-sizing: border-box; }
+  .po-ok { width: 100%; margin-top: 16px; }
   .bt { padding: 6px 10px; flex: 1; overflow-y: auto; }
   .bt-it { display: flex; align-items: center; padding: 12px 8px; border-bottom: 1px solid var(--glass-b); }
   .bt-it:last-child { border-bottom: 0; }
@@ -217,6 +221,7 @@
   .cb.no span { transform: rotate(135deg); }
   .cb.yes { background: #30c46b; }
   .call-hint { color: var(--muted); font-size: 14px; }
+  .how { padding-left: 22px; margin: 14px 0 4px; }
   .how li { color: var(--muted); font-size: 16px; line-height: 1.6; }
   .how b { color: var(--txt); font-weight: 500; }
   .how code { background: rgba(0,0,0,.3); padding: 2px 8px; border-radius: 6px; color: var(--txt); font-size: 14px; }
@@ -312,8 +317,7 @@
           </div>
         </div>
         <button class="ring-btn" id="ringBtn"><span>🔔</span>Faire sonner l'iPhone</button>
-        <div class="section">Bluetooth</div>
-        <div class="ph-card bt" id="btList"></div>
+        <div class="ph-card ph-tip" id="ringTip">Le bouton fait sonner ton iPhone même en mode silencieux, jusqu'à ce que tu touches l'alerte.</div>
       </div>
       <!-- Colonne droite : notifications -->
       <div class="ph-right">
@@ -335,10 +339,21 @@
         </div>
         <div class="sheet-title" id="shTitle"></div>
         <div class="sheet-text" id="shText"></div>
-        <div class="reply" id="shReply">
-          <div class="quick" id="shQuick"></div>
-          <div class="reply-row"><input id="shInput" placeholder="Répondre…"><button id="shSend">Envoyer</button></div>
-        </div>
+      </div>
+    </div>
+
+    <!-- Configuration de « Faire sonner » (Pushover) -->
+    <div class="sheet" id="po">
+      <div class="sheet-box">
+        <div class="sheet-top"><div class="sheet-meta"><b>Faire sonner : configuration</b><small>Une seule fois</small></div><button class="x" id="poClose">✕</button></div>
+        <ol class="how">
+          <li>Sur l'iPhone, installe l'appli <b>Pushover</b> et crée un compte (essai gratuit, puis environ 7 $ une fois).</li>
+          <li>Dans l'appli Pushover, copie ta <b>User Key</b>.</li>
+          <li>Sur <b>pushover.net</b> &gt; <b>Create an Application</b>, nomme-la <b>Panneau</b> et copie l'<b>API Token</b>.</li>
+          <li>Dans Pushover sur l'iPhone : <b>Settings</b> &gt; active <b>Critical Alerts</b> (pour sonner même en silencieux).</li>
+        </ol>
+        <div class="po-f"><input id="poUser" placeholder="User Key"><input id="poToken" placeholder="API Token"></div>
+        <button class="pw on po-ok" id="poSave">Enregistrer et tester</button>
       </div>
     </div>
 
@@ -553,11 +568,6 @@
   // Données d'exemple, affichées tant que l'iPhone n'envoie rien de vrai
   var DEMO = {
     id: 'demo', nom: 'iPhone', type: 'iphone', batterie: 76, enCharge: false, connecte: true, ilYa: 0, demo: true,
-    bluetooth: [
-      { nom: 'AirPods Pro', type: 'airpods', gauche: 82, droite: 79, etui: 64 },
-      { nom: 'Apple Watch', type: 'montre', batterie: 58 },
-      { nom: 'Auto — Bluetooth', type: 'auto' }
-    ],
     notifs: [
       { id: 'n1', app: 'messages', titre: 'Maman', texte: 'Tu viens souper dimanche? Ton père fait du pâté chinois 😄', heure: '16:02', repondre: true, nonLu: true },
       { id: 'n2', app: 'snapchat', titre: 'Snapchat', texte: 'Jérémy t\'a envoyé un snap', heure: '15:47', nonLu: true },
@@ -581,7 +591,7 @@
     var real = current();
     // Les parties pas encore branchées gardent les exemples
     var d = real ? real : DEMO;
-    shown = { info: d, bluetooth: d.bluetooth || DEMO.bluetooth, notifs: d.notifs || DEMO.notifs, demo: !real || !d.notifs };
+    shown = { info: d, notifs: d.notifs || DEMO.notifs, demo: !real || !d.notifs };
     $('devName').textContent = real ? real.nom : 'Appareils';
     $('devIcon').textContent = real ? (TYPE_ICON[real.type] || '📱') : '📱';
     $('demoTag').style.display = shown.demo ? 'block' : 'none';
@@ -592,17 +602,6 @@
     $('devChg').textContent = d.enCharge ? '⚡ En charge' : '';
     $('devRing').style.background = 'conic-gradient(' + batColor(pct) + ' ' + deg + 'deg, rgba(255,255,255,0.10) ' + deg + 'deg)';
     $('devSub').textContent = d.demo ? 'Exemple' : (d.connecte ? 'Connecté' : 'Hors ligne') + ' · vu ' + ago(d.ilYa);
-
-    // Bluetooth
-    var BT_IC = { airpods: '🎧', casque: '🎧', montre: '⌚', auto: '🚗', hautparleur: '🔊' };
-    var h = '';
-    for (var b = 0; b < shown.bluetooth.length; b++) {
-      var x = shown.bluetooth[b], bat = '';
-      if (x.gauche !== undefined) bat = '<div>' + x.gauche + '%<small>G</small></div><div>' + x.droite + '%<small>D</small></div>' + (x.etui !== undefined ? '<div>' + x.etui + '%<small>Étui</small></div>' : '');
-      else if (x.batterie !== undefined) bat = '<div>' + x.batterie + '%<small>Pile</small></div>';
-      h += '<div class="bt-it"><div class="bt-ic">' + (BT_IC[x.type] || '🔵') + '</div><div class="bt-n">' + esc(x.nom) + '<small>Connecté</small></div><div class="bt-bat">' + bat + '</div></div>';
-    }
-    $('btList').innerHTML = h || '<div class="bt-vide">Rien de connecté en Bluetooth.</div>';
 
     // Notifications
     h = '';
@@ -635,35 +634,41 @@
   var QUICK = ['Oui 👍', 'Non', 'J\'arrive!', 'Je te rappelle', 'Ok parfait'];
   function openNotif(t) {
     var a = APPS[t.app] || APPS.autre;
+    if (t.nonLu && !shown.demo) api('POST', '/api/appareils/action/lu', { id: t.id });
     t.nonLu = false;
     $('shIcon').style.background = a[1]; $('shIcon').textContent = a[0];
     $('shApp').textContent = a[2]; $('shTime').textContent = t.heure;
     $('shTitle').textContent = t.titre; $('shText').textContent = t.texte;
-    $('shReply').className = 'reply' + (t.repondre ? ' show' : '');
-    var q = '';
-    for (var i = 0; i < QUICK.length; i++) q += '<button>' + esc(QUICK[i]) + '</button>';
-    $('shQuick').innerHTML = q;
-    var qb = $('shQuick').getElementsByTagName('button');
-    for (var j = 0; j < qb.length; j++) qb[j].onclick = function () { sendReply(this.textContent); };
-    $('shInput').value = '';
     $('sheet').className = 'sheet show';
     renderDevices();
   }
-  function sendReply(txt) {
-    if (!txt) return;
-    $('sheet').className = 'sheet';
-    toast(shown.demo ? 'Exemple : « ' + txt + ' » serait envoyé' : 'Réponse envoyée ✔');
-  }
-  $('shSend').onclick = function () { sendReply($('shInput').value.trim()); };
   $('shClose').onclick = function () { $('sheet').className = 'sheet'; };
   $('sheet').onclick = function (e) { if (e.target === this) this.className = 'sheet'; };
 
-  // Faire sonner
+  // Faire sonner (Pushover)
+  var ringCfg = false, ringOn = false;
+  function ringUi() {
+    var b = $('ringBtn');
+    b.className = 'ring-btn' + (ringOn ? ' on' : '');
+    b.innerHTML = ringOn ? '<span>🔕</span>Arrêter la sonnerie' : '<span>🔔</span>Faire sonner l\'iPhone';
+  }
   $('ringBtn').onclick = function () {
-    var b = this;
-    if (b.className.indexOf(' on') > -1) { b.className = 'ring-btn'; b.innerHTML = '<span>🔔</span>Faire sonner l\'iPhone'; return; }
-    b.className = 'ring-btn on'; b.innerHTML = '<span>🔕</span>Arrêter la sonnerie';
-    toast(shown.demo ? 'Exemple : l\'iPhone sonnerait' : 'L\'iPhone sonne…');
+    if (!ringCfg) { $('po').className = 'sheet show'; return; }
+    var act = ringOn ? 'arreter' : 'sonner';
+    api('POST', '/api/appareils/action/' + act, {}, function (r) {
+      if (!r || !r.ok) return toast((r && r.error) || 'Erreur', true);
+      ringOn = !ringOn; ringUi();
+      toast(ringOn ? 'L\'iPhone sonne… 🔔' : 'Sonnerie arrêtée');
+    });
+  };
+  $('poClose').onclick = function () { $('po').className = 'sheet'; };
+  $('poSave').onclick = function () {
+    var u = $('poUser').value.trim(), t = $('poToken').value.trim();
+    if (!u || !t) return toast('Entre la User Key et l\'API Token', true);
+    api('POST', '/api/appareils/action/pushover', { user: u, token: t }, function (r) {
+      if (!r || !r.ok) return toast((r && r.error) || 'Erreur', true);
+      ringCfg = true; $('po').className = 'sheet'; toast('Configuré ✔ Regarde ton iPhone!');
+    });
   };
 
   // Appel entrant (démo : appui long sur la pile pour le voir)
@@ -672,12 +677,22 @@
     $('callAv').textContent = (c.de || '?').charAt(0).toUpperCase();
     $('call').className = 'call show';
   }
-  $('callYes').onclick = function () { $('call').className = 'call'; toast('Appel accepté : parle dans ton iPhone 📱'); };
-  $('callNo').onclick = function () { $('call').className = 'call'; toast('Appel refusé'); };
+  var callUid = null;
+  function answer(yes) {
+    $('call').className = 'call';
+    if (!callUid) return toast(yes ? 'Exemple : appel accepté' : 'Exemple : appel refusé');
+    api('POST', '/api/appareils/action/appel', { accepter: yes }, function (r) {
+      if (!r || !r.ok) return toast((r && r.error) || 'Erreur', true);
+      toast(yes ? 'Appel accepté : parle dans ton iPhone 📱' : 'Appel refusé');
+    });
+    callUid = null;
+  }
+  $('callYes').onclick = function () { answer(true); };
+  $('callNo').onclick = function () { answer(false); };
   var pressT;
-  $('devRing').addEventListener('touchstart', function () { pressT = setTimeout(function () { showCall({ de: 'Maman' }); }, 700); });
+  $('devRing').addEventListener('touchstart', function () { if (!shown.demo) return; pressT = setTimeout(function () { showCall({ de: 'Maman' }); }, 700); });
   $('devRing').addEventListener('touchend', function () { clearTimeout(pressT); });
-  $('devRing').ondblclick = function () { showCall({ de: 'Maman' }); };
+  $('devRing').ondblclick = function () { if (shown.demo) showCall({ de: 'Maman' }); };
 
   // Aide connexion
   $('howBtn').onclick = function () { $('how').className = 'sheet show'; };
@@ -687,6 +702,10 @@
     api('GET', '/api/appareils/status', null, function (r) {
       if (!r) return;
       devices = r.appareils || [];
+      var c = current();
+      if (c && c.appel && c.appel.uid !== callUid) { callUid = c.appel.uid; showCall(c.appel); }
+      if (c && !c.appel && callUid) { callUid = null; $('call').className = 'call'; }
+      if (r.sonnerie) { ringCfg = r.sonnerie.configure; ringOn = r.sonnerie.active; ringUi(); }
       if (r.adresse) $('sigUrl').textContent = r.adresse + '/api/appareils/action/signal';
       renderDevices();
     });
@@ -698,7 +717,7 @@
   document.addEventListener('click', function () { $('devMenu').className = 'devmenu'; });
   $('devMenu').onclick = function (e) { e.stopPropagation(); };
   renderDevices();
-  refreshDevices(); setInterval(refreshDevices, 30000);
+  refreshDevices(); setInterval(refreshDevices, 3000);
 
   refreshTv(); refreshMeteo();
   setInterval(refreshTv, 30000); setInterval(refreshMeteo, 60000);

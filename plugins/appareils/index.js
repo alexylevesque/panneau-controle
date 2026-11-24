@@ -3,6 +3,15 @@
 // Sur iPhone, c'est un Raccourci (appli Raccourcis) qui le fait tout seul.
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+const qs = require('querystring');
+
+// Identifiants iOS -> nom d'appli dans le panneau
+const APPS = {
+  'com.apple.MobileSMS': 'messages', 'com.apple.mobilephone': 'telephone', 'com.apple.mobilemail': 'mail',
+  'com.facebook.Messenger': 'messenger', 'com.burbn.instagram': 'instagram', 'com.toyopagroup.picaboo': 'snapchat',
+  'com.apple.mobilecal': 'calendrier',
+};
 
 module.exports = (cfg) => {
   const FILE = path.join(__dirname, '..', '..', 'appareils.json');
@@ -10,6 +19,46 @@ module.exports = (cfg) => {
   let liste = {};
   try { liste = JSON.parse(fs.readFileSync(FILE, 'utf8')); } catch (e) {}
   const save = () => { try { fs.writeFileSync(FILE, JSON.stringify(liste, null, 2)); } catch (e) {} };
+
+  // ---- Pushover (faire sonner) ----
+  const PO_FILE = path.join(__dirname, '..', '..', 'pushover.json');
+  let po = {};
+  try { po = JSON.parse(fs.readFileSync(PO_FILE, 'utf8')); } catch (e) {}
+  function pushover(pathname, data) {
+    return new Promise((resolve, reject) => {
+      const body = qs.stringify(data);
+      const req = https.request({ host: 'api.pushover.net', path: pathname, method: 'POST', timeout: 10000,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(body) } }, res => {
+        let out = ''; res.on('data', c => (out += c));
+        res.on('end', () => {
+          let j = {}; try { j = JSON.parse(out); } catch (e) {}
+          if (res.statusCode >= 400 || j.status !== 1) return reject(new Error('Pushover : ' + ((j.errors || []).join(', ') || res.statusCode)));
+          resolve(j);
+        });
+      });
+      req.on('timeout', () => req.destroy(new Error('Pushover ne répond pas')));
+      req.on('error', reject);
+      req.end(body);
+    });
+  }
+  async function sonner() {
+    if (!po.user || !po.token) throw new Error('Configure Pushover d\'abord');
+    const r = await pushover('/1/messages.json', {
+      token: po.token, user: po.user, title: 'Panneau', message: '📍 Ton iPhone est ici!',
+      priority: 2, retry: 30, expire: 600, sound: 'persistent',
+    });
+    po.receipt = r.receipt; po.depuis = Date.now();
+    fs.writeFileSync(PO_FILE, JSON.stringify(po));
+  }
+
+  // ---- Pont Bluetooth (appli Android sur la tablette) ----
+  // Notifs et appels arrivent de l'appli ; les commandes (accepter/refuser) attendent qu'elle les ramasse.
+  let commandes = [];
+  function iphone() {
+    const a = liste.iphone || (liste.iphone = { nom: 'iPhone', type: 'iphone' });
+    a.notifs = a.notifs || [];
+    return a;
+  }
 
   // Adresse de la tablette sur le Wi-Fi (pour configurer le Raccourci de l'iPhone)
   function adresse() {
@@ -51,8 +100,59 @@ module.exports = (cfg) => {
         save();
         return 'OK';
       } },
+      // Faire sonner
+      pushover: { label: 'Configurer Pushover', run: async ({ user, token }) => {
+        po = { user: String(user || '').trim(), token: String(token || '').trim() };
+        await sonner();                     // test : ça sonne tout de suite
+        return 'Configuré';
+      } },
+      sonner: { label: 'Faire sonner', run: async () => { await sonner(); return 'Ça sonne'; } },
+      arreter: { label: 'Arrêter la sonnerie', run: async () => {
+        if (po.receipt) await pushover(`/1/receipts/${po.receipt}/cancel.json`, { token: po.token }).catch(() => {});
+        delete po.receipt; fs.writeFileSync(PO_FILE, JSON.stringify(po));
+        return 'Arrêté';
+      } },
+
+      // Reçu du pont Bluetooth : { evt: 'ajout'|'modif'|'retrait', uid, appId, titre, sousTitre, texte, date, categorie, batterie? }
+      ancs: { label: 'Notification iPhone', run: async (p) => {
+        const a = iphone();
+        a.vu = Date.now();
+        if (p.connecte !== undefined) a.bt = !!p.connecte;
+        const uid = String(p.uid);
+        if (p.evt === 'retrait') {
+          a.notifs = a.notifs.filter(n => n.id !== uid);
+          if (a.appel && a.appel.uid === uid) a.appel = null;
+        } else if (p.evt) {
+          const appel = p.categorie === 'appel' || p.categorie === 1;
+          if (appel) a.appel = { uid, de: p.titre || 'Inconnu', numero: p.sousTitre || '' };
+          else {
+            const n = { id: uid, app: APPS[p.appId] || 'autre', appId: p.appId, titre: p.titre || '', texte: p.texte || p.sousTitre || '',
+                        heure: p.heure || new Date().toTimeString().slice(0, 5), nonLu: true };
+            a.notifs = [n].concat(a.notifs.filter(x => x.id !== uid)).slice(0, 40);
+          }
+        }
+        save();
+        return 'OK';
+      } },
+      // Le pont vient chercher les commandes en attente
+      commandes: { label: 'Commandes', run: async () => { const c = commandes; commandes = []; return c; } },
+      // Depuis l'écran : accepter / refuser l'appel
+      appel: { label: 'Répondre à l\'appel', run: async ({ accepter }) => {
+        const a = iphone();
+        if (!a.appel) throw new Error('Pas d\'appel en cours');
+        commandes.push({ uid: a.appel.uid, action: accepter ? 'positive' : 'negative' });
+        a.appel = null; save();
+        return accepter ? 'Accepté' : 'Refusé';
+      } },
+      lu: { label: 'Marquer lu', run: async ({ id }) => {
+        const a = iphone(); a.notifs.forEach(n => { if (n.id === String(id)) n.nonLu = false; }); save(); return 'OK';
+      } },
+
       oublier: { label: 'Oublier', run: async ({ id }) => { delete liste[id]; save(); return 'Oublié'; } },
     },
-    async status() { return { appareils: vue(), adresse: adresse() }; },
+    async status() {
+      return { appareils: vue(), adresse: adresse(),
+               sonnerie: { configure: !!(po.user && po.token), active: !!po.receipt && Date.now() - (po.depuis || 0) < 600000 } };
+    },
   };
 };
