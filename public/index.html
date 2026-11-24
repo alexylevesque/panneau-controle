@@ -142,29 +142,84 @@
   .devmenu .it small { color: var(--muted); }
   .devmenu .vide { color: var(--muted); padding: 12px; font-size: 14px; }
 
-  #v-appareils { align-items: center; justify-content: center; }
-  .dev-empty { max-width: 720px; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 28px; padding: 30px 36px; }
-  .dev-empty .dev-big { font-size: 44px; }
-  .dev-empty h2 { margin: 8px 0; font-weight: 500; }
-  .dev-empty p, .dev-empty li { color: var(--muted); font-size: 16px; line-height: 1.5; }
-  .dev-empty b { color: var(--txt); font-weight: 500; }
-  .dev-empty ol { padding-left: 22px; margin: 10px 0 0; }
-  .dev-empty code { background: rgba(0,0,0,.3); padding: 2px 8px; border-radius: 6px; color: var(--txt); font-size: 15px; }
-  .dev-page { display: none; width: 100%; align-items: center; justify-content: space-between; }
-  .dev-card { display: flex; align-items: center; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 28px; padding: 34px 40px; width: 460px; }
-  .dev-ring { width: 150px; height: 150px; border-radius: 50%; padding: 10px; flex: none; margin-right: 30px; background: var(--glass-on); }
-  .dev-ring-in { width: 100%; height: 100%; border-radius: 50%; background: #151a33; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .dev-ring-in b { font-size: 38px; font-weight: 300; }
-  .dev-ring-in span { font-size: 14px; color: var(--ok); margin-top: 2px; }
-  .dev-title { font-size: 30px; font-weight: 500; }
-  .dev-sub { color: var(--muted); font-size: 16px; margin-top: 8px; }
-  .dev-feats { width: 520px; }
-  .feats { display: flex; flex-wrap: wrap; margin-right: -14px; }
-  .feat { width: calc(50% - 14px); margin: 0 14px 14px 0; height: 110px; border-radius: 22px; background: var(--glass); border: 1px solid var(--glass-b);
-          color: var(--txt); font-size: 17px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: inherit; }
-  .feat span { font-size: 30px; margin-bottom: 6px; }
-  .feat small { color: var(--muted); font-size: 12px; margin-top: 4px; }
-  .feat.soon { opacity: .55; }
+  #v-appareils { position: relative; }
+  .ph { display: flex; width: 100%; padding: 6px 0 4px; min-height: 0; }
+  .ph-left { width: 390px; margin-right: 26px; display: flex; flex-direction: column; }
+  .ph-right { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .ph-card { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 24px; }
+  .ph-bat { display: flex; align-items: center; padding: 22px 24px; margin-bottom: 14px; }
+  .dev-ring { width: 104px; height: 104px; border-radius: 50%; padding: 8px; flex: none; margin-right: 22px; background: var(--glass-on); }
+  .dev-ring-in { width: 100%; height: 100%; border-radius: 50%; background: #151a33; display: flex; align-items: center; justify-content: center; }
+  .dev-ring-in b { font-size: 28px; font-weight: 300; }
+  .dev-title { font-size: 24px; font-weight: 500; }
+  .dev-sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .dev-chg { color: var(--ok); font-size: 14px; margin-top: 6px; }
+  .ring-btn { height: 64px; border-radius: 20px; border: 0; margin-bottom: 22px; color: #1b1200; font-size: 18px; font-weight: 600; font-family: inherit;
+              background: linear-gradient(135deg, #ffd36b, #ffb347); display: flex; align-items: center; justify-content: center; }
+  .ring-btn span { font-size: 24px; margin-right: 10px; }
+  .ring-btn:active { transform: scale(.98); }
+  .ring-btn.on { background: linear-gradient(135deg, #ff7a7a, #e04848); color: #fff; }
+  .bt { padding: 6px 10px; flex: 1; overflow-y: auto; }
+  .bt-it { display: flex; align-items: center; padding: 12px 8px; border-bottom: 1px solid var(--glass-b); }
+  .bt-it:last-child { border-bottom: 0; }
+  .bt-ic { font-size: 26px; width: 40px; }
+  .bt-n { flex: 1; font-size: 16px; }
+  .bt-n small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .bt-bat { display: flex; }
+  .bt-bat div { text-align: center; margin-left: 12px; font-size: 14px; }
+  .bt-bat small { display: block; color: var(--muted); font-size: 11px; }
+  .bt-vide { color: var(--muted); padding: 16px 8px; font-size: 14px; }
+  .ph-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .demo { color: var(--warm); font-size: 13px; }
+  .demo a { text-decoration: underline; cursor: pointer; }
+  .notifs { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 6px; }
+  .nt { display: flex; align-items: flex-start; padding: 14px 12px; border-radius: 16px; }
+  .nt:active { background: var(--glass-on); }
+  .nt.unread .nt-t b:after { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-left: 8px; vertical-align: middle; }
+  .nicon { width: 44px; height: 44px; border-radius: 12px; flex: none; margin-right: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .nt-b { flex: 1; min-width: 0; }
+  .nt-t { display: flex; justify-content: space-between; }
+  .nt-t b { font-weight: 500; font-size: 16px; }
+  .nt-t small { color: var(--muted); font-size: 13px; }
+  .nt-a { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
+  .nt-x { color: #c9cfe6; font-size: 15px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sheet, .call { display: none; position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: rgba(5,8,20,.6); z-index: 20;
+                  align-items: center; justify-content: center; }
+  .sheet.show, .call.show { display: flex; }
+  .sheet-box { width: 620px; background: #1b2140; border: 1px solid var(--glass-b); border-radius: 26px; padding: 24px 26px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .sheet-top { display: flex; align-items: center; }
+  .sheet-meta { flex: 1; }
+  .sheet-meta b { display: block; font-weight: 500; }
+  .sheet-meta small { color: var(--muted); }
+  .x { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--glass-on); color: var(--txt); font-size: 16px; }
+  .sheet-title { font-size: 22px; font-weight: 500; margin: 18px 0 8px; }
+  .sheet-text { font-size: 18px; line-height: 1.5; color: #d6dbef; }
+  .reply { display: none; margin-top: 20px; }
+  .reply.show { display: block; }
+  .quick { display: flex; flex-wrap: wrap; margin-bottom: 10px; }
+  .quick button { border: 1px solid var(--glass-b); background: var(--glass); color: var(--txt); border-radius: 999px; padding: 9px 16px; margin: 0 8px 8px 0; font-size: 15px; font-family: inherit; }
+  .reply-row { display: flex; }
+  .reply-row input { flex: 1; height: 50px; border-radius: 14px; border: 1px solid var(--glass-b); background: rgba(0,0,0,.25); color: var(--txt);
+                     padding: 0 16px; font-size: 16px; font-family: inherit; outline: none; }
+  .reply-row button { margin-left: 10px; padding: 0 22px; border: 0; border-radius: 14px; background: var(--accent); color: #0b1020; font-weight: 600; font-size: 16px; font-family: inherit; }
+  .call { background: radial-gradient(circle at 50% 35%, #1c2a5e, #0b1020 70%); }
+  .call-box { text-align: center; }
+  .call-av { width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 18px; background: linear-gradient(135deg, #7aa2ff, #8e6bff);
+             display: flex; align-items: center; justify-content: center; font-size: 52px; font-weight: 300; }
+  .call-lbl { color: var(--muted); font-size: 16px; }
+  .call-name { font-size: 46px; font-weight: 300; margin: 6px 0 4px; }
+  .call-num { color: var(--muted); font-size: 18px; }
+  .call-btns { display: flex; justify-content: center; margin: 40px 0 22px; }
+  .cb { width: 110px; height: 110px; border-radius: 50%; border: 0; margin: 0 50px; color: #fff; font-size: 15px; font-family: inherit;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .cb span { font-size: 36px; margin-bottom: 2px; }
+  .cb.no { background: #e5484d; }
+  .cb.no span { transform: rotate(135deg); }
+  .cb.yes { background: #30c46b; }
+  .call-hint { color: var(--muted); font-size: 14px; }
+  .how li { color: var(--muted); font-size: 16px; line-height: 1.6; }
+  .how b { color: var(--txt); font-weight: 500; }
+  .how code { background: rgba(0,0,0,.3); padding: 2px 8px; border-radius: 6px; color: var(--txt); font-size: 14px; }
 
   #v-reglages { align-items: center; justify-content: center; }
   .reg { width: 460px; text-align: center; }
@@ -245,35 +300,74 @@
 
   <!-- Appareils -->
   <div class="view" id="v-appareils">
-    <div class="dev-empty" id="devEmpty">
-      <div class="dev-big">📱</div>
-      <h2>Connecte ton iPhone</h2>
-      <p>Ton iPhone se signale au panneau avec l'appli <b>Raccourcis</b>. Une fois fait, il apparaît ici avec sa pile.</p>
-      <ol>
-        <li>Sur l'iPhone, ouvre <b>Raccourcis</b> &gt; <b>+</b> (nouveau raccourci), nomme-le <b>Panneau</b>.</li>
-        <li>Ajoute l'action <b>Obtenir le niveau de la batterie</b>.</li>
-        <li>Ajoute l'action <b>Obtenir le contenu de l'URL</b> avec l'adresse :<br><code id="sigUrl">…</code></li>
-        <li>Touche <b>Afficher plus</b> : Méthode <b>POST</b>, Corps <b>JSON</b>, puis ajoute :<br>
-          <code>id</code> = iphone · <code>nom</code> = iPhone · <code>batterie</code> = <i>Niveau de la batterie</i></li>
-        <li>Lance-le une fois avec ▶. L'iPhone doit être sur le même Wi-Fi que la tablette.</li>
-      </ol>
+    <div class="ph">
+      <!-- Colonne gauche : pile, sonner, Bluetooth -->
+      <div class="ph-left">
+        <div class="ph-card ph-bat">
+          <div class="dev-ring" id="devRing"><div class="dev-ring-in"><b id="devPct">–</b></div></div>
+          <div>
+            <div class="dev-title" id="devTitle">iPhone</div>
+            <div class="dev-sub" id="devSub">–</div>
+            <div class="dev-chg" id="devChg"></div>
+          </div>
+        </div>
+        <button class="ring-btn" id="ringBtn"><span>🔔</span>Faire sonner l'iPhone</button>
+        <div class="section">Bluetooth</div>
+        <div class="ph-card bt" id="btList"></div>
+      </div>
+      <!-- Colonne droite : notifications -->
+      <div class="ph-right">
+        <div class="ph-head">
+          <div class="section">Notifications</div>
+          <div class="demo" id="demoTag">Aperçu · données d'exemple · <a id="howBtn">Connecter mon iPhone</a></div>
+        </div>
+        <div class="ph-card notifs" id="notifs"></div>
+      </div>
     </div>
-    <div class="dev-page" id="devPage">
-      <div class="dev-card">
-        <div class="dev-ring" id="devRing"><div class="dev-ring-in"><b id="devPct">–</b><span id="devChg"></span></div></div>
-        <div class="dev-info">
-          <div class="dev-title" id="devTitle">iPhone</div>
-          <div class="dev-sub" id="devSub">–</div>
+
+    <!-- Lecture d'une notif + réponse -->
+    <div class="sheet" id="sheet">
+      <div class="sheet-box">
+        <div class="sheet-top">
+          <div class="nicon" id="shIcon"></div>
+          <div class="sheet-meta"><b id="shApp"></b><small id="shTime"></small></div>
+          <button class="x" id="shClose">✕</button>
+        </div>
+        <div class="sheet-title" id="shTitle"></div>
+        <div class="sheet-text" id="shText"></div>
+        <div class="reply" id="shReply">
+          <div class="quick" id="shQuick"></div>
+          <div class="reply-row"><input id="shInput" placeholder="Répondre…"><button id="shSend">Envoyer</button></div>
         </div>
       </div>
-      <div class="dev-feats">
-        <div class="section">Fonctions</div>
-        <div class="feats" id="devFeats">
-          <button class="feat soon"><span>🔔</span>Faire sonner<small>Bientôt</small></button>
-          <button class="feat soon"><span>📋</span>Envoyer un texte<small>Bientôt</small></button>
-          <button class="feat soon"><span>🔗</span>Envoyer un lien<small>Bientôt</small></button>
-          <button class="feat soon"><span>📱</span>Télécommande sur le cell<small>Bientôt</small></button>
+    </div>
+
+    <!-- Appel entrant -->
+    <div class="call" id="call">
+      <div class="call-box">
+        <div class="call-av" id="callAv">M</div>
+        <div class="call-lbl">Appel entrant sur ton iPhone</div>
+        <div class="call-name" id="callName">Maman</div>
+        <div class="call-num" id="callNum">mobile</div>
+        <div class="call-btns">
+          <button class="cb no" id="callNo"><span>✆</span>Refuser</button>
+          <button class="cb yes" id="callYes"><span>✆</span>Accepter</button>
         </div>
+        <div class="call-hint">Si tu acceptes, tu parles dans ton iPhone, pas dans la tablette.</div>
+      </div>
+    </div>
+
+    <!-- Comment connecter l'iPhone -->
+    <div class="sheet" id="how">
+      <div class="sheet-box">
+        <div class="sheet-top"><div class="sheet-meta"><b>Connecter ton iPhone</b></div><button class="x" id="howClose">✕</button></div>
+        <ol class="how">
+          <li>Sur l'iPhone, ouvre <b>Raccourcis</b> &gt; <b>+</b>, nomme-le <b>Panneau</b>.</li>
+          <li>Ajoute l'action <b>Obtenir le niveau de la batterie</b>.</li>
+          <li>Ajoute <b>Obtenir le contenu de l'URL</b> : <code id="sigUrl">…</code></li>
+          <li><b>Afficher plus</b> : Méthode <b>POST</b>, Corps <b>JSON</b> : <code>id</code> = iphone · <code>nom</code> = iPhone · <code>batterie</code> = <i>Niveau de la batterie</i></li>
+          <li>Lance-le avec ▶ (même Wi-Fi que la tablette).</li>
+        </ol>
       </div>
     </div>
   </div>
@@ -453,42 +547,142 @@
   var devices = [], devSel = '';
   try { devSel = localStorage.getItem('appareil') || ''; } catch (e) {}
   var TYPE_ICON = { iphone: '📱', ipad: '📱', mac: '💻', macmini: '🖥️', android: '📱' };
-  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var APPS = { messages: ['💬', '#30c46b', 'Messages'], telephone: ['📞', '#30c46b', 'Téléphone'], mail: ['✉️', '#2f7cf6', 'Mail'],
+               messenger: ['💭', '#7b5cff', 'Messenger'], instagram: ['📷', '#d6307a', 'Instagram'], snapchat: ['👻', '#f5e33b', 'Snapchat'],
+               calendrier: ['📅', '#ffffff', 'Calendrier'], autre: ['🔔', '#55607f', 'Notification'] };
+  // Données d'exemple, affichées tant que l'iPhone n'envoie rien de vrai
+  var DEMO = {
+    id: 'demo', nom: 'iPhone', type: 'iphone', batterie: 76, enCharge: false, connecte: true, ilYa: 0, demo: true,
+    bluetooth: [
+      { nom: 'AirPods Pro', type: 'airpods', gauche: 82, droite: 79, etui: 64 },
+      { nom: 'Apple Watch', type: 'montre', batterie: 58 },
+      { nom: 'Auto — Bluetooth', type: 'auto' }
+    ],
+    notifs: [
+      { id: 'n1', app: 'messages', titre: 'Maman', texte: 'Tu viens souper dimanche? Ton père fait du pâté chinois 😄', heure: '16:02', repondre: true, nonLu: true },
+      { id: 'n2', app: 'snapchat', titre: 'Snapchat', texte: 'Jérémy t\'a envoyé un snap', heure: '15:47', nonLu: true },
+      { id: 'n3', app: 'messages', titre: 'Max', texte: 'Yo on game à soir? Je suis en ligne vers 8h', heure: '15:30', repondre: true },
+      { id: 'n4', app: 'mail', titre: 'Hydro-Québec', texte: 'Votre facture est disponible. Montant : 84,12 $. Date d\'échéance : 15 décembre.', heure: '14:12' },
+      { id: 'n5', app: 'calendrier', titre: 'Dentiste', texte: 'Demain à 10:30 — Clinique dentaire Sorel', heure: '12:00' },
+      { id: 'n6', app: 'instagram', titre: 'Instagram', texte: 'sarah.b a aimé ta photo', heure: '11:05' }
+    ]
+  };
+  function esc(t) { return String(t === undefined ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function current() {
     for (var i = 0; i < devices.length; i++) if (devices[i].id === devSel) return devices[i];
     for (var j = 0; j < devices.length; j++) if (devices[j].connecte) return devices[j];
     return devices[0] || null;
   }
   function ago(min) { return min < 1 ? "à l'instant" : min < 60 ? 'il y a ' + min + ' min' : min < 1440 ? 'il y a ' + Math.round(min / 60) + ' h' : 'il y a ' + Math.round(min / 1440) + ' j'; }
+  function batColor(p) { return p === undefined ? '#555' : p <= 20 ? '#ff6b6b' : p <= 40 ? '#ffb86b' : '#5fd39a'; }
+
+  var shown = null; // appareil affiché (vrai ou démo)
   function renderDevices() {
-    var d = current();
-    $('devName').textContent = d ? d.nom : 'Appareils';
-    $('devIcon').textContent = d ? (TYPE_ICON[d.type] || '📱') : '📱';
-    $('devEmpty').style.display = d ? 'none' : 'block';
-    $('devPage').style.display = d ? 'flex' : 'none';
-    if (d) {
-      var pct = d.batterie;
-      $('devTitle').textContent = d.nom;
-      $('devPct').textContent = pct === undefined ? '–' : pct + '%';
-      $('devChg').textContent = d.enCharge ? '⚡ En charge' : '';
-      var col = pct === undefined ? '#555' : pct <= 20 ? '#ff6b6b' : pct <= 40 ? '#ffb86b' : '#5fd39a';
-      var deg = Math.round((pct || 0) * 3.6);
-      $('devRing').style.background = 'conic-gradient(' + col + ' ' + deg + 'deg, rgba(255,255,255,0.10) ' + deg + 'deg)';
-      $('devSub').textContent = (d.connecte ? 'Connecté' : 'Hors ligne') + ' · vu ' + ago(d.ilYa);
-    }
+    var real = current();
+    // Les parties pas encore branchées gardent les exemples
+    var d = real ? real : DEMO;
+    shown = { info: d, bluetooth: d.bluetooth || DEMO.bluetooth, notifs: d.notifs || DEMO.notifs, demo: !real || !d.notifs };
+    $('devName').textContent = real ? real.nom : 'Appareils';
+    $('devIcon').textContent = real ? (TYPE_ICON[real.type] || '📱') : '📱';
+    $('demoTag').style.display = shown.demo ? 'block' : 'none';
+
+    var pct = d.batterie, deg = Math.round((pct || 0) * 3.6);
+    $('devTitle').textContent = d.nom;
+    $('devPct').textContent = pct === undefined ? '–' : pct + '%';
+    $('devChg').textContent = d.enCharge ? '⚡ En charge' : '';
+    $('devRing').style.background = 'conic-gradient(' + batColor(pct) + ' ' + deg + 'deg, rgba(255,255,255,0.10) ' + deg + 'deg)';
+    $('devSub').textContent = d.demo ? 'Exemple' : (d.connecte ? 'Connecté' : 'Hors ligne') + ' · vu ' + ago(d.ilYa);
+
+    // Bluetooth
+    var BT_IC = { airpods: '🎧', casque: '🎧', montre: '⌚', auto: '🚗', hautparleur: '🔊' };
     var h = '';
-    for (var i = 0; i < devices.length; i++) {
-      var x = devices[i];
-      h += '<div class="it' + (d && x.id === d.id ? ' sel' : '') + '" data-id="' + esc(x.id) + '"><span class="dot' + (x.connecte ? ' ok' : '') + '"></span>' +
-           '<span class="n">' + (TYPE_ICON[x.type] || '📱') + ' ' + esc(x.nom) + '</span><small>' + (x.batterie !== undefined ? x.batterie + '%' : '') + '</small></div>';
+    for (var b = 0; b < shown.bluetooth.length; b++) {
+      var x = shown.bluetooth[b], bat = '';
+      if (x.gauche !== undefined) bat = '<div>' + x.gauche + '%<small>G</small></div><div>' + x.droite + '%<small>D</small></div>' + (x.etui !== undefined ? '<div>' + x.etui + '%<small>Étui</small></div>' : '');
+      else if (x.batterie !== undefined) bat = '<div>' + x.batterie + '%<small>Pile</small></div>';
+      h += '<div class="bt-it"><div class="bt-ic">' + (BT_IC[x.type] || '🔵') + '</div><div class="bt-n">' + esc(x.nom) + '<small>Connecté</small></div><div class="bt-bat">' + bat + '</div></div>';
     }
-    $('devMenu').innerHTML = h || '<div class="vide">Aucun appareil pour l\'instant. Va dans Appareils pour connecter ton iPhone.</div>';
+    $('btList').innerHTML = h || '<div class="bt-vide">Rien de connecté en Bluetooth.</div>';
+
+    // Notifications
+    h = '';
+    for (var n = 0; n < shown.notifs.length; n++) {
+      var t = shown.notifs[n], a = APPS[t.app] || APPS.autre;
+      h += '<div class="nt' + (t.nonLu ? ' unread' : '') + '" data-i="' + n + '"><div class="nicon" style="background:' + a[1] + '">' + a[0] + '</div>' +
+           '<div class="nt-b"><div class="nt-a">' + a[2] + '</div><div class="nt-t"><b>' + esc(t.titre) + '</b><small>' + esc(t.heure) + '</small></div>' +
+           '<div class="nt-x">' + esc(t.texte) + '</div></div></div>';
+    }
+    $('notifs').innerHTML = h || '<div class="bt-vide">Aucune notification.</div>';
+    var nts = $('notifs').getElementsByClassName('nt');
+    for (var k = 0; k < nts.length; k++) nts[k].onclick = function () { openNotif(shown.notifs[+this.getAttribute('data-i')]); };
+
+    // Menu du haut
+    h = '';
+    for (var i = 0; i < devices.length; i++) {
+      var y = devices[i];
+      h += '<div class="it' + (real && y.id === real.id ? ' sel' : '') + '" data-id="' + esc(y.id) + '"><span class="dot' + (y.connecte ? ' ok' : '') + '"></span>' +
+           '<span class="n">' + (TYPE_ICON[y.type] || '📱') + ' ' + esc(y.nom) + '</span><small>' + (y.batterie !== undefined ? y.batterie + '%' : '') + '</small></div>';
+    }
+    $('devMenu').innerHTML = h || '<div class="vide">Aucun appareil connecté pour l\'instant.</div>';
     var its = $('devMenu').getElementsByClassName('it');
-    for (var k = 0; k < its.length; k++) its[k].onclick = function () {
+    for (var m = 0; m < its.length; m++) its[m].onclick = function () {
       devSel = this.getAttribute('data-id'); try { localStorage.setItem('appareil', devSel); } catch (e) {}
       $('devMenu').className = 'devmenu'; renderDevices(); show('appareils');
     };
   }
+
+  // Lire une notif / répondre
+  var QUICK = ['Oui 👍', 'Non', 'J\'arrive!', 'Je te rappelle', 'Ok parfait'];
+  function openNotif(t) {
+    var a = APPS[t.app] || APPS.autre;
+    t.nonLu = false;
+    $('shIcon').style.background = a[1]; $('shIcon').textContent = a[0];
+    $('shApp').textContent = a[2]; $('shTime').textContent = t.heure;
+    $('shTitle').textContent = t.titre; $('shText').textContent = t.texte;
+    $('shReply').className = 'reply' + (t.repondre ? ' show' : '');
+    var q = '';
+    for (var i = 0; i < QUICK.length; i++) q += '<button>' + esc(QUICK[i]) + '</button>';
+    $('shQuick').innerHTML = q;
+    var qb = $('shQuick').getElementsByTagName('button');
+    for (var j = 0; j < qb.length; j++) qb[j].onclick = function () { sendReply(this.textContent); };
+    $('shInput').value = '';
+    $('sheet').className = 'sheet show';
+    renderDevices();
+  }
+  function sendReply(txt) {
+    if (!txt) return;
+    $('sheet').className = 'sheet';
+    toast(shown.demo ? 'Exemple : « ' + txt + ' » serait envoyé' : 'Réponse envoyée ✔');
+  }
+  $('shSend').onclick = function () { sendReply($('shInput').value.trim()); };
+  $('shClose').onclick = function () { $('sheet').className = 'sheet'; };
+  $('sheet').onclick = function (e) { if (e.target === this) this.className = 'sheet'; };
+
+  // Faire sonner
+  $('ringBtn').onclick = function () {
+    var b = this;
+    if (b.className.indexOf(' on') > -1) { b.className = 'ring-btn'; b.innerHTML = '<span>🔔</span>Faire sonner l\'iPhone'; return; }
+    b.className = 'ring-btn on'; b.innerHTML = '<span>🔕</span>Arrêter la sonnerie';
+    toast(shown.demo ? 'Exemple : l\'iPhone sonnerait' : 'L\'iPhone sonne…');
+  };
+
+  // Appel entrant (démo : appui long sur la pile pour le voir)
+  function showCall(c) {
+    $('callName').textContent = c.de; $('callNum').textContent = c.numero || 'mobile';
+    $('callAv').textContent = (c.de || '?').charAt(0).toUpperCase();
+    $('call').className = 'call show';
+  }
+  $('callYes').onclick = function () { $('call').className = 'call'; toast('Appel accepté : parle dans ton iPhone 📱'); };
+  $('callNo').onclick = function () { $('call').className = 'call'; toast('Appel refusé'); };
+  var pressT;
+  $('devRing').addEventListener('touchstart', function () { pressT = setTimeout(function () { showCall({ de: 'Maman' }); }, 700); });
+  $('devRing').addEventListener('touchend', function () { clearTimeout(pressT); });
+  $('devRing').ondblclick = function () { showCall({ de: 'Maman' }); };
+
+  // Aide connexion
+  $('howBtn').onclick = function () { $('how').className = 'sheet show'; };
+  $('howClose').onclick = function () { $('how').className = 'sheet'; };
+
   function refreshDevices() {
     api('GET', '/api/appareils/status', null, function (r) {
       if (!r) return;
@@ -503,8 +697,7 @@
   };
   document.addEventListener('click', function () { $('devMenu').className = 'devmenu'; });
   $('devMenu').onclick = function (e) { e.stopPropagation(); };
-  var soon = document.querySelectorAll('.feat.soon');
-  for (var f = 0; f < soon.length; f++) soon[f].onclick = function () { toast('Bientôt disponible'); };
+  renderDevices();
   refreshDevices(); setInterval(refreshDevices, 30000);
 
   refreshTv(); refreshMeteo();
