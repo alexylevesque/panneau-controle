@@ -642,7 +642,7 @@
            '<div class="nt-b"><div class="nt-a">' + esc(nomApp(t)) + '</div><div class="nt-t"><b>' + esc(t.titre) + '</b><small>' + esc(t.heure) + '</small></div>' +
            '<div class="nt-x">' + esc(t.texte) + '</div></div></div>';
     }
-    $('notifs').innerHTML = h || (real && real.id !== 'iphone' ? '<div class="bt-vide">Les notifications et les appels sont seulement reliés à ton iPhone pour l\'instant.</div>' : d.bluetooth ? '<div class="bt-vide">Aucune notification.</div>'
+    $('notifs').innerHTML = h || (d.bluetooth ? '<div class="bt-vide">Aucune notification.</div>'
       : '<div class="bt-vide">Les notifications s\'afficheront ici quand l\'iPhone sera connecté. <a id="howBtn">Comment faire</a></div>');
     if ($('howBtn')) $('howBtn').onclick = function () { $('how').className = 'sheet show'; };
     var nts = $('notifs').getElementsByClassName('nt');
@@ -666,7 +666,7 @@
   // Lire une notif / répondre
   var QUICK = ['Oui 👍', 'Non', 'J\'arrive!', 'Je te rappelle', 'Ok parfait'];
   function openNotif(t) {
-    if (t.nonLu && !shown.demo) api('POST', '/api/appareils/action/lu', { id: t.id });
+    if (t.nonLu && !shown.demo) api('POST', '/api/appareils/action/lu', { id: t.id, qui: shown.info.id });
     t.nonLu = false;
     $('shIcon').innerHTML = iconeApp(t);
     $('shApp').textContent = nomApp(t); $('shTime').textContent = t.heure;
@@ -710,11 +710,11 @@
     $('callAv').textContent = (c.de || '?').charAt(0).toUpperCase();
     $('call').className = 'call show';
   }
-  var callUid = null;
+  var callUid = null, callQui = 'iphone';
   function answer(yes) {
     $('call').className = 'call';
     if (!callUid) return toast(yes ? 'Exemple : appel accepté' : 'Exemple : appel refusé');
-    api('POST', '/api/appareils/action/appel', { accepter: yes }, function (r) {
+    api('POST', '/api/appareils/action/appel', { accepter: yes, id: callQui }, function (r) {
       if (!r || !r.ok) return toast((r && r.error) || 'Erreur', true);
       toast(yes ? 'Appel accepté : parle dans ton iPhone 📱' : 'Appel refusé');
     });
@@ -730,9 +730,11 @@
     api('GET', '/api/appareils/status', null, function (r) {
       if (!r) return;
       devices = r.appareils || [];
-      var c = current();
-      if (c && c.appel && c.appel.uid !== callUid) { callUid = c.appel.uid; showCall(c.appel); }
-      if (c && !c.appel && callUid) { callUid = null; $('call').className = 'call'; }
+      // Un appel sur n'importe quel iPhone relié ouvre l'écran d'appel
+      var c = null;
+      for (var i = 0; i < devices.length; i++) if (devices[i].appel) { c = devices[i]; break; }
+      if (c && c.appel.uid !== callUid) { callUid = c.appel.uid; callQui = c.id; showCall(c.appel); }
+      if (!c && callUid) { callUid = null; $('call').className = 'call'; }
       if (r.sonnerie) { var d = current(); ringCfg = r.sonnerie.configure; ringOn = r.sonnerie.active && (!d || r.sonnerie.qui === d.id); ringUi(); }
       if (r.adresse) $('sigUrl').textContent = r.adresse + '/api/appareils/action/signal';
       renderDevices();

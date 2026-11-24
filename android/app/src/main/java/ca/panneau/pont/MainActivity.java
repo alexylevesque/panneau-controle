@@ -30,11 +30,11 @@ public class MainActivity extends Activity {
         l.addView(titre);
 
         TextView aide = new TextView(this);
-        aide.setText("Cette appli relie ton iPhone au panneau par Bluetooth. Laisse-la tourner : "
+        aide.setText("Cette appli relie tes iPhone au panneau par Bluetooth (autant que tu veux). Laisse-la tourner : "
             + "la notification « Pont iPhone actif » la garde en vie.\n\n"
             + "Première fois : sur l'iPhone, ouvre l'appli gratuite « nRF Connect », touche SCAN, "
             + "puis CONNECT à côté de « Panneau ». Accepte le jumelage et « Partager les notifications ».\n\n"
-            + "AirPods : accepte la permission de localisation et laisse la Localisation de la tablette activée.");
+            + "Autre iPhone : fais d'abord rouler son raccourci Panneau une fois, puis la même chose avec nRF Connect.");
         aide.setTextSize(16); aide.setTextColor(Color.rgb(170, 178, 205));
         aide.setPadding(0, 16, 0, 24);
         l.addView(aide);
@@ -44,7 +44,7 @@ public class MainActivity extends Activity {
         l.addView(etat);
 
         Button oublier = new Button(this);
-        oublier.setText("Oublier l'iPhone");
+        oublier.setText("Oublier les iPhone");
         oublier.setOnClickListener(v -> { PontService.oublier(this); });
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         lp.gravity = Gravity.START; lp.topMargin = 20;

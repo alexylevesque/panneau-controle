@@ -100,8 +100,10 @@ module.exports = (cfg) => {
   // ---- Pont Bluetooth (appli Android sur la tablette) ----
   // Notifs et appels arrivent de l'appli ; les commandes (accepter/refuser) attendent qu'elle les ramasse.
   let commandes = [];
-  function iphone() {
-    const a = liste.iphone || (liste.iphone = { nom: 'iPhone', type: 'iphone' });
+  // Le pont dit de quel iPhone il parle avec « qui » (l'id du panneau). Sans « qui » : ton iPhone.
+  function iphone(qui) {
+    qui = String(qui || 'iphone');
+    const a = liste[qui] || (liste[qui] = { nom: 'iPhone', type: 'iphone' });
     a.notifs = a.notifs || [];
     return a;
   }
@@ -172,7 +174,7 @@ module.exports = (cfg) => {
 
       // Reçu du pont Bluetooth : { evt: 'ajout'|'modif'|'retrait', uid, appId, titre, sousTitre, texte, date, categorie, batterie? }
       ancs: { label: 'Notification iPhone', run: async (p) => {
-        const a = iphone();
+        const a = iphone(p.qui);
         a.vu = Date.now();
         if (p.connecte !== undefined) a.bt = !!p.connecte;
         if (p.batterie !== undefined) {
@@ -197,13 +199,29 @@ module.exports = (cfg) => {
         save();
         return 'OK';
       } },
+      // Le pont présente un iPhone Bluetooth : à quel appareil du panneau il correspond ?
+      // Ton premier iPhone = « iphone ». Un nouveau = le dernier iPhone vu par son raccourci qui n'a pas encore de Bluetooth.
+      lier: { label: 'Lier un iPhone', run: async ({ adresse, ancien }) => {
+        adresse = String(adresse || '').toUpperCase();
+        if (!adresse) throw new Error('adresse manquante');
+        for (const id of Object.keys(liste)) if (liste[id].btAdresse === adresse) return id;
+        let id = null;
+        if (ancien) id = 'iphone';
+        else {
+          const libres = Object.keys(liste).filter(k => !liste[k].btAdresse && k !== 'iphone' && (liste[k].type || 'iphone') === 'iphone')
+            .sort((a, b) => (liste[b].vu || 0) - (liste[a].vu || 0));
+          id = libres[0] || (liste.iphone && liste.iphone.btAdresse ? 'iphone-' + adresse.replace(/:/g, '').slice(-4).toLowerCase() : 'iphone');
+        }
+        iphone(id).btAdresse = adresse; save();
+        return id;
+      } },
       // Le pont vient chercher les commandes en attente
       commandes: { label: 'Commandes', run: async () => { pontVu = Date.now(); const c = commandes; commandes = []; return c; } },
       // Depuis l'écran : accepter / refuser l'appel
-      appel: { label: 'Répondre à l\'appel', run: async ({ accepter }) => {
-        const a = iphone();
+      appel: { label: 'Répondre à l\'appel', run: async ({ accepter, id }) => {
+        const a = iphone(id);
         if (!a.appel) throw new Error('Pas d\'appel en cours');
-        commandes.push({ uid: a.appel.uid, action: accepter ? 'positive' : 'negative' });
+        commandes.push({ qui: String(id || 'iphone'), uid: a.appel.uid, action: accepter ? 'positive' : 'negative' });
         a.appel = null; save();
         return accepter ? 'Accepté' : 'Refusé';
       } },
@@ -215,8 +233,8 @@ module.exports = (cfg) => {
         save();
         return 'OK';
       } },
-      lu: { label: 'Marquer lu', run: async ({ id }) => {
-        const a = iphone(); a.notifs.forEach(n => { if (n.id === String(id)) n.nonLu = false; }); save(); return 'OK';
+      lu: { label: 'Marquer lu', run: async ({ id, qui }) => {
+        const a = iphone(qui); a.notifs.forEach(n => { if (n.id === String(id)) n.nonLu = false; }); save(); return 'OK';
       } },
 
       oublier: { label: 'Oublier', run: async ({ id }) => { delete liste[id]; save(); return 'Oublié'; } },
