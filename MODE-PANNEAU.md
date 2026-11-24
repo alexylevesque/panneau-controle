@@ -54,15 +54,12 @@ Fully Kiosk remplace Chrome : il ouvre le panneau en plein écran, sans barre d'
 | Device Management | Launch on Boot | ✅ |
 | Device Management | Screen Brightness | 100 (échelle de 0 à 255; vide = luminosité d'Android) |
 
-### Faire de Fully Kiosk l'écran d'accueil
+### Écran d'accueil (optionnel)
 
-Comme ça, le bouton **Accueil** (le bouton physique du milieu) ramène toujours au panneau.
-
-1. Appuie sur le bouton **Accueil** de la tablette.
-2. Android demande quelle appli utiliser : choisis **Fully Kiosk Browser** > **Toujours**.
-3. Si Android ne demande rien : Paramètres > **Applications** > **Applications par défaut** > **Écran d'accueil** > **Fully Kiosk Browser**.
-
-Pour revenir au vrai écran d'accueil Samsung plus tard : même menu, choisis **TouchWiz** (ou Accueil Samsung).
+Sur cette tablette, Fully Kiosk n'apparaît comme écran d'accueil que si son **Kiosk Mode** est activé,
+et c'est une fonction de la version **Plus** (payante). Sans ça, ce n'est pas grave :
+Fully reste ouvert par-dessus tout, garde l'écran allumé et se lance au démarrage.
+Si tu sors du panneau par erreur, rouvre simplement l'icône **Fully Kiosk**.
 
 ---
 
