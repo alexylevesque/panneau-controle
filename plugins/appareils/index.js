@@ -51,6 +51,23 @@ module.exports = (cfg) => {
     fs.writeFileSync(PO_FILE, JSON.stringify(po));
   }
 
+  // L'as-tu arrêtée sur l'iPhone ? On demande à Pushover (au plus aux 5 s)
+  let verifie = 0;
+  function verifierSonnerie() {
+    if (!po.receipt || Date.now() - verifie < 5000) return;
+    verifie = Date.now();
+    const recu = po.receipt;
+    https.get({ host: 'api.pushover.net', path: `/1/receipts/${recu}.json?token=${encodeURIComponent(po.token)}`, timeout: 8000 }, res => {
+      let out = ''; res.on('data', c => (out += c));
+      res.on('end', () => {
+        let j = {}; try { j = JSON.parse(out); } catch (e) {}
+        if (po.receipt === recu && (j.acknowledged === 1 || j.expired === 1 || res.statusCode === 404)) {
+          delete po.receipt; fs.writeFileSync(PO_FILE, JSON.stringify(po));
+        }
+      });
+    }).on('error', () => {}).on('timeout', function () { this.destroy(); });
+  }
+
   // ---- Pont Bluetooth (appli Android sur la tablette) ----
   // Notifs et appels arrivent de l'appli ; les commandes (accepter/refuser) attendent qu'elle les ramasse.
   let commandes = [];
@@ -170,6 +187,7 @@ module.exports = (cfg) => {
       oublier: { label: 'Oublier', run: async ({ id }) => { delete liste[id]; save(); return 'Oublié'; } },
     },
     async status() {
+      verifierSonnerie();
       return { appareils: vue(), adresse: adresse(),
                sonnerie: { configure: !!(po.user && po.token), active: !!po.receipt && Date.now() - (po.depuis || 0) < 600000 } };
     },
