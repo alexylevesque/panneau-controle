@@ -122,6 +122,10 @@
   .reg .section { text-align: left; }
   .reg-ver { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 18px; padding: 18px; margin-bottom: 16px; color: var(--muted); }
   .reg .pw { width: 100%; margin: 0 0 22px 0; }
+  .essais { display: flex; flex-wrap: wrap; margin: 0 -8px 18px 0; }
+  .essais button { width: calc(25% - 8px); margin: 0 8px 8px 0; height: 52px; border-radius: 14px; border: 1px solid var(--glass-b);
+                   background: var(--glass); color: var(--txt); font-size: 18px; }
+  .essais button:active { background: var(--glass-on); }
   .reg-link { color: var(--muted); font-size: 14px; }
   #toast { position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); background: rgba(0,0,0,0.75);
            padding: 12px 20px; border-radius: 14px; font-size: 15px; opacity: 0; transition: opacity .2s; pointer-events: none; }
@@ -203,6 +207,8 @@
       <div class="section">Système</div>
       <div class="reg-ver" id="ver">…</div>
       <button class="pw on" id="updBtn"><span>🔄</span>Mettre à jour</button>
+      <div class="section">Essais volume</div>
+      <div class="essais" id="essais"></div>
       <a class="reg-link" href="/classique.html">Ancien panneau</a>
     </div>
   </div>
@@ -230,7 +236,7 @@
   var toastTimer;
   function toast(msg, err) {
     var t = $('toast'); t.textContent = msg; t.className = 'show' + (err ? ' err' : '');
-    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.className = ''; }, 2200);
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.className = ''; }, msg.length > 30 ? 4500 : 2200);
   }
 
   // ---- Horloge ----
@@ -344,6 +350,21 @@
     });
   };
   refreshVer();
+  (function () {
+    var box = $('essais');
+    for (var n = 0; n < 12; n++) {
+      var b = document.createElement('button');
+      b.textContent = (n < 9 ? '🔊 ' : '🔇 ') + (n + 1);
+      b.setAttribute('data-n', n);
+      b.onclick = function () {
+        var n = this.getAttribute('data-n');
+        api('POST', '/api/firetv/action/essai', { n: n }, function (r) {
+          toast(r && r.ok ? r.result : ((r && r.error) || 'Erreur'), !(r && r.ok && String(r.result).indexOf('accepté') > 0));
+        });
+      };
+      box.appendChild(b);
+    }
+  })();
 
   refreshTv(); refreshMeteo();
   setInterval(refreshTv, 30000); setInterval(refreshMeteo, 60000);
