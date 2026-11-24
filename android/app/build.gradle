@@ -8,8 +8,8 @@ android {
         applicationId 'ca.panneau.pont'
         minSdk 21
         targetSdk 23          // tablette Android 6 : pas de permissions compliquées
-        versionCode 4
-        versionName "1.3"
+        versionCode 5
+        versionName "1.4"
     }
     signingConfigs {
         pont { storeFile file('../pont.keystore'); storePassword 'panneau'; keyAlias 'pont'; keyPassword 'panneau' }

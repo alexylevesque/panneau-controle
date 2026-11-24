@@ -166,9 +166,22 @@ public class PontService extends Service {
     private BluetoothLeScanner scanneur;
     private String dernierAirPods = "";
     private long dernierLogApple = 0;
+    private int vus = 0;
+    // Diagnostic : combien de signaux Bluetooth la recherche capte (0 = la recherche ne marche pas)
+    private final Runnable bilanScan = new Runnable() { @Override public void run() {
+        boolean loc = true;
+        try {
+            android.location.LocationManager lm = (android.location.LocationManager) getSystemService(LOCATION_SERVICE);
+            loc = lm.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER) || lm.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
+        } catch (Exception e) { }
+        log("Recherche : " + vus + " signaux en 30 s" + (loc ? "" : " · Localisation ÉTEINTE"));
+        vus = 0;
+        if (System.currentTimeMillis() - debutBilan < 5 * 60 * 1000) h.postDelayed(this, 30000);
+    } };
+    private long debutBilan = 0;
     private long dernierEnvoiAirPods = 0;
     private final ScanCallback rappelScan = new ScanCallback() {
-        @Override public void onScanResult(int type, ScanResult r) { airPods(r); }
+        @Override public void onScanResult(int type, ScanResult r) { vus++; airPods(r); }
         @Override public void onScanFailed(int code) { log("Recherche des AirPods impossible (code " + code + ")"); }
     };
 
@@ -182,6 +195,7 @@ public class PontService extends Service {
             ScanSettings st = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
             scanneur.startScan(null, st, rappelScan);
             log("Recherche des AirPods active");
+            if (debutBilan == 0) { debutBilan = System.currentTimeMillis(); h.postDelayed(bilanScan, 30000); }
         } catch (SecurityException e) {
             log("AirPods : permission de localisation manquante (ouvre l'appli Pont iPhone)");
         } catch (Exception e) { log("AirPods : " + e.getMessage()); }
