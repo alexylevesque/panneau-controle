@@ -21,7 +21,7 @@ Sur **son** iPhone :
 3. Ouvre le raccourci reçu > **Ajouter le raccourci**
 4. Touche **Panneau** pour l'ouvrir
 5. Dans **Obtenir le contenu de l'URL**, touche la flèche pour voir les champs
-6. **id** : remplace `iphone` par **iphone2**
+6. **id** : remplace `iphone` par **iphone16**
 7. **nom** : écris le nom à afficher, par exemple **iPhone de** suivi de son prénom
 8. **OK**
 
@@ -52,7 +52,7 @@ Sur **son** iPhone :
 
 1. Installe **Pushover** (App Store)
 2. **Connecte-toi avec ton compte** Pushover (ton courriel et ton mot de passe)
-3. Quand il demande le nom de l'appareil : **iphone2** (exactement)
+3. Quand il demande le nom de l'appareil : **iphone16** (exactement)
 4. **Settings** > active **Critical Alerts for emergency-priority**
 5. Accepte **Autoriser les alertes critiques** si iOS le demande
 
