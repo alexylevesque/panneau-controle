@@ -102,7 +102,14 @@
            display: flex; align-items: center; padding: 0 20px; font-size: 18px; font-weight: 500; text-align: left; }
   .app-t span { font-size: 28px; margin-right: 14px; }
   .app-t.logo { background-color: #000; background-size: cover; background-position: center; height: 112px;
-                box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+                box-shadow: 0 4px 14px rgba(0,0,0,.35); justify-content: center; padding: 0; }
+  .app-t.logo img { max-width: 70%; max-height: 56%; width: auto; height: auto; margin: 0; border-radius: 0; box-shadow: none; background: none; }
+  .l-netflix { background: #000 !important; }
+  .l-youtube { background: #fff !important; }
+  .l-youtube img { max-height: 44%; }
+  .l-prime { background: linear-gradient(135deg, #1a98ff, #0f5fd6) !important; }
+  .l-disney { background: linear-gradient(135deg, #0b1b5c, #1d4fb8 70%, #2ca7d8) !important; }
+  .l-disney img { max-height: 80%; max-width: 78%; }
   .app-t img { width: 96px; height: 54px; border-radius: 10px; margin: 0 14px 0 -6px; object-fit: cover; background: #000;
                box-shadow: 0 2px 8px rgba(0,0,0,.35); }
   .app-t:active { transform: scale(.97); filter: brightness(1.1); }
@@ -186,10 +193,10 @@
       </div>
       <div class="section">Applications</div>
       <div class="apps" id="apps">
-        <button class="app-t a-netflix" data-app="Netflix"><span>🎬</span>Netflix</button>
-        <button class="app-t a-youtube" data-app="YouTube"><span>▶️</span>YouTube</button>
-        <button class="app-t a-prime" data-app="Prime Video"><span>📦</span>Prime Video</button>
-        <button class="app-t a-disney" data-app="Disney+"><span>🏰</span>Disney+</button>
+        <button class="app-t logo l-netflix" data-app="Netflix"><img src="/logos/netflix.svg" alt="Netflix"></button>
+        <button class="app-t logo l-youtube" data-app="YouTube"><img src="/logos/youtube.svg" alt="YouTube"></button>
+        <button class="app-t logo l-prime" data-app="Prime Video"><img src="/logos/primevideo.svg" alt="Prime Video"></button>
+        <button class="app-t logo l-disney" data-app="Disney+"><img src="/logos/disneyplus.svg" alt="Disney+"></button>
       </div>
       <button class="pair" id="pairBtn">🔗 La Fire TV n'est pas jumelée : appuie ici pour la jumeler</button>
     </div>
@@ -298,7 +305,7 @@
       if (!r || !r.ok || !r.result) return;
       for (var k = 0; k < appBtns.length; k++) {
         var url = r.result[appBtns[k].getAttribute('data-app')];
-        if (!url) continue;
+        if (!url || appBtns[k].getElementsByTagName('img').length) continue;
         (function (btn, url) {
           var img = new Image();
           img.onload = function () {
