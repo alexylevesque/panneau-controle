@@ -511,7 +511,7 @@
         </div>
         <div class="section">Vitesse</div>
         <div class="imp-vit" id="impVit"><a data-n="1">Silencieux</a><a data-n="2">Standard</a><a data-n="3">Sport</a><a data-n="4">Fou</a></div>
-        <div class="imp-reg"><span id="impWifi"></span><a id="impCfgBtn">Réglages de l'imprimante</a></div>
+        <div class="imp-reg"><span id="impWifi"></span></div>
       </div>
       <div class="imp-right">
         <div class="imp-err" id="impErr" style="display:none"></div>
@@ -539,6 +539,8 @@
       <div class="section">Système</div>
       <div class="reg-ver" id="ver">…</div>
       <button class="pw on" id="updBtn"><span>🔄</span>Mettre à jour</button>
+      <div class="section">Imprimante</div>
+      <button class="pw off" id="impCfgBtn"><span>🖨️</span>Changer l'imprimante</button>
     </div>
   </div>
 
@@ -1002,7 +1004,7 @@
     if ($('impVit').className.indexOf('off') > -1) return toast('La vitesse se change pendant une impression');
     impAction('vitesse', { niveau: +this.getAttribute('data-n') }, 'Vitesse : ' + this.textContent);
   };
-  $('impCfgBtn').onclick = function () { impCfgOuvert = true; if (imp && imp.ip) $('impIp').value = imp.ip; renderImp(); };
+  $('impCfgBtn').onclick = function () { impCfgOuvert = true; if (imp && imp.ip) $('impIp').value = imp.ip; renderImp(); show('imprimante'); };
   $('impCfgX').onclick = function () { impCfgOuvert = false; renderImp(); };
   $('impSave').onclick = function () {
     api('POST', '/api/imprimante/action/configurer', { ip: $('impIp').value, serie: $('impSerie').value, code: $('impCode').value }, function (r) {
