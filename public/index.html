@@ -642,7 +642,8 @@
            '<div class="nt-b"><div class="nt-a">' + esc(nomApp(t)) + '</div><div class="nt-t"><b>' + esc(t.titre) + '</b><small>' + esc(t.heure) + '</small></div>' +
            '<div class="nt-x">' + esc(t.texte) + '</div></div></div>';
     }
-    $('notifs').innerHTML = h || (d.bluetooth ? '<div class="bt-vide">Aucune notification.</div>'
+    $('notifs').innerHTML = h || (d.type === 'mac' ? '<div class="bt-vide">Pas de notifications pour le Mac : juste sa pile et « Faire sonner ».</div>'
+      : d.bluetooth ? '<div class="bt-vide">Aucune notification.</div>'
       : '<div class="bt-vide">Les notifications s\'afficheront ici quand l\'iPhone sera connecté. <a id="howBtn">Comment faire</a></div>');
     if ($('howBtn')) $('howBtn').onclick = function () { $('how').className = 'sheet show'; };
     var nts = $('notifs').getElementsByClassName('nt');

@@ -57,7 +57,7 @@ function readBody(req) {
   });
 }
 
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.sh': 'text/plain; charset=utf-8' };
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
@@ -93,6 +93,8 @@ http.createServer(async (req, res) => {
   fs.readFile(file, (err, data) => {
     if (err) { res.writeHead(404); return res.end('Introuvable'); }
     res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream' });
+    // Le script du Mac reçoit l'adresse du panneau telle que le Mac l'a utilisée
+    if (path.extname(file) === '.sh') data = String(data).replace(/__PANNEAU__/g, 'http://' + String(req.headers.host || '').replace(/[^A-Za-z0-9.:-]/g, ''));
     res.end(data);
   });
 }).listen(PORT, '0.0.0.0', () => {

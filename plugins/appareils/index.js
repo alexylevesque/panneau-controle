@@ -86,6 +86,13 @@ module.exports = (cfg) => {
   async function sonner(qui) {
     // Chaque iPhone = un appareil dans le même compte Pushover, nommé comme son id (ex. iphone, iphone2)
     qui = String(qui || 'iphone').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 25) || 'iphone';
+    // Un Mac sonne lui-même : son petit programme demande au panneau aux 3 s s'il doit sonner
+    if (liste[qui] && liste[qui].type === 'mac') {
+      if (po.token) await toutArreter();
+      po.receipt = 'mac'; po.depuis = Date.now(); po.qui = qui;
+      fs.writeFileSync(PO_FILE, JSON.stringify(po));
+      return;
+    }
     if (!po.user || !po.token) throw new Error('Configure Pushover d\'abord');
     const msg = { token: po.token, user: po.user, title: 'Panneau', message: '📍 Ton iPhone est ici!',
       priority: 2, retry: 30, expire: 600, sound: 'updown', device: qui, tags: 'panneau' };   // seulement ce cell, pas le Mac
@@ -99,7 +106,8 @@ module.exports = (cfg) => {
   // L'as-tu arrêtée sur l'iPhone ? On demande à Pushover (au plus aux 5 s)
   let verifie = 0;
   function verifierSonnerie() {
-    if (!po.receipt || Date.now() - verifie < 5000) return;
+    if (po.receipt === 'mac' && Date.now() - po.depuis > 120000) { delete po.receipt; fs.writeFileSync(PO_FILE, JSON.stringify(po)); }
+    if (!po.receipt || po.receipt === 'mac' || Date.now() - verifie < 5000) return;
     verifie = Date.now();
     const recu = po.receipt;
     https.get({ host: 'api.pushover.net', path: `/1/receipts/${recu}.json?token=${encodeURIComponent(po.token)}`, timeout: 8000 }, res => {
@@ -148,7 +156,7 @@ module.exports = (cfg) => {
         if (ic === undefined) chercherIcone(n.appId);
         return ic ? Object.assign({}, n, { icone: ic.url, nomApp: ic.nom }) : n;
       });
-      o.bluetooth = !!(a.bt && now - pontVu < 15000);
+      o.bluetooth = a.type === 'mac' ? now - (a.vu || 0) < 20000 : !!(a.bt && now - pontVu < 15000);
       if (o.airpods) o.airpods = Object.assign({}, o.airpods, { actifs: now - o.airpods.vu < 2 * 60 * 1000 });
       return o;
     }).sort((a, b) => b.vu - a.vu);
@@ -176,6 +184,22 @@ module.exports = (cfg) => {
         save();
         return 'OK';
       } },
+      // Le Mac (petit programme installé avec mac/installer.sh) : pile aux 3 s, et « dois-je sonner ? »
+      mac: { label: 'Mac', run: async (p) => {
+        const id = String(p.id || 'mac').toLowerCase().replace(/[^a-z0-9-]+/g, '-').slice(0, 40) || 'mac';
+        const a = liste[id] || (liste[id] = { type: 'mac' });
+        const avant = JSON.stringify([a.nom, a.batterie, a.enCharge]);
+        a.type = 'mac'; a.raccourci = true;
+        if (p.nom) a.nom = String(p.nom).slice(0, 40);
+        if (!a.nom) a.nom = 'Mac';
+        const b = parseInt(p.batterie, 10);
+        if (!isNaN(b)) a.batterie = b; else delete a.batterie;
+        a.enCharge = !!p.enCharge;
+        a.vu = Date.now();
+        if (JSON.stringify([a.nom, a.batterie, a.enCharge]) !== avant) save();
+        verifierSonnerie();
+        return po.receipt === 'mac' && po.qui === id ? 'SONNE' : 'OK';
+      } },
       // Faire sonner
       pushover: { label: 'Configurer Pushover', run: async ({ user, token }) => {
         po = { user: String(user || '').trim(), token: String(token || '').trim() };
@@ -184,8 +208,8 @@ module.exports = (cfg) => {
       } },
       sonner: { label: 'Faire sonner', run: async ({ id }) => { await sonner(id); return 'Ça sonne'; } },
       arreter: { label: 'Arrêter la sonnerie', run: async () => {
-        if (po.receipt) await pushover(`/1/receipts/${po.receipt}/cancel.json`, { token: po.token }).catch(() => {});
-        await toutArreter();
+        if (po.receipt && po.receipt !== 'mac') await pushover(`/1/receipts/${po.receipt}/cancel.json`, { token: po.token }).catch(() => {});
+        if (po.token) await toutArreter();
         delete po.receipt; fs.writeFileSync(PO_FILE, JSON.stringify(po));
         return 'Arrêté';
       } },
