@@ -22,7 +22,7 @@ PANNEAU="$PANNEAU"
 AGENT
 cat >> "$DOSSIER/agent.sh" <<'AGENT'
 NOM=$(scutil --get ComputerName 2>/dev/null || echo Mac)
-VERSION=5
+VERSION=6
 NCPU=$(sysctl -n hw.ncpu); MEM=$(sysctl -n hw.memsize); PS=$(pagesize)
 BOOT=$(sysctl -n kern.boottime | awk -F'[ ,]+' '{print $4}')
 SMC="$HOME/.panneau/smc"; CLES=""
@@ -49,7 +49,10 @@ executer() {   # id code commande
   fi
   echo "0 0" > "$ESSAIS_F"
   # 30 s max par commande ; on retient le dossier (pour que « cd » marche)
-  out=$(cd "$cwd" && perl -e 'alarm 30; exec @ARGV' /bin/bash -c "$cmd"$'\n''printf "\n__PWD__%s" "$PWD"' 2>&1 < /dev/null | head -c 60000)
+  # (au bout de 30 s on arrête la commande ET tout ce qu'elle a lancé, sinon ça reste pris)
+  out=$(cd "$cwd" && perl -e '$p = fork; if (!$p) { setpgrp(0, 0); exec @ARGV; exit 127 }
+      $SIG{ALRM} = sub { kill 9, -$p; print "\n⏱ Arrêté après 30 s. Si c\x27est dans Bureau, Documents ou Téléchargements, regarde si le Mac demande une permission.\n"; exit 124 };
+      alarm 30; waitpid($p, 0); exit($? >> 8)' /bin/bash -c "$cmd"$'\n''printf "\n__PWD__%s" "$PWD"' 2>&1 < /dev/null | head -c 60000)
   nouveau=$(printf '%s\n' "$out" | sed -n 's/^__PWD__//p' | tail -1)
   out=$(printf '%s\n' "$out" | sed '/^__PWD__/d')
   if [ -n "$nouveau" ] && [ -d "$nouveau" ]; then cwd="$nouveau"; echo "$cwd" > "$CWD_F"; fi

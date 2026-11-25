@@ -150,12 +150,14 @@
   .mac-tabs a.on { background: rgba(122,162,255,0.16); color: var(--txt); }
   .notifs.pages { overflow-x: auto; overflow-y: hidden; display: flex; scroll-snap-type: x mandatory; padding: 0; }
   .notifs.pages::-webkit-scrollbar { display: none; }
-  .page { flex: none; width: 100%; height: 100%; overflow-y: auto; scroll-snap-align: start; box-sizing: border-box; padding: 6px; }
-  .bientot { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--muted); text-align: center; }
+  .page { flex: none; width: 100%; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; scroll-snap-align: start; box-sizing: border-box; padding: 6px; display: flex; flex-direction: column; }
+  .page > * { flex: none; }
+  .page > .term, .page > .bientot { flex: 1; min-height: 0; }
+  .bientot { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--muted); text-align: center; }
   .bientot b { font-size: 40px; margin-bottom: 10px; }
   /* Terminal du Mac */
-  .term { display: flex; flex-direction: column; height: 100%; }
-  .term-out { flex: 1; overflow-y: auto; padding: 12px 14px; font: 14px/1.45 Menlo, 'DejaVu Sans Mono', monospace; white-space: pre-wrap; word-break: break-all; color: #d7defa; }
+  .term { display: flex; flex-direction: column; }
+  .term-out { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding: 12px 14px; font: 14px/1.45 Menlo, 'DejaVu Sans Mono', monospace; white-space: pre-wrap; word-break: break-all; color: #d7defa; }
   .term-out > div { margin-bottom: 6px; }
   .t-ps { color: #5fd39a; } .t-err { color: #ffb86b; } .t-info { color: var(--muted); }
   .term-in { display: flex; align-items: center; margin: 6px; padding: 6px 6px 6px 14px; border-radius: 16px; background: rgba(0,0,0,0.25); }
@@ -704,6 +706,7 @@
       else if (x.statut === 'delai') termEcrire('<span class="t-err">' + esc(x.sortie) + '</span>');
       else {
         if (x.sortie) termEcrire(esc(x.sortie));
+        if (/Operation not permitted/.test(x.sortie || '')) termEcrire('<span class="t-err">macOS protège ce dossier. Sur le Mac : Réglages Système > Confidentialité et sécurité > Accès complet au disque > + , puis Cmd+Maj+G, tape /bin/bash et ajoute-le.</span>');
         if (x.cwd) { var parts = x.cwd.split('/'); termDossier = parts[parts.length - 1] || '/'; }
       }
       termPrompt();
