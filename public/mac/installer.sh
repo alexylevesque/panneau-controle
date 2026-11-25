@@ -22,7 +22,7 @@ PANNEAU="$PANNEAU"
 AGENT
 cat >> "$DOSSIER/agent.sh" <<'AGENT'
 NOM=$(scutil --get ComputerName 2>/dev/null || echo Mac)
-VERSION=3
+VERSION=4
 NCPU=$(sysctl -n hw.ncpu); MEM=$(sysctl -n hw.memsize); PS=$(pagesize)
 BOOT=$(sysctl -n kern.boottime | awk -F'[ ,]+' '{print $4}')
 SMC="$HOME/.panneau/smc"; CLES=""
@@ -153,9 +153,10 @@ int main(int argc, char **argv) {
   double somme = 0; int compte = 0;
   for (int i = 1; i < argc; i++) {
     if (strlen(argv[i]) != 4) continue;
-    if (lire(cc(argv[i]), &v) && v > 15 && v < 115) { somme += v; compte++; }
+    if (lire(cc(argv[i]), &v) && v > 15 && v < 115) { if (v > somme) somme = v; compte++; }
   }
-  if (compte) printf(",\"temp\":%d", (int)(somme / compte + 0.5));
+  // Le cœur le plus chaud (comme les apps de stats) : la moyenne cachait les pointes
+  if (compte) printf(",\"temp\":%d", (int)(somme + 0.5));
   printf("\n");
   return 0;
 }
