@@ -37,7 +37,7 @@ cat >> "$DOSSIER/agent.sh" <<'AGENT'
 NOM=$(scutil --get ComputerName 2>/dev/null || echo Mac)
 ID=$(cat "$HOME/.panneau/id" 2>/dev/null); [ -z "$ID" ] && ID=mac
 TYPE=$(cat "$HOME/.panneau/type" 2>/dev/null); [ -z "$TYPE" ] && TYPE=mac
-VERSION=12
+VERSION=13
 NCPU=$(sysctl -n hw.ncpu); MEM=$(sysctl -n hw.memsize); PS=$(pagesize)
 BOOT=$(sysctl -n kern.boottime | awk -F'[ ,]+' '{print $4}')
 SMC="$HOME/.panneau/smc"; CLES=""
@@ -59,13 +59,21 @@ while true; do
   DF=$( (df -k /System/Volumes/Data 2>/dev/null || df -k /) | awk 'NR==2{printf "%d %d", $5, $4/1048576}')
   UP=$(( $(date +%s) - BOOT ))
   CAPT=""; [ -x "$SMC" ] && CAPT=$("$SMC" $CLES 2>/dev/null)
+  # Adresse réseau (pour le réveiller à distance) et « Réveil par accès réseau » activé ou pas
+  IFACE=$(route -n get default 2>/dev/null | awk '/interface:/{print $2}')
+  ADR=$(ifconfig "${IFACE:-en0}" 2>/dev/null | awk '/ether/{print $2; exit}')
+  WOMP=$(pmset -g 2>/dev/null | awk '$1=="womp"{print $2}')
   R=$(curl -s -m 4 -X POST -H 'Content-Type: application/json' \
-      -d "{\"id\":\"$ID\",\"type\":\"$TYPE\",\"v\":$VERSION,\"nom\":\"$NOM\",\"batterie\":\"$PCT\",\"enCharge\":$CHG,\"cpu\":${CPU:-0},\"ram\":${RAM:-0},\"disque\":${DF% *},\"libreGo\":${DF#* },\"allume\":$UP,\"memGo\":$((MEM/1073741824))$CAPT}" \
+      -d "{\"id\":\"$ID\",\"type\":\"$TYPE\",\"v\":$VERSION,\"nom\":\"$NOM\",\"batterie\":\"$PCT\",\"enCharge\":$CHG,\"cpu\":${CPU:-0},\"ram\":${RAM:-0},\"disque\":${DF% *},\"libreGo\":${DF#* },\"allume\":$UP,\"memGo\":$((MEM/1073741824)),\"adr\":\"$ADR\",\"womp\":\"$WOMP\"$CAPT}" \
       "$PANNEAU/api/appareils/action/mac")
   # Nouvelle version du programme sur le panneau : on se met à jour tout seul
   if echo "$R" | grep -q MAJ; then
     curl -s -m 10 "$PANNEAU/mac/installer.sh" -o /tmp/panneau.sh && bash /tmp/panneau.sh maj >/dev/null 2>&1
     exit 0
+  fi
+  # Interrupteur du panneau : mise en veille (le panneau le rallume par le réseau)
+  if echo "$R" | grep -q DORS; then
+    arreter_son; pmset sleepnow >/dev/null 2>&1; sleep 10; continue
   fi
   if echo "$R" | grep -q SONNE; then
     if [ -z "$SONNEUR" ] || ! kill -0 "$SONNEUR" 2>/dev/null; then

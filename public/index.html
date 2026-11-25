@@ -186,6 +186,18 @@
     -webkit-animation: tourne 2.5s linear infinite; animation: tourne 2.5s linear infinite; }
   @-webkit-keyframes tourne { to { -webkit-transform: rotate(360deg); } }
   @keyframes tourne { to { transform: rotate(360deg); } }
+  .mac-alim { display: flex; align-items: center; padding: 0 18px 0 20px; height: 84px; box-sizing: border-box; flex: none; }
+  .mac-alim .ic { width: 46px; height: 46px; border-radius: 14px; background: rgba(255,255,255,.08); display: flex; align-items: center; justify-content: center; flex: none; margin-right: 14px; color: var(--muted); }
+  .mac-alim .ic svg { width: 24px; height: 24px; fill: currentColor; }
+  .mac-alim.on .ic { background: rgba(95,211,154,.16); color: var(--ok); }
+  .mac-alim .tx { flex: 1; min-width: 0; }
+  .mac-alim .tx b { display: block; font-size: 17px; font-weight: 500; }
+  .mac-alim .tx small { font-size: 13px; color: var(--muted); }
+  .inter { flex: none; width: 66px; height: 38px; border-radius: 999px; background: rgba(255,255,255,.16); position: relative; transition: background .2s; }
+  .inter::after { content: ''; position: absolute; top: 4px; left: 4px; width: 30px; height: 30px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); transition: left .2s; }
+  .inter.on { background: var(--ok); }
+  .inter.on::after { left: 32px; }
+  .inter.att { opacity: .55; }
   .ring-btn { height: 64px; border-radius: 20px; border: 0; margin-bottom: 22px; color: #1b1200; font-size: 18px; font-weight: 600; font-family: inherit;
               background: linear-gradient(135deg, #ffd36b, #ffb347); display: flex; align-items: center; justify-content: center; }
   .ring-btn span { font-size: 24px; margin-right: 10px; }
@@ -553,6 +565,11 @@
           </div>
         </div>
         <button class="ring-btn" id="ringBtn"><span>🔔</span>Faire sonner</button>
+        <div class="ph-card mac-alim" id="macAlim" style="display:none">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2zm4.83 2.17-1.42 1.42A6.92 6.92 0 0 1 19 12a7 7 0 1 1-14 0 6.92 6.92 0 0 1 2.58-5.42L6.17 5.17A8.93 8.93 0 0 0 3 12a9 9 0 0 0 18 0 8.93 8.93 0 0 0-3.17-6.83z"/></svg></div>
+          <div class="tx"><b id="macAlimT">Allumé</b><small id="macAlimS"></small></div>
+          <a class="inter" id="macInter"></a>
+        </div>
       </div>
       <!-- Colonne droite : notifications -->
       <div class="ph-right">
@@ -929,6 +946,32 @@
   var PAGES_MAC = [
     { id: 'stats', nom: 'Stats' }
   ];
+  // Interrupteur du Mac : veille / réveil par le réseau
+  var alimAttente = 0;
+  function alimMac(d) {
+    $('macAlim').style.display = d ? '' : 'none';
+    if (!d) return;
+    var e = d.alim || (d.bluetooth ? 'allume' : 'eteint'), on = e === 'allume' || e === 'dodo';
+    var att = e === 'dodo' || e === 'reveil' || Date.now() - alimAttente < 4000;
+    $('macAlim').className = 'ph-card mac-alim' + (on ? ' on' : '');
+    $('macInter').className = 'inter' + ((e === 'allume' || e === 'reveil') ? ' on' : '') + (att ? ' att' : '');
+    $('macAlimT').textContent = { allume: 'Allumé', dodo: 'Mise en veille…', reveil: 'Réveil en cours…', eteint: 'En veille ou éteint' }[e];
+    $('macAlimS').textContent = e === 'allume' ? (d.reveilReseau === false ? 'Active « Réveil par accès réseau » sur le Mac' : 'Touche pour le mettre en veille')
+      : e === 'eteint' ? (d.adr ? 'Touche pour le réveiller' : 'Allume-le une fois à la main pour activer le réveil')
+      : e === 'reveil' ? 'Ça peut prendre jusqu\'à une minute' : 'Dans quelques secondes';
+    $('macInter').onclick = function () {
+      if (att) return;
+      var act = e === 'allume' ? 'eteindre' : 'allumer';
+      if (act === 'eteindre' && !confirm('Mettre ' + d.nom + ' en veille ?')) return;
+      alimAttente = Date.now();
+      api('POST', '/api/appareils/action/' + act, { id: d.id }, function (r) {
+        if (!r || !r.ok) { alimAttente = 0; toast((r && r.error) || 'Erreur', true); }
+        else toast(act === 'eteindre' ? d.nom + ' se met en veille…' : 'Réveil de ' + d.nom + '…');
+        refreshDevices();
+      });
+      alimMac(d);
+    };
+  }
   function pagesMac(d) {
     var box = $('notifs');
     if (!$('pg-stats')) {           // on bâtit les pages une fois, pour ne pas perdre où on est rendu
@@ -999,6 +1042,7 @@
     var mac = d.type === 'mac' || d.type === 'macmini';
     $('phTitre').style.display = mac ? 'none' : '';
     $('macTabs').style.display = mac ? '' : 'none';
+    alimMac(mac ? d : null);
     if (mac) pagesMac(d);
     else {
     $('notifs').className = 'ph-card notifs';
