@@ -1,4 +1,4 @@
-// Maison > Wi-Fi : Internet (en ligne, latence, vitesse), appareils branchés sur le réseau, partage du Wi-Fi (code QR).
+// Maison > Wi-Fi : Internet en direct (latence, gigue, pertes, coupures), appareils branchés sur le réseau, partage du Wi-Fi (code QR).
 // Les noms donnés aux appareils et le mot de passe du Wi-Fi restent sur la tablette (reseau.json, jamais dans le code).
 const fs = require('fs');
 const path = require('path');
@@ -148,56 +148,6 @@ module.exports = () => {
     }).on('error', () => {}).on('timeout', function () { this.destroy(); });
   }
 
-  // ---- Test de vitesse en direct (Cloudflare) : 8 s de téléchargement, puis 8 s d'envoi ----
-  let test = { phase: '', direct: 0, bas: null, haut: null, ping: null, progression: 0 };
-  if (data.vitesse) Object.assign(test, data.vitesse, { phase: 'fini' });
-  const DUREE = 8000;
-  const HOTE = process.env.PANNEAU_SPEED_HOTE || 'speed.cloudflare.com', PORT = +process.env.PANNEAU_SPEED_PORT || 443;   // (autre hôte : pour les tests)
-  function telecharger() {
-    return new Promise(resolve => {
-      const t0 = Date.now(); let recu = 0, fini = false;
-      const fin = () => { if (fini) return; fini = true; clearInterval(iv); try { req.destroy(); } catch (e) {} resolve(Math.round(recu * 8 / ((Date.now() - t0) / 1000) / 1e5) / 10); };
-      const req = https.get({ host: HOTE, port: PORT, rejectUnauthorized: HOTE === 'speed.cloudflare.com', path: '/__down?bytes=500000000', timeout: 10000 }, r => {
-        r.on('data', c => { recu += c.length; }); r.on('end', fin); r.on('error', fin);
-      });
-      req.on('error', fin); req.on('timeout', fin);
-      const iv = setInterval(() => {
-        const s = (Date.now() - t0) / 1000;
-        test.direct = Math.round(recu * 8 / s / 1e5) / 10; test.progression = Math.min(50, Math.round(50 * (Date.now() - t0) / DUREE));
-        if (Date.now() - t0 > DUREE) fin();
-      }, 250);
-    });
-  }
-  async function envoyer() {
-    const t0 = Date.now(), morceau = Buffer.alloc(2e6); let envoye = 0;
-    const iv = setInterval(() => {
-      test.direct = Math.round(envoye * 8 / ((Date.now() - t0) / 1000) / 1e5) / 10; test.progression = 50 + Math.min(50, Math.round(50 * (Date.now() - t0) / DUREE));
-    }, 250);
-    try {
-      while (Date.now() - t0 < DUREE) {
-        await new Promise((resolve, reject) => {
-          const req = https.request({ host: HOTE, port: PORT, rejectUnauthorized: HOTE === 'speed.cloudflare.com', path: '/__up', method: 'POST', timeout: 10000,
-            headers: { 'Content-Type': 'application/octet-stream', 'Content-Length': morceau.length } }, r => { r.resume(); r.on('end', resolve); });
-          req.on('error', reject); req.on('timeout', () => req.destroy(new Error('Trop lent')));
-          req.end(morceau);
-        });
-        envoye += morceau.length;
-      }
-    } finally { clearInterval(iv); }
-    return Math.round(envoye * 8 / ((Date.now() - t0) / 1000) / 1e5) / 10;
-  }
-  async function testVitesse() {
-    test = { phase: 'ping', direct: 0, bas: null, haut: null, ping: null, progression: 0 };
-    try {
-      const pings = []; for (let i = 0; i < 5; i++) { const x = await tcpMs(HOTE, PORT); if (x !== null) pings.push(x); }
-      test.ping = pings.length ? Math.min.apply(null, pings) : null;
-      test.phase = 'bas'; test.bas = await telecharger();
-      test.phase = 'haut'; test.direct = 0; test.haut = await envoyer();
-      test.phase = 'fini'; test.progression = 100; test.quand = Date.now();
-      data.vitesse = { bas: test.bas, haut: test.haut, ping: test.ping, quand: test.quand }; save();
-    } catch (e) { test.phase = 'erreur'; test.erreur = e.message; }
-  }
-
   return {
     name: 'Wi-Fi',
     icon: '📶',
@@ -215,17 +165,13 @@ module.exports = () => {
         if (!data.ssid) throw new Error('Entre le nom du Wi-Fi');
         save(); return 'OK';
       } },
-      vitesse: { label: 'Test de vitesse', run: async () => {
-        if (['ping', 'bas', 'haut'].indexOf(test.phase) > -1) throw new Error('Test déjà en cours');
-        testVitesse(); return 'Lancé';
-      } },
     },
     async status() {
       majIpPublique();
       const m = moi();
       return Object.assign(resume(), {
         ipPublique, fai, tablette: m ? m.ip : '', routeur: routeur(m && m.ip),
-        ssid: data.ssid, mdp: data.mdp, test,
+        ssid: data.ssid, mdp: data.mdp,
         scan: { enCours: scan.enCours, fini: scan.fini }, appareils: scan.appareils,
       });
     },

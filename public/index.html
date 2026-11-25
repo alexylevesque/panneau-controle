@@ -360,18 +360,7 @@
   .wf-ch div { flex: 1; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
   .wf-ch b { display: block; color: var(--txt); font-size: 18px; font-weight: 400; text-transform: none; letter-spacing: 0; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .wf-ch + .wf-ch { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--glass-b); }
-  .wf-vit { flex: 1; min-height: 0; padding: 16px 22px; display: flex; flex-direction: column; align-items: center; }
-  .wf-jauge { width: 250px; height: 140px; position: relative; }
-  .wf-jauge svg { width: 250px; height: 140px; }
-  .wf-jauge div { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; }
-  .wf-jauge b { display: block; font-size: 40px; font-weight: 200; line-height: 1; }
-  .wf-jauge small { color: var(--muted); font-size: 13px; }
-  .wf-res { display: flex; width: 100%; margin: 10px 0 12px; text-align: center; }
-  .wf-res div { flex: 1; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
-  .wf-res b { display: block; color: var(--txt); font-size: 22px; font-weight: 300; text-transform: none; letter-spacing: 0; margin-top: 2px; }
-  .wf-go { width: 100%; height: 54px; border-radius: 16px; border: 0; font-family: inherit; font-size: 16px; font-weight: 600; color: #0b1020; background: linear-gradient(135deg, #8fb0ff, #6f8dff); margin-top: auto; }
-  .wf-go[disabled] { opacity: .5; }
-  .wf-app { flex: 1; min-height: 0; display: flex; flex-direction: column; margin-bottom: 14px; }
+  .wf-app { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .wf-app-t { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px; }
   .wf-app-t b { font-weight: 500; font-size: 17px; }
   .wf-app-t a { color: var(--accent); font-size: 14px; cursor: pointer; }
@@ -384,10 +373,11 @@
   .wf-it .n b.inc { color: var(--muted); font-weight: 400; }
   .wf-it .n small { color: var(--muted); font-size: 12px; }
   .wf-it .nv { background: rgba(255,184,107,.18); color: var(--warm); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; margin-left: 8px; }
-  .wf-qr { flex: none; display: flex; align-items: center; padding: 14px 20px; }
-  .wf-qr .code { width: 120px; height: 120px; background: #fff; border-radius: 12px; padding: 6px; box-sizing: border-box; flex: none; margin-right: 18px; }
+  .wf-qr { flex: 1; min-height: 0; display: flex; align-items: center; padding: 18px 22px; }
+  .wf-qr .code { width: 200px; height: 200px; background: #fff; border-radius: 12px; padding: 6px; box-sizing: border-box; flex: none; margin-right: 22px; }
   .wf-qr .code img { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
-  .wf-qr b { display: block; font-weight: 500; font-size: 17px; }
+  .wf-qr b { display: block; font-weight: 500; font-size: 22px; }
+  .wf-qr .lbl { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
   .wf-qr small { display: block; color: var(--muted); font-size: 13px; margin: 4px 0 10px; }
   .wf-qr a { color: var(--accent); font-size: 14px; cursor: pointer; }
 
@@ -615,18 +605,13 @@
             <div class="wf-ch"><div>Moyenne<b id="wfMoy">–</b></div><div>Gigue<b id="wfGigue">–</b></div><div>Pertes<b id="wfPertes">–</b></div><div>Routeur<b id="wfGw">–</b></div></div>
             <div class="wf-ch"><div>Coupures<b id="wfCoup">–</b></div><div style="flex:1.6">Fournisseur<b id="wfFai">–</b></div><div style="flex:1.4">IP publique<b id="wfIp">–</b></div></div>
           </div>
-          <div class="ph-card wf-vit">
-            <div class="wf-jauge"><svg viewBox="0 0 250 140" id="wfJauge"></svg><div><b id="wfDirect">–</b><small id="wfPhase">Mb/s</small></div></div>
-            <div class="wf-res"><div>↓ Réception<b id="wfBas">–</b></div><div>↑ Envoi<b id="wfHaut">–</b></div><div>Ping<b id="wfPing">–</b></div></div>
-            <button class="wf-go" id="wfGo">Lancer le test de vitesse</button>
-          </div>
+          <div class="ph-card wf-qr" id="wfQr"></div>
         </div>
         <div class="wf-d">
           <div class="ph-card wf-app">
             <div class="wf-app-t"><b id="wfNb">Appareils sur le Wi-Fi</b><a id="wfScan">Rechercher</a></div>
             <div class="wf-liste" id="wfListe"></div>
           </div>
-          <div class="ph-card wf-qr" id="wfQr"></div>
         </div>
       </div>
     </div>
@@ -1169,7 +1154,7 @@
     var r = wf; if (!r) return;
     var c = wfCouleur(r.enLigne ? r.latence : null);
     $('mWifiEtat').innerHTML = '<span class="etat' + (r.enLigne ? ' ok' : '') + '"><span class="dot ' + (r.enLigne ? 'ok' : 'bad') + '"></span>' + (r.enLigne ? 'En ligne' : 'Hors ligne') + '</span>';
-    $('mWifiSous').textContent = (r.enLigne ? msTxt(r.latence) + ' · ' : '') + (r.appareils || []).length + ' appareils' + (r.test && r.test.bas ? ' · ↓ ' + Math.round(r.test.bas) + ' Mb/s' : '');
+    $('mWifiSous').textContent = (r.enLigne ? msTxt(r.latence) + ' · ' : '') + (r.appareils || []).length + ' appareils';
     if (!wfOuvert) return;
     $('wfEtat').innerHTML = '<span class="etat' + (r.enLigne ? ' ok' : '') + '"><span class="dot ' + (r.enLigne ? 'ok' : 'bad') + '"></span>' + (r.enLigne ? 'Internet en ligne' : 'Internet coupé') + '</span>';
     $('wfMs').innerHTML = r.enLigne && r.latence !== null ? r.latence + '<i>ms</i>' : '–';
@@ -1192,25 +1177,6 @@
     $('wfGw').textContent = msTxt(r.latenceRouteur);
     $('wfCoup').textContent = r.coupures24h; $('wfCoup').style.color = r.coupures24h ? '#ffb86b' : '';
     $('wfFai').textContent = r.fai || '–'; $('wfIp').textContent = r.ipPublique || '–';
-    // Test de vitesse
-    var t = r.test || {}, enCours = t.phase === 'ping' || t.phase === 'bas' || t.phase === 'haut';
-    var val = enCours ? t.direct : t.bas, angle = Math.min(1, Math.log(1 + (val || 0)) / Math.log(1001));
-    var a0 = Math.PI, a1 = Math.PI * (1 - angle), cx = 125, cy = 125, rr = 105;
-    var arc = function (a, b, col, w) {
-      var x1 = cx + rr * Math.cos(a), y1 = cy - rr * Math.sin(a), x2 = cx + rr * Math.cos(b), y2 = cy - rr * Math.sin(b);
-      return '<path d="M' + x1.toFixed(1) + ' ' + y1.toFixed(1) + ' A' + rr + ' ' + rr + ' 0 0 1 ' + x2.toFixed(1) + ' ' + y2.toFixed(1) + '" fill="none" stroke="' + col + '" stroke-width="' + w + '" stroke-linecap="round"/>';
-    };
-    var jg = arc(Math.PI, 0.0001, 'rgba(255,255,255,.10)', 14);
-    if (val) jg += arc(a0, Math.max(a1, 0.0001), t.phase === 'haut' ? '#c38bff' : '#7aa2ff', 14);
-    $('wfJauge').innerHTML = jg;
-    $('wfDirect').textContent = val ? (val >= 100 ? Math.round(val) : val) : '–';
-    $('wfPhase').textContent = t.phase === 'ping' ? 'Mesure du ping…' : t.phase === 'bas' ? '↓ Réception · Mb/s' : t.phase === 'haut' ? '↑ Envoi · Mb/s'
-      : t.phase === 'erreur' ? 'Le test a échoué' : t.quand ? 'Mb/s · test de ' + new Date(t.quand).getHours() + ':' + two(new Date(t.quand).getMinutes()) : 'Mb/s';
-    $('wfBas').textContent = t.bas !== null && t.bas !== undefined ? t.bas : '–';
-    $('wfHaut').textContent = t.haut !== null && t.haut !== undefined ? t.haut : '–';
-    $('wfPing').textContent = t.ping !== null && t.ping !== undefined ? t.ping + ' ms' : '–';
-    $('wfGo').disabled = enCours;
-    $('wfGo').textContent = enCours ? 'Test en cours… ' + (t.progression || 0) + ' %' : 'Lancer le test de vitesse';
     // Appareils
     var l = r.appareils || [], hh = '';
     for (i = 0; i < l.length; i++) {
@@ -1235,9 +1201,9 @@
       $('wfQr').setAttribute('data-k', qrKey);
       if (r.ssid && window.qrcode) {
         var q = qrcode(0, 'M'); q.addData('WIFI:T:WPA;S:' + qrEsc(r.ssid) + ';P:' + qrEsc(r.mdp || '') + ';;', 'Byte'); q.make();
-        $('wfQr').innerHTML = '<div class="code"><img src="' + q.createDataURL(4, 0) + '" alt=""></div><div><b>' + esc(r.ssid) + '</b><small>Scanne avec la caméra pour te connecter.</small><a id="wfCfgBtn">Modifier</a></div>';
+        $('wfQr').innerHTML = '<div class="code"><img src="' + q.createDataURL(6, 0) + '" alt=""></div><div><div class="lbl">Wi-Fi de la maison</div><b>' + esc(r.ssid) + '</b><small>Scanne le code avec la caméra de ton cell pour te connecter, sans taper le mot de passe.</small><a id="wfCfgBtn">Modifier</a></div>';
       } else $('wfQr').innerHTML = '<div><b>Partager le Wi-Fi</b><small>Un code QR que tes invités scannent pour se connecter, sans taper le mot de passe.</small><a id="wfCfgBtn">Configurer</a></div>';
-      $('wfCfgBtn').onclick = function () { $('wfSsid').value = (wf && wf.ssid) || ''; $('wfMdp').value = (wf && wf.mdp) || ''; $('wfCfg').className = 'sheet show'; };
+      $('wfCfgBtn').onclick = function () { $('wfSsid').value = (wf && wf.ssid) || 'BELL855'; $('wfMdp').value = (wf && wf.mdp) || ''; $('wfCfg').className = 'sheet show'; };
     }
   }
   function qrEsc(t) { return String(t).replace(/([\;,:"])/g, '\\$1'); }
@@ -1247,9 +1213,6 @@
       if (!x || !x.ok) return toast((x && x.error) || 'Erreur', true);
       $('wfCfg').className = 'sheet'; refreshWifi();
     });
-  };
-  $('wfGo').onclick = function () {
-    api('POST', '/api/wifi/action/vitesse', {}, function (x) { if (!x || !x.ok) return toast((x && x.error) || 'Erreur', true); refreshWifi(); });
   };
   $('wfScan').onclick = function () {
     toast('Recherche des appareils… (environ 30 s)');
@@ -1261,8 +1224,7 @@
   var wfTic = 0;
   setInterval(function () {
     var vu = $('v-maison').className.indexOf('on') > -1;
-    var rapide = vu && wfOuvert, test = wf && wf.test && /^(ping|bas|haut)$/.test(wf.test.phase);
-    if (rapide && test) return refreshWifi();          // test en cours : chaque seconde
+    var rapide = vu && wfOuvert;
     if (++wfTic % (rapide ? 2 : vu ? 3 : 15) === 0) refreshWifi();
   }, 1000);
 
