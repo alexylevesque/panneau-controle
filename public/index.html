@@ -633,7 +633,14 @@
     return '<div class="stats">' + tuile('Processeur', t.cpu) +
       tuile('Mémoire', t.ram, t.memGo ? 'de ' + t.memGo + ' Go' : '') +
       tuile('Disque', t.disque, t.libreGo !== undefined ? t.libreGo + ' Go libres' : '') +
+      (t.temp !== undefined ? tuileVal('Température', t.temp + '°C', Math.round(t.temp), t.temp >= 90 ? '#ff6b6b' : t.temp >= 70 ? '#ffb86b' : '#5fd39a') : '') +
+      (t.ventilos > 0 ? tuileVal('Ventilateurs', (t.ventilo || 0) + '<i>tr/min</i>', t.ventiloMax ? Math.round(100 * (t.ventilo || 0) / t.ventiloMax) : 0, '#7aa2ff')
+        : t.ventilos === 0 ? '<div class="st"><small>Ventilateurs</small><b>Aucun</b></div>' : '') +
       '<div class="st"><small>Allumé depuis</small><b>' + up + '</b></div></div>';
+    function tuileVal(nom, texte, pct, c) {
+      return '<div class="st"><small>' + nom + '</small><b>' + texte + '</b>' +
+             '<div class="barre"><div style="width:' + Math.min(100, pct || 0) + '%;background:' + c + '"></div></div></div>';
+    }
   }
 
   function renderDevices() {

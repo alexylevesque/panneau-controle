@@ -22,9 +22,11 @@ PANNEAU="$PANNEAU"
 AGENT
 cat >> "$DOSSIER/agent.sh" <<'AGENT'
 NOM=$(scutil --get ComputerName 2>/dev/null || echo Mac)
-VERSION=2
+VERSION=3
 NCPU=$(sysctl -n hw.ncpu); MEM=$(sysctl -n hw.memsize); PS=$(pagesize)
 BOOT=$(sysctl -n kern.boottime | awk -F'[ ,]+' '{print $4}')
+SMC="$HOME/.panneau/smc"; CLES=""
+[ -x "$SMC" ] && CLES=$("$SMC" cles 2>/dev/null)
 SONNEUR=""
 arreter_son() { [ -n "$SONNEUR" ] && kill "$SONNEUR" 2>/dev/null; SONNEUR=""; }
 while true; do
@@ -37,8 +39,9 @@ while true; do
   RAM=$(vm_stat | awk -v ps="$PS" -v m="$MEM" '/Pages active/{a=$3} /Pages wired down/{w=$4} /occupied by compressor/{c=$5} END {printf "%d", (a+w+c)*ps*100/m}')
   DF=$( (df -k /System/Volumes/Data 2>/dev/null || df -k /) | awk 'NR==2{printf "%d %d", $5, $4/1048576}')
   UP=$(( $(date +%s) - BOOT ))
+  CAPT=""; [ -x "$SMC" ] && CAPT=$("$SMC" $CLES 2>/dev/null)
   R=$(curl -s -m 4 -X POST -H 'Content-Type: application/json' \
-      -d "{\"id\":\"mac\",\"v\":$VERSION,\"nom\":\"$NOM\",\"batterie\":\"$PCT\",\"enCharge\":$CHG,\"cpu\":${CPU:-0},\"ram\":${RAM:-0},\"disque\":${DF% *},\"libreGo\":${DF#* },\"allume\":$UP,\"memGo\":$((MEM/1073741824))}" \
+      -d "{\"id\":\"mac\",\"v\":$VERSION,\"nom\":\"$NOM\",\"batterie\":\"$PCT\",\"enCharge\":$CHG,\"cpu\":${CPU:-0},\"ram\":${RAM:-0},\"disque\":${DF% *},\"libreGo\":${DF#* },\"allume\":$UP,\"memGo\":$((MEM/1073741824))$CAPT}" \
       "$PANNEAU/api/appareils/action/mac")
   # Nouvelle version du programme sur le panneau : on se met à jour tout seul
   if echo "$R" | grep -q MAJ; then
@@ -66,6 +69,100 @@ while true; do
 done
 AGENT
 chmod +x "$DOSSIER/agent.sh"
+
+# Ventilateurs + température : petit outil compilé sur place (il faut les outils de développement d'Apple)
+cat > "$DOSSIER/smc.c" <<'SMCSRC'
+// Panneau : lit les ventilateurs et la température du Mac (puce SMC), sans mot de passe
+// smc cles        -> liste des capteurs de température du processeur
+// smc [cles...]   -> ,"ventilos":N,"ventilo":tr/min,"ventiloMax":tr/min,"temp":°C
+#include <IOKit/IOKitLib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+typedef struct { char major, minor, build, reserved[1]; uint16_t release; } Vers;
+typedef struct { uint16_t version, length; uint32_t cpuPLimit, gpuPLimit, memPLimit; } PLimit;
+typedef struct { uint32_t dataSize; uint32_t dataType; char dataAttributes; } KeyInfo;
+typedef struct {
+  uint32_t key; Vers vers; PLimit pLimit; KeyInfo keyInfo;
+  char result, status, data8; uint32_t data32; unsigned char bytes[32];
+} Param;
+
+static io_connect_t con;
+
+static uint32_t cc(const char *s) { return ((uint32_t)s[0] << 24) | ((uint32_t)s[1] << 16) | ((uint32_t)s[2] << 8) | (uint32_t)s[3]; }
+
+static int appel(Param *in, Param *out) {
+  size_t n = sizeof(Param);
+  return IOConnectCallStructMethod(con, 2, in, sizeof(Param), out, &n) == kIOReturnSuccess && out->result == 0;
+}
+
+// Lit une clé ; renvoie 1 et met la valeur dans *v si c'est un nombre connu
+static int lire(uint32_t cle, double *v) {
+  Param in, out;
+  memset(&in, 0, sizeof in); memset(&out, 0, sizeof out);
+  in.key = cle; in.data8 = 9;
+  if (!appel(&in, &out)) return 0;
+  uint32_t taille = out.keyInfo.dataSize, type = out.keyInfo.dataType;
+  memset(&in, 0, sizeof in); in.key = cle; in.keyInfo.dataSize = taille; in.data8 = 5;
+  memset(&out, 0, sizeof out);
+  if (!appel(&in, &out)) return 0;
+  unsigned char *b = out.bytes;
+  if (type == cc("flt ") && taille == 4) { float f; memcpy(&f, b, 4); *v = f; return 1; }
+  if (type == cc("fpe2") && taille == 2) { *v = ((b[0] << 8) | b[1]) / 4.0; return 1; }
+  if (type == cc("sp78") && taille == 2) { *v = (int16_t)((b[0] << 8) | b[1]) / 256.0; return 1; }
+  if (type == cc("ui8 ") && taille == 1) { *v = b[0]; return 1; }
+  if (type == cc("ui16") && taille == 2) { *v = (b[0] << 8) | b[1]; return 1; }
+  if (type == cc("ui32") && taille == 4) { *v = ((uint32_t)b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3]; return 1; }
+  return 0;
+}
+
+int main(int argc, char **argv) {
+  io_service_t s = IOServiceGetMatchingService(0, IOServiceMatching("AppleSMC"));
+  if (!s || IOServiceOpen(s, mach_task_self(), 0, &con) != kIOReturnSuccess) return 1;
+
+  if (argc > 1 && !strcmp(argv[1], "cles")) {
+    // Toutes les clés « Tp… » (puces Apple) et « TC… » (Intel) qui donnent une température plausible
+    double n;
+    if (!lire(cc("#KEY"), &n)) return 1;
+    for (uint32_t i = 0; i < (uint32_t)n; i++) {
+      Param in, out; memset(&in, 0, sizeof in); memset(&out, 0, sizeof out);
+      in.data8 = 8; in.data32 = i;
+      if (!appel(&in, &out)) continue;
+      char k[5] = { (char)(out.key >> 24), (char)(out.key >> 16), (char)(out.key >> 8), (char)out.key, 0 };
+      if (!(k[0] == 'T' && (k[1] == 'p' || k[1] == 'C'))) continue;
+      double t;
+      if (lire(out.key, &t) && t > 15 && t < 115) printf("%s ", k);
+    }
+    printf("\n");
+    return 0;
+  }
+
+  double nb = 0, v, total = 0, max = 0;
+  lire(cc("FNum"), &nb);
+  int fans = (int)nb;
+  for (int i = 0; i < fans && i < 4; i++) {
+    char k[5];
+    snprintf(k, 5, "F%dAc", i); if (lire(cc(k), &v)) total += v;
+    snprintf(k, 5, "F%dMx", i); if (lire(cc(k), &v) && v > max) max = v;
+  }
+  printf(",\"ventilos\":%d", fans);
+  if (fans > 0) printf(",\"ventilo\":%d,\"ventiloMax\":%d", (int)(total / fans), (int)max);
+
+  double somme = 0; int compte = 0;
+  for (int i = 1; i < argc; i++) {
+    if (strlen(argv[i]) != 4) continue;
+    if (lire(cc(argv[i]), &v) && v > 15 && v < 115) { somme += v; compte++; }
+  }
+  if (compte) printf(",\"temp\":%d", (int)(somme / compte + 0.5));
+  printf("\n");
+  return 0;
+}
+SMCSRC
+if xcode-select -p >/dev/null 2>&1; then
+  cc -O2 -o "$DOSSIER/smc" "$DOSSIER/smc.c" -framework IOKit -framework CoreFoundation 2>/dev/null || rm -f "$DOSSIER/smc"
+fi
 
 cat > "$PLIST" <<PL
 <?xml version="1.0" encoding="UTF-8"?>

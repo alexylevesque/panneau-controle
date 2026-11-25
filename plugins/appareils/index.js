@@ -58,7 +58,7 @@ module.exports = (cfg) => {
   }
   const save = () => { try { fs.writeFileSync(FILE, JSON.stringify(liste, null, 2)); } catch (e) {} };
 
-  const MAC_VERSION = 2;   // à monter quand public/mac/installer.sh change : les Mac se mettent à jour tout seuls
+  const MAC_VERSION = 3;   // à monter quand public/mac/installer.sh change : les Mac se mettent à jour tout seuls
 
   // ---- Pushover (faire sonner) ----
   const PO_FILE = path.join(__dirname, '..', '..', 'pushover.json');
@@ -199,7 +199,8 @@ module.exports = (cfg) => {
         a.enCharge = !!p.enCharge;
         a.vu = Date.now();
         const n = k => (isFinite(+p[k]) ? Math.round(+p[k]) : undefined);
-        a.stats = { cpu: n('cpu'), ram: n('ram'), disque: n('disque'), libreGo: n('libreGo'), allume: n('allume'), memGo: n('memGo') };
+        a.stats = { cpu: n('cpu'), ram: n('ram'), disque: n('disque'), libreGo: n('libreGo'), allume: n('allume'), memGo: n('memGo'),
+                    ventilos: n('ventilos'), ventilo: n('ventilo'), ventiloMax: n('ventiloMax'), temp: n('temp') };
         if (JSON.stringify([a.nom, a.batterie, a.enCharge]) !== avant) save();
         if ((+p.v || 1) < MAC_VERSION) return 'MAJ';
         verifierSonnerie();
