@@ -6,7 +6,6 @@ const path = require('path');
 const https = require('https');
 const qs = require('querystring');
 const os = require('os');
-const dgram = require('dgram');
 
 // Identifiants iOS -> nom d'appli dans le panneau
 const APPS = {
@@ -61,7 +60,7 @@ module.exports = (cfg) => {
   const save = () => { try { fs.writeFileSync(FILE, JSON.stringify(liste, null, 2)); } catch (e) {} };
 
   const estMac = a => a && (a.type === 'mac' || a.type === 'macmini');   // MacBook, Mac mini…
-  const MAC_VERSION = 13;   // à monter quand public/mac/installer.sh change : les Mac se mettent à jour tout seuls
+  const MAC_VERSION = 14;   // à monter quand public/mac/installer.sh change : les Mac se mettent à jour tout seuls
 
   // ---- Pushover (faire sonner) ----
   const PO_FILE = path.join(__dirname, '..', '..', 'pushover.json');
@@ -149,28 +148,6 @@ module.exports = (cfg) => {
     } catch (e) { return ''; }
   }
 
-  // Wake-on-LAN : le « paquet magique » envoyé à tout le réseau, quelques fois au cas où
-  function reveiller(adr) {
-    const mac = Buffer.from(adr.replace(/[^0-9a-f]/gi, ''), 'hex');
-    const pkt = Buffer.alloc(102, 0xff); for (let i = 0; i < 16; i++) mac.copy(pkt, 6 + i * 6);
-    const dest = ['255.255.255.255'];
-    const ifs = os.networkInterfaces();
-    Object.keys(ifs).forEach(k => ifs[k].forEach(x => {
-      if (x.family !== 'IPv4' || x.internal || !x.netmask) return;
-      const ip = x.address.split('.').map(Number), m = x.netmask.split('.').map(Number);
-      dest.push(ip.map((o, i) => (o | (~m[i] & 255))).join('.'));
-    }));
-    return new Promise((resolve, reject) => {
-      const s = dgram.createSocket('udp4');
-      s.once('error', reject);
-      s.bind(() => {
-        s.setBroadcast(true);
-        let n = 0; const total = dest.length * 2 * 3;
-        for (let r = 0; r < 3; r++) dest.forEach(d => [9, 7].forEach(port => setTimeout(() => s.send(pkt, port, d, () => { if (++n === total) { s.close(); resolve(); } }), r * 300)));
-      });
-    });
-  }
-
   let pontVu = 0;
   function vue() {
     const now = Date.now();
@@ -185,10 +162,10 @@ module.exports = (cfg) => {
       });
       o.bluetooth = estMac(a) ? now - (a.vu || 0) < 20000 : !!(a.bt && now - pontVu < 15000);
       if (estMac(a)) {   // état de l'interrupteur du Mac
-        if (a.endormi && now - a.endormi < 25000 && (a.vu || 0) - a.endormi < 6000) o.bluetooth = false;   // vient de s'endormir
-        o.alim = a.dodo && now - a.dodo < 60000 ? 'dodo' : o.bluetooth ? 'allume' : a.reveil && now - a.reveil < 90000 ? 'reveil' : 'eteint';
-        if (o.alim === 'allume' && a.reveil) delete a.reveil;
-        delete o.dodo; delete o.reveil; delete o.endormi;
+        if (a.ferme && now - a.ferme < 30000 && (a.vu || 0) - a.ferme < 8000) o.bluetooth = false;   // vient de s'éteindre
+        o.alim = (a.arret && now - a.arret < 60000) || (a.ferme && now - a.ferme < 30000 && o.bluetooth) ? 'arret' : o.bluetooth ? 'allume' : 'eteint';
+        o.erreurArret = a.erreurArret && now - a.erreurArret.t < 120000 ? a.erreurArret.msg : '';
+        delete o.arret; delete o.ferme;
       }
       if (o.airpods) o.airpods = Object.assign({}, o.airpods, { actifs: now - o.airpods.vu < 2 * 60 * 1000 });
       return o;
@@ -222,7 +199,7 @@ module.exports = (cfg) => {
         const id = String(p.id || 'mac').toLowerCase().replace(/[^a-z0-9-]+/g, '-').slice(0, 40) || 'mac';
         const a = liste[id] || (liste[id] = { type: 'mac' });
         const typeMac = p.type === 'macmini' ? 'macmini' : 'mac';
-        const avant = JSON.stringify([a.nom, a.batterie, a.enCharge, a.adr]);
+        const avant = JSON.stringify([a.nom, a.batterie, a.enCharge]);
         a.type = typeMac; a.raccourci = true;
         if (p.nom) a.nom = String(p.nom).slice(0, 40);
         if (!a.nom) a.nom = 'Mac';
@@ -233,11 +210,10 @@ module.exports = (cfg) => {
         const n = k => (isFinite(+p[k]) ? Math.round(+p[k]) : undefined);
         a.stats = { cpu: n('cpu'), ram: n('ram'), disque: n('disque'), libreGo: n('libreGo'), allume: n('allume'), memGo: n('memGo'),
                     ventilos: n('ventilos'), ventilo: n('ventilo'), ventiloMax: n('ventiloMax'), temp: n('temp') };
-        if (/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i.test(String(p.adr || ''))) a.adr = String(p.adr).toLowerCase();
-        a.reveilReseau = p.womp === undefined ? undefined : String(p.womp) === '1';
-        if (JSON.stringify([a.nom, a.batterie, a.enCharge, a.adr]) !== avant) save();
+        if (p.erreurArret) a.erreurArret = { t: Date.now(), msg: String(p.erreurArret).slice(0, 150) };
+        if (JSON.stringify([a.nom, a.batterie, a.enCharge]) !== avant) save();
         if ((+p.v || 1) < MAC_VERSION) return 'MAJ';
-        if (a.dodo && Date.now() - a.dodo < 60000) { delete a.dodo; a.endormi = Date.now(); return 'DORS'; }
+        if (a.arret && Date.now() - a.arret < 60000) { delete a.arret; a.ferme = Date.now(); return 'ETEINS'; }
         verifierSonnerie();
         return po.receipt === 'mac' && po.qui === id ? 'SONNE' : 'OK';
       } },
@@ -345,18 +321,12 @@ module.exports = (cfg) => {
         const a = iphone(qui); a.notifs.forEach(n => { if (n.id === String(id)) n.nonLu = false; }); save(); return 'OK';
       } },
 
-      // Interrupteur du Mac : « éteindre » = mise en veille (le Mac la reçoit à son prochain signal, aux 3 s),
-      // « allumer » = Wake-on-LAN (un Mac éteint pour vrai ne peut pas être rallumé à distance, un Mac en veille oui)
-      eteindre: { label: 'Mettre le Mac en veille', run: async ({ id }) => {
+      // Interrupteur du Mac : l'éteint pour vrai (le Mac reçoit l'ordre à son prochain signal, aux 3 s).
+      // Un Mac éteint ne peut pas être rallumé à distance : on le rallume avec son bouton.
+      eteindre: { label: 'Éteindre le Mac', run: async ({ id }) => {
         const a = liste[id]; if (!a || !estMac(a)) throw new Error('Mac inconnu');
-        if (Date.now() - (a.vu || 0) > 20000) throw new Error('Le Mac est déjà éteint ou en veille');
-        a.dodo = Date.now(); delete a.reveil; return 'OK';
-      } },
-      allumer: { label: 'Réveiller le Mac', run: async ({ id }) => {
-        const a = liste[id]; if (!a || !estMac(a)) throw new Error('Mac inconnu');
-        if (!a.adr) throw new Error('Le panneau ne connaît pas encore l\'adresse réseau du Mac : allume-le une fois à la main');
-        await reveiller(a.adr);
-        a.reveil = Date.now(); delete a.dodo; return 'OK';
+        if (Date.now() - (a.vu || 0) > 20000) throw new Error('Le Mac est déjà éteint');
+        a.arret = Date.now(); delete a.erreurArret; return 'OK';
       } },
       oublier: { label: 'Oublier', run: async ({ id }) => { delete liste[id]; save(); return 'Oublié'; } },
     },

@@ -946,27 +946,25 @@
   var PAGES_MAC = [
     { id: 'stats', nom: 'Stats' }
   ];
-  // Interrupteur du Mac : veille / réveil par le réseau
+  // Interrupteur du Mac : l'éteint pour vrai (on le rallume avec son bouton)
   var alimAttente = 0;
   function alimMac(d) {
     $('macAlim').style.display = d ? '' : 'none';
     if (!d) return;
-    var e = d.alim || (d.bluetooth ? 'allume' : 'eteint'), on = e === 'allume' || e === 'dodo';
-    var att = e === 'dodo' || e === 'reveil' || Date.now() - alimAttente < 4000;
-    $('macAlim').className = 'ph-card mac-alim' + (on ? ' on' : '');
-    $('macInter').className = 'inter' + ((e === 'allume' || e === 'reveil') ? ' on' : '') + (att ? ' att' : '');
-    $('macAlimT').textContent = { allume: 'Allumé', dodo: 'Mise en veille…', reveil: 'Réveil en cours…', eteint: 'En veille ou éteint' }[e];
-    $('macAlimS').textContent = e === 'allume' ? (d.reveilReseau === false ? 'Active « Réveil par accès réseau » sur le Mac' : 'Touche pour le mettre en veille')
-      : e === 'eteint' ? (d.adr ? 'Touche pour le réveiller' : 'Allume-le une fois à la main pour activer le réveil')
-      : e === 'reveil' ? 'Ça peut prendre jusqu\'à une minute' : 'Dans quelques secondes';
+    var e = d.alim || (d.bluetooth ? 'allume' : 'eteint');
+    var att = e === 'arret' || (e === 'allume' && Date.now() - alimAttente < 4000);
+    $('macAlim').className = 'ph-card mac-alim' + (e === 'allume' ? ' on' : '');
+    $('macInter').className = 'inter' + (e === 'allume' ? ' on' : '') + (att || e === 'eteint' ? ' att' : '');
+    $('macAlimT').textContent = { allume: 'Allumé', arret: 'Arrêt en cours…', eteint: 'Éteint' }[e];
+    $('macAlimS').textContent = d.erreurArret ? 'L\'arrêt a échoué : ' + d.erreurArret
+      : e === 'allume' ? 'Touche pour l\'éteindre' : e === 'arret' ? 'Il s\'éteint dans quelques secondes' : 'Rallume-le avec son bouton';
     $('macInter').onclick = function () {
-      if (att) return;
-      var act = e === 'allume' ? 'eteindre' : 'allumer';
-      if (act === 'eteindre' && !confirm('Mettre ' + d.nom + ' en veille ?')) return;
+      if (att || e !== 'allume') return;
+      if (!confirm('Éteindre ' + d.nom + ' ? Les applis ouvertes seront fermées.')) return;
       alimAttente = Date.now();
-      api('POST', '/api/appareils/action/' + act, { id: d.id }, function (r) {
+      api('POST', '/api/appareils/action/eteindre', { id: d.id }, function (r) {
         if (!r || !r.ok) { alimAttente = 0; toast((r && r.error) || 'Erreur', true); }
-        else toast(act === 'eteindre' ? d.nom + ' se met en veille…' : 'Réveil de ' + d.nom + '…');
+        else toast(d.nom + ' s\'éteint…');
         refreshDevices();
       });
       alimMac(d);
