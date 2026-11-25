@@ -324,7 +324,10 @@
   .imp-fans { display: flex; border-top: 1px solid var(--glass-b); margin: 0 16px; padding: 12px 0 14px; color: var(--muted); font-size: 13px; }
   .imp-fans div { flex: 1; }
   .imp-fans b { display: block; color: var(--txt); font-size: 18px; font-weight: 400; margin-top: 2px; }
-  .imp-hum { float: right; text-transform: none; letter-spacing: 0; color: var(--txt); font-size: 14px; margin-right: 6px; }
+  .imp-amsi div { margin-right: 18px; }
+  .imp-amsi div:last-child { margin-right: 0; }
+  .imp-amsi .barre { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.10); overflow: hidden; margin-top: 8px; }
+  .imp-amsi .barre i { display: block; height: 100%; border-radius: 3px; }
   .imp-err { flex: none; background: rgba(255,107,107,.14); border: 1px solid rgba(255,107,107,.45); color: #ffc9c9; border-radius: 16px; padding: 12px 16px; margin-bottom: 12px; font-size: 15px; }
   .imp-cfg { margin: auto; width: 560px; padding: 26px; }
   .imp-cfg .how { margin-bottom: 6px; }
@@ -517,8 +520,8 @@
         <div class="imp-err" id="impErr" style="display:none"></div>
         <div class="ph-card imp-cam" id="impCam"><img id="impImg" alt=""><span id="impCamTxt">Caméra</span></div>
         <div class="imp-bas">
-          <div class="imp-col1"><div class="section">Températures</div><div class="ph-card imp-card"><div class="stats" id="impTemp"></div><div class="imp-fans" id="impFans"></div></div></div>
-          <div class="imp-col2"><div class="section">Filament<span class="imp-hum" id="impHum"></span></div><div class="ph-card imp-card"><div class="ams" id="impAms"></div></div></div>
+          <div class="imp-col1"><div class="section">Températures</div><div class="ph-card imp-card"><div class="stats" id="impTemp"></div><div class="imp-fans imp-amsi" id="impFans"></div></div></div>
+          <div class="imp-col2"><div class="section">Filament</div><div class="ph-card imp-card"><div class="ams" id="impAms"></div><div class="imp-fans imp-amsi" id="impHum"></div></div></div>
         </div>
       </div>
     </div>
@@ -965,7 +968,7 @@
     var dbm = parseInt(r.wifi, 10);
     $('impWifi').textContent = r.connecte && dbm ? 'Wi-Fi ' + (dbm > -60 ? 'excellent' : dbm > -70 ? 'bon' : 'faible') + ' (' + dbm + ' dBm)' : '';
     var fv = r.ventilos || {};
-    function fan(n, x) { return x === undefined ? '' : '<div>' + n + '<b>' + x + '%</b></div>'; }
+    function fan(n, x) { return x === undefined ? '' : '<div>' + n + '<b>' + x + ' %</b><div class="barre"><i style="width:' + x + '%;background:#7aa2ff"></i></div></div>'; }
     $('impFans').innerHTML = r.connecte ? fan('Ventilo pièce', fv.piece) + fan('Auxiliaire', fv.aux) + fan('Caisson', fv.caisson) : '';
     $('impFans').style.display = $('impFans').innerHTML ? '' : 'none';
     var errs = (r.hms || []).slice();
@@ -987,12 +990,16 @@
            '<b>' + esc(vide ? 'Vide' : f.type) + '</b><small>' + esc(f.fente) + (f.reste !== undefined && !vide ? ' · ' + f.reste + '%' : '') + '</small></div>';
     }
     var hu = (r.humidite || [])[0], ht = '';
-    if (r.connecte && hu) {
-      if (hu.pct !== undefined) ht = '💧 ' + hu.pct + ' %';
-      else if (hu.niveau) ht = '💧 Humidité ' + hu.niveau + '/5';
-      if (hu.temp !== undefined) ht += (ht ? ' · ' : '') + Math.round(hu.temp) + '°';
+    function info(nom, texte, pc, col) {
+      return '<div>' + nom + '<b>' + texte + '</b><div class="barre"><i style="width:' + Math.max(0, Math.min(100, pc)) + '%;background:' + col + '"></i></div></div>';
     }
-    $('impHum').textContent = ht;
+    if (r.connecte && hu) {
+      if (hu.pct !== undefined) ht += info('Humidité AMS', hu.pct + ' %', hu.pct, hu.pct >= 40 ? '#ff6b6b' : hu.pct >= 25 ? '#ffb86b' : '#5fd39a');
+      else if (hu.niveau) ht += info('Humidité AMS', hu.niveau + ' / 5', hu.niveau * 20, '#7aa2ff');
+      if (hu.temp !== undefined) ht += info('Température AMS', Math.round(hu.temp) + '°', hu.temp * 2, hu.temp >= 40 ? '#ffb86b' : '#7aa2ff');
+    }
+    $('impHum').innerHTML = ht;
+    $('impHum').style.display = ht ? '' : 'none';
     $('impAms').innerHTML = h || '<div class="bt-vide">' + (r.connecte ? 'Aucun filament détecté.' : 'Le filament s\'affichera ici.') + '</div>';
   }
   function refreshImp() { api('GET', '/api/imprimante/status', null, function (r) { if (r) { imp = r; renderImp(); } }); }
