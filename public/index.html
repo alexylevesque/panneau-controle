@@ -404,6 +404,9 @@
   .ia-t .lg, .ia-carte .lg { width: 52px; height: 52px; border-radius: 15px; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; }
   .ia-t b { font-size: 24px; font-weight: 600; margin-top: auto; }
   .ia-t small { font-size: 14px; opacity: .8; margin-top: 2px; }
+  .ia-t .lg.img, .ia-carte .lg.img { background: none; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+  .ia-t .lg img, .ia-carte .lg img { width: 100%; height: 100%; border-radius: 15px; display: block; }
+  .ia-t .lg, .ia-carte .lg { width: 64px; height: 64px; border-radius: 17px; }
   .ia-p { display: flex; flex: 1; min-height: 0; }
   .ia-carte { width: 330px; flex: none; margin-right: 22px; border-radius: 24px; padding: 26px; box-sizing: border-box; color: #fff; display: flex; flex-direction: column; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
   .ia-carte b { font-size: 34px; font-weight: 600; margin-top: auto; }
@@ -1332,7 +1335,20 @@
     { nom: 'Muse', de: 'muse.ai', lg: 'm', fond: 'linear-gradient(135deg,#ff5f6d,#b8338a)', nouveau: 'https://muse.ai/', copie: true,
       liens: [{ n: 'Ouvrir Muse', d: 'Tes vidéos et ta bibliothèque', ic: 'proj', u: 'https://muse.ai/' }] }
   ];
-  var iaSel = null;
+  var iaSel = null, iaIcones = {};
+  var IA_SITE = { ChatGPT: 'chatgpt.com', Claude: 'claude.ai', Gemini: 'gemini.google.com', Copilot: 'copilot.microsoft.com', Grok: 'grok.com', Muse: 'muse.ai' };
+  function iaLogo(ia) {
+    var u = iaIcones[ia.nom] || 'https://www.google.com/s2/favicons?sz=128&domain=' + IA_SITE[ia.nom];
+    return '<div class="lg" data-n="' + ia.nom + '" data-l="' + ia.lg + '"><img src="' + esc(u) + '" alt="" onload="this.parentNode.className=\'lg img\'" onerror="this.parentNode.innerHTML=this.parentNode.getAttribute(\'data-l\')"></div>';
+  }
+  function iaChargerIcones() {
+    api('POST', '/api/ia/action/icones', {}, function (r) {
+      if (!r || !r.ok || !r.result) return;
+      var nouveau = false;
+      for (var k in r.result) if (r.result[k] && iaIcones[k] !== r.result[k]) { iaIcones[k] = r.result[k]; nouveau = true; }
+      if (nouveau) iaGrille();
+    });
+  }
   var iaRecents = []; try { iaRecents = JSON.parse(localStorage.getItem('iaRecents') || '[]'); } catch (e) {}
   function iaVue() {
     $('iaGrille').style.display = iaSel ? 'none' : '';
@@ -1365,7 +1381,7 @@
     iaSel = ia; iaVue();
     $('iaNomFil').textContent = ia.nom;
     $('iaCarte').style.background = ia.fond;
-    $('iaCarte').innerHTML = '<div class="lg">' + ia.lg + '</div><b>' + ia.nom + '</b><small>' + ia.de + '</small>' +
+    $('iaCarte').innerHTML = iaLogo(ia) + '<b>' + ia.nom + '</b><small>' + ia.de + '</small>' +
       '<p>' + (/\?q=$/.test(ia.nouveau) ? 'Écris ta question à droite : elle sera déjà tapée quand ' + ia.nom + ' va s\'ouvrir.' : 'Écris ta question à droite : elle sera copiée, tu n\'auras qu\'à la coller.') + '</p>';
     var h = '<a class="prim" id="iaNew" style="background:' + ia.fond + '"><span>' + IC.plus + '</span><div>Nouvelle conversation<small>Avec ta question, si tu en as écrit une</small></div></a>';
     for (var i = 0; i < ia.liens.length; i++) h += '<a data-u="' + ia.liens[i].u + '"><span>' + IC[ia.liens[i].ic] + '</span><div>' + ia.liens[i].n + '<small>' + ia.liens[i].d + '</small></div></a>';
@@ -1374,15 +1390,18 @@
     var ls = $('iaActs').querySelectorAll('a[data-u]');
     for (var k = 0; k < ls.length; k++) ls[k].onclick = function () { iaAller(this.getAttribute('data-u'), 'Ouverture de ' + iaSel.nom + '…'); };
   }
-  (function () {
+  function iaGrille() {
     var h = '';
     for (var i = 0; i < IAS.length; i++) {
       var a = IAS[i];
-      h += '<div class="ia-t" data-i="' + i + '" style="background:' + a.fond + '"><div class="lg">' + a.lg + '</div><b>' + a.nom + '</b><small>' + a.de + '</small></div>';
+      h += '<div class="ia-t" data-i="' + i + '" style="background:' + a.fond + '">' + iaLogo(a) + '<b>' + a.nom + '</b><small>' + a.de + '</small></div>';
     }
     $('iaGrille').innerHTML = h;
     var ts = $('iaGrille').getElementsByClassName('ia-t');
     for (var k = 0; k < ts.length; k++) ts[k].onclick = function () { iaOuvrirPage(IAS[+this.getAttribute('data-i')]); };
+  }
+  (function () {
+    iaGrille(); iaChargerIcones(); setTimeout(iaChargerIcones, 8000);
     $('iaRetour').onclick = function () { iaSel = null; iaVue(); };
     $('iaQ').oninput = function () { $('iaEff').style.display = this.value ? '' : 'none'; };
     $('iaEff').onclick = function () { $('iaQ').value = ''; this.style.display = 'none'; $('iaQ').focus(); };
