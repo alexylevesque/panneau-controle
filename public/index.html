@@ -144,6 +144,15 @@
   .devmenu .vide { color: var(--muted); padding: 12px; font-size: 14px; }
 
   #v-appareils { position: relative; }
+  /* Pages du Mac qu'on fait glisser */
+  .mac-tabs { display: flex; }
+  .mac-tabs a { color: var(--muted); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; padding: 4px 12px; margin-right: 6px; border-radius: 999px; }
+  .mac-tabs a.on { background: rgba(122,162,255,0.16); color: var(--txt); }
+  .notifs.pages { overflow-x: auto; overflow-y: hidden; display: flex; scroll-snap-type: x mandatory; padding: 0; }
+  .notifs.pages::-webkit-scrollbar { display: none; }
+  .page { flex: none; width: 100%; height: 100%; overflow-y: auto; scroll-snap-align: start; box-sizing: border-box; padding: 6px; }
+  .bientot { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--muted); text-align: center; }
+  .bientot b { font-size: 40px; margin-bottom: 10px; }
   /* Stats du Mac */
   .stats { display: flex; flex-wrap: wrap; padding: 10px; }
   .st { width: 50%; box-sizing: border-box; padding: 14px 16px; }
@@ -353,6 +362,7 @@
       <div class="ph-right">
         <div class="ph-head">
           <div class="section" id="phTitre">Notifications</div>
+          <div class="mac-tabs" id="macTabs" style="display:none"></div>
         </div>
         <div class="ph-card notifs" id="notifs"></div>
       </div>
@@ -619,6 +629,33 @@
   function batColor(p) { return p === undefined ? '#555' : p <= 20 ? '#ff6b6b' : p <= 40 ? '#ffb86b' : '#5fd39a'; }
 
   var shown = null; // appareil affiché (vrai ou démo)
+  // Le Mac a des pages qu'on fait glisser : Stats, Terminal, Fichiers… (on en ajoutera)
+  var PAGES_MAC = [
+    { id: 'stats', nom: 'Stats' },
+    { id: 'terminal', nom: 'Terminal', bientot: '⌨️' },
+    { id: 'fichiers', nom: 'Fichiers', bientot: '📁' }
+  ];
+  function pagesMac(d) {
+    var box = $('notifs');
+    if (!$('pg-stats')) {           // on bâtit les pages une fois, pour ne pas perdre où on est rendu
+      box.className = 'ph-card notifs pages';
+      var h = '', t = '';
+      for (var i = 0; i < PAGES_MAC.length; i++) {
+        var p = PAGES_MAC[i];
+        t += '<a data-i="' + i + '"' + (i === 0 ? ' class="on"' : '') + '>' + p.nom + '</a>';
+        h += '<div class="page" id="pg-' + p.id + '">' + (p.bientot ? '<div class="bientot"><b>' + p.bientot + '</b>' + p.nom + ' : bientôt</div>' : '') + '</div>';
+      }
+      box.innerHTML = h; $('macTabs').innerHTML = t;
+      var as = $('macTabs').getElementsByTagName('a');
+      for (var k = 0; k < as.length; k++) as[k].onclick = function () { box.scrollLeft = +this.getAttribute('data-i') * box.clientWidth; };
+      box.onscroll = function () {
+        var n = Math.round(box.scrollLeft / box.clientWidth);
+        for (var j = 0; j < as.length; j++) as[j].className = j === n ? 'on' : '';
+      };
+    }
+    $('pg-stats').innerHTML = statsMac(d);
+  }
+
   // Stats du Mac : processeur, mémoire, disque, allumé depuis
   function statsMac(d) {
     var t = d.stats;
@@ -665,9 +702,12 @@
       : '<span class="etat"><span class="dot"></span>Pile mise à jour ' + ago(d.ilYa) + '</span>';
 
     var h;
-    $('phTitre').textContent = d.type === 'mac' ? 'Stats' : 'Notifications';
-    if (d.type === 'mac') $('notifs').innerHTML = statsMac(d);
+    var mac = d.type === 'mac';
+    $('phTitre').style.display = mac ? 'none' : '';
+    $('macTabs').style.display = mac ? '' : 'none';
+    if (mac) pagesMac(d);
     else {
+    $('notifs').className = 'ph-card notifs';
 
     // Notifications
     h = '';
