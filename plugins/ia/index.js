@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const { execFile } = require('child_process');
 
 const FILE = path.join(__dirname, '..', '..', 'ia-icones.json');
 // nom dans le panneau -> recherche App Store + éditeur attendu (pour ne pas prendre une copie)
@@ -45,6 +46,24 @@ module.exports = () => {
   return {
     name: 'IA',
     icon: '✨',
-    actions: { icones: { label: 'Icônes des IA', run: async () => { charger(); return icones; } } },
+    actions: {
+      icones: { label: 'Icônes des IA', run: async () => { charger(); return icones; } },
+      // Sur la tablette : Termux ouvre Firefox lui-même (Fully Kiosk bloque les liens vers d'autres applis)
+      ouvrir: { label: 'Ouvrir dans Firefox', run: async ({ url }) => {
+        url = String(url || '');
+        if (!/^https:\/\/([a-z0-9-]+\.)*(chatgpt\.com|claude\.ai|google\.com|microsoft\.com|grok\.com|muse\.ai)(\/[^\s"']*)?$/i.test(url)) throw new Error('Lien refusé');
+        const am = args => new Promise((resolve, reject) => execFile('am', args, { timeout: 10000 }, (err, out, errOut) => {
+          const txt = String(out || '') + String(errOut || '');
+          if (err || /Error|Exception/i.test(txt)) reject(new Error(txt.trim() || (err && err.message) || 'am a échoué')); else resolve(txt);
+        }));
+        const base = ['start', '-a', 'android.intent.action.VIEW', '-d', url];
+        try { await am(base.concat(['-p', 'org.mozilla.firefox'])); }
+        catch (e) {
+          try { await am(base.concat(['-n', 'org.mozilla.firefox/org.mozilla.fenix.IntentReceiverActivity'])); }
+          catch (e2) { await am(base); }   // dernier recours : le navigateur par défaut
+        }
+        return 'OK';
+      } },
+    },
   };
 };

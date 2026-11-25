@@ -1373,9 +1373,15 @@
   function iaAller(url, msg) {
     toast(msg);
     setTimeout(function () {
-      var l = iaLien(url);
-      try { if (ANDROID && window.fully && fully.startIntent) { fully.startIntent(l); return; } } catch (e) {}
-      location.href = l;
+      if (!ANDROID) { location.href = url; return; }
+      // Le panneau (Termux) ouvre Firefox ; sinon on essaie par Fully
+      api('POST', '/api/ia/action/ouvrir', { url: url }, function (r) {
+        if (r && r.ok) return;
+        var l = iaLien(url);
+        try { if (window.fully && fully.startIntent) { fully.startIntent(l); return; } } catch (e) {}
+        toast('Impossible d\'ouvrir Firefox : ' + ((r && r.error) || 'erreur'), true);
+        location.href = l;
+      });
     }, 250);
   }
   function iaNouveau() {
