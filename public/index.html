@@ -382,6 +382,19 @@
   .wf-qr small { display: block; color: var(--muted); font-size: 13px; margin: 4px 0 10px; }
   .wf-qr a { color: var(--accent); font-size: 14px; cursor: pointer; }
 
+  /* Icônes dessinées de la télécommande */
+  .dpad button svg { width: 44px; height: 44px; fill: rgba(242,244,251,.85); }
+  .dpad .ok { letter-spacing: .08em; font-weight: 600; }
+  .row-btns .rb { width: 104px; height: 76px; flex-direction: column; font-size: 12px; color: var(--muted); }
+  .row-btns .rb svg { width: 26px; height: 26px; fill: var(--txt); margin-bottom: 5px; }
+  .rb small { font-size: 12px; }
+  .media .rb svg { width: 30px; height: 30px; fill: var(--txt); }
+  .media .rb.play { background: linear-gradient(145deg, #6f93ff, #7a5bff); border: 0; box-shadow: 0 8px 24px rgba(110,130,255,.3); }
+  .media .rb.play svg { width: 34px; height: 34px; fill: #fff; }
+  .pw span { display: inline-flex; }
+  .pw span svg { width: 22px; height: 22px; fill: currentColor; }
+  .pair svg { width: 18px; height: 18px; fill: currentColor; vertical-align: -4px; margin-right: 8px; }
+
   #v-reglages { align-items: center; justify-content: center; }
   .reg { width: 460px; text-align: center; }
   .reg .section { text-align: left; }
@@ -424,30 +437,30 @@
   <div class="view" id="v-tele">
     <div class="remote-left">
       <div class="dpad">
-        <button class="u" data-k="up">▲</button>
-        <button class="l" data-k="left">◀</button>
+        <button class="u" data-k="up"><svg viewBox="0 0 24 24"><path d="M6.7 15.3 12 10l5.3 5.3 1.4-1.4L12 7.2l-6.7 6.7z"/></svg></button>
+        <button class="l" data-k="left"><svg viewBox="0 0 24 24"><path d="M15.3 6.7 10 12l5.3 5.3-1.4 1.4L7.2 12l6.7-6.7z"/></svg></button>
         <button class="ok" data-k="ok">OK</button>
-        <button class="r" data-k="right">▶</button>
-        <button class="d" data-k="down">▼</button>
+        <button class="r" data-k="right"><svg viewBox="0 0 24 24"><path d="M8.7 6.7 14 12l-5.3 5.3 1.4 1.4 6.7-6.7-6.7-6.7z"/></svg></button>
+        <button class="d" data-k="down"><svg viewBox="0 0 24 24"><path d="M6.7 8.7 12 14l5.3-5.3 1.4 1.4L12 16.8l-6.7-6.7z"/></svg></button>
       </div>
       <div class="row-btns">
-        <button class="rb" data-k="back" title="Retour">↩</button>
-        <button class="rb" data-k="home" title="Accueil">⌂</button>
-        <button class="rb" data-k="menu" title="Menu">☰</button>
+        <button class="rb" data-k="back" title="Retour"><svg viewBox="0 0 24 24"><path d="M9 5 3 11l6 6 1.4-1.4L6.8 12H15a4 4 0 0 1 0 8h-3v2h3a6 6 0 0 0 0-12H6.8l3.6-3.6z"/></svg><small>Retour</small></button>
+        <button class="rb" data-k="home" title="Accueil"><svg viewBox="0 0 24 24"><path d="M12 3 2 12h3v8h5v-6h4v6h5v-8h3z"/></svg><small>Accueil</small></button>
+        <button class="rb" data-k="menu" title="Menu"><svg viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg><small>Menu</small></button>
       </div>
     </div>
 
     <div class="remote-right">
       <div class="section">Alimentation</div>
       <div class="power">
-        <button class="pw on" data-k="on"><span>☀️</span>Allumer</button>
-        <button class="pw off" data-k="off"><span>🌙</span>Veille</button>
+        <button class="pw on" data-k="on"><span><svg viewBox="0 0 24 24"><path d="M11 2h2v10h-2zm6.2 3.4 1.4-1.4A10 10 0 1 1 5.4 4l1.4 1.4A8 8 0 1 0 17.2 5.4z"/></svg></span>Allumer</button>
+        <button class="pw off" data-k="off"><span><svg viewBox="0 0 24 24"><path d="M12.3 2A10 10 0 1 0 22 14.7 8 8 0 0 1 12.3 2z"/></svg></span>Veille</button>
       </div>
       <div class="section">Lecture</div>
       <div class="media">
-        <button class="rb" data-k="rew">⏪</button>
-        <button class="rb play" data-k="play">⏯</button>
-        <button class="rb" data-k="ff">⏩</button>
+        <button class="rb" data-k="rew"><svg viewBox="0 0 24 24"><path d="M11 6v12l-8.5-6zm9 0v12l-8.5-6z"/></svg></button>
+        <button class="rb play" data-k="play"><svg viewBox="0 0 24 24"><path d="M4 5v14l9-7zm11 0h2v14h-2zm4 0h2v14h-2z"/></svg></button>
+        <button class="rb" data-k="ff"><svg viewBox="0 0 24 24"><path d="M13 6v12l8.5-6zm-9 0v12l8.5-6z"/></svg></button>
       </div>
       <div class="section">Applications</div>
       <div class="apps" id="apps">
@@ -456,7 +469,7 @@
         <button class="app-t logo l-prime" data-app="Prime Video"><img src="/logos/primevideo.svg" alt="Prime Video"></button>
         <button class="app-t logo l-disney" data-app="Disney+"><img src="/logos/disneyplus.svg" alt="Disney+"></button>
       </div>
-      <button class="pair" id="pairBtn">🔗 La Fire TV n'est pas jumelée : appuie ici pour la jumeler</button>
+      <button class="pair" id="pairBtn"><svg viewBox="0 0 24 24"><path d="M10.6 13.4a1 1 0 0 0 1.4 0l4-4a3 3 0 0 0-4.2-4.2l-1.5 1.5 1.4 1.4 1.5-1.5a1 1 0 0 1 1.4 1.4l-4 4a1 1 0 0 0 0 1.4zm2.8-2.8a1 1 0 0 0-1.4 0l-4 4a3 3 0 0 0 4.2 4.2l1.5-1.5-1.4-1.4-1.5 1.5a1 1 0 0 1-1.4-1.4l4-4a1 1 0 0 0 0-1.4z"/></svg>La Fire TV n'est pas jumelée : appuie ici pour la jumeler</button>
     </div>
   </div>
 
