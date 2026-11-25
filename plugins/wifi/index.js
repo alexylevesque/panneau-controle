@@ -139,14 +139,28 @@ module.exports = () => {
   }
 
   let ipPublique = '', fai = '', ipPubA = 0;
-  function majIpPublique() {
-    if (Date.now() - ipPubA < 10 * 60000) return;
-    ipPubA = Date.now();
-    https.get({ host: 'speed.cloudflare.com', path: '/meta', timeout: 6000 }, r => {
-      let d = ''; r.on('data', c => (d += c));
-      r.on('end', () => { try { const j = JSON.parse(d); ipPublique = j.clientIp || ''; fai = j.asOrganization || ''; } catch (e) {} });
-    }).on('error', () => {}).on('timeout', function () { this.destroy(); });
+  function getJSON(host, chemin) {
+    return new Promise((resolve, reject) => {
+      https.get({ host, path: chemin, timeout: 6000, headers: { 'User-Agent': 'Mozilla/5.0 (panneau)', Accept: 'application/json' } }, r => {
+        let d = ''; r.on('data', c => (d += c));
+        r.on('end', () => { try { resolve(JSON.parse(d)); } catch (e) { reject(new Error('Réponse invalide de ' + host)); } });
+      }).on('error', reject).on('timeout', function () { this.destroy(new Error('timeout')); });
+    });
   }
+  // IP publique et fournisseur : plusieurs sources, au cas où une ne répond pas
+  async function majIpPublique() {
+    if (Date.now() - ipPubA < (ipPublique ? 10 * 60000 : 30000)) return;
+    ipPubA = Date.now();
+    const sources = [
+      ['ipinfo.io', '/json', j => [j.ip, String(j.org || '').replace(/^AS\d+\s+/, '')]],
+      ['speed.cloudflare.com', '/meta', j => [j.clientIp, j.asOrganization]],
+      ['ipapi.co', '/json/', j => [j.ip, j.org]],
+    ];
+    for (const [h, c, f] of sources) {
+      try { const [ip, org] = f(await getJSON(h, c)); if (ip) { ipPublique = ip; fai = org || fai; if (fai) return; } } catch (e) {}
+    }
+  }
+
 
   return {
     name: 'Wi-Fi',
