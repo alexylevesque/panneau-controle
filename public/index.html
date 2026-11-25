@@ -406,13 +406,13 @@
   .ia-recents a { flex: none; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid var(--glass-b); background: var(--glass); color: var(--muted);
                   border-radius: 999px; padding: 8px 14px; margin-right: 8px; font-size: 14px; }
   .ia-grille { display: flex; flex-wrap: wrap; margin: 0 -7px; align-content: flex-start; }
-  .ia-t { width: calc(25% - 14px); margin: 0 7px 14px; height: 134px; border-radius: 22px; padding: 18px 20px; box-sizing: border-box; display: flex; flex-direction: column;
+  .ia-t { width: calc(20% - 14px); margin: 0 7px 14px; height: 134px; border-radius: 22px; padding: 18px 20px; box-sizing: border-box; display: flex; flex-direction: column;
           color: #fff; position: relative; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
   .ia-t:active { transform: scale(.97); }
   .ia-t .lg { width: 44px; height: 44px; border-radius: 13px; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; }
   .ia-t b { font-size: 21px; font-weight: 600; margin-top: auto; }
   .ia-t small { font-size: 13px; opacity: .8; margin-top: 2px; }
-  .ia-t i { position: absolute; top: 18px; right: 18px; font-style: normal; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
+  .ia-t i { position: absolute; top: 18px; right: 14px; font-style: normal; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
             background: rgba(0,0,0,.22); padding: 4px 8px; border-radius: 999px; }
   .ia-aide { color: var(--muted); font-size: 14px; margin: 14px 0 0 4px; }
   .ia-cl { display: flex; }
@@ -1302,7 +1302,8 @@
     { nom: 'Perplexity', de: 'Recherche + IA', lg: 'P', fond: 'linear-gradient(135deg,#2a9aa6,#16636d)', url: 'https://www.perplexity.ai/search?q=' },
     { nom: 'Le Chat', de: 'Mistral', lg: 'M', fond: 'linear-gradient(135deg,#ff8a2b,#e8461a)', url: 'https://chat.mistral.ai/chat?q=' },
     { nom: 'Grok', de: 'xAI', lg: 'X', fond: 'linear-gradient(135deg,#3a3f4b,#111318)', url: 'https://grok.com/?q=' },
-    { nom: 'Meta AI', de: 'Meta', lg: '∞', fond: 'linear-gradient(135deg,#1877f2,#a23bd1)', url: 'https://www.meta.ai/', copie: true }
+    { nom: 'Meta AI', de: 'Meta', lg: '∞', fond: 'linear-gradient(135deg,#1877f2,#a23bd1)', url: 'https://www.meta.ai/', copie: true },
+    { nom: 'Muse', de: 'muse.ai', lg: 'm', fond: 'linear-gradient(135deg,#ff5f6d,#b8338a)', url: 'https://muse.ai/', copie: true }
   ];
   var iaRecents = []; try { iaRecents = JSON.parse(localStorage.getItem('iaRecents') || '[]'); } catch (e) {}
   function iaRenderRecents() {
