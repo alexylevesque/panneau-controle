@@ -2,6 +2,8 @@
 # Panneau : installe le petit programme du Mac (pile en direct + « Faire sonner »)
 # Installer :    curl -s http://ADRESSE:8080/mac/installer.sh | bash
 # Désinstaller : curl -s http://ADRESSE:8080/mac/installer.sh | bash -s retirer
+# Tout est dans une fonction : bash lit le script en entier avant de commencer (sinon « curl | bash » peut s'arrêter en chemin)
+installer() {
 PANNEAU="__PANNEAU__"
 DOSSIER="$HOME/.panneau"
 PLIST="$HOME/Library/LaunchAgents/ca.panneau.mac.plist"
@@ -10,7 +12,7 @@ launchctl unload "$PLIST" 2>/dev/null
 if [ "$1" = "retirer" ]; then
   rm -rf "$DOSSIER" "$PLIST"
   echo "✔ Panneau retiré du Mac."
-  exit 0
+  return 0
 fi
 
 mkdir -p "$DOSSIER" "$HOME/Library/LaunchAgents"
@@ -64,3 +66,5 @@ cat > "$PLIST" <<PL
 PL
 launchctl load "$PLIST"
 echo "✔ Installé ! Ton Mac apparaît dans le panneau (Appareils) d'ici quelques secondes."
+}
+installer "$@" < /dev/null
