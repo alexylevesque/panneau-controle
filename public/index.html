@@ -271,22 +271,23 @@
   .how code { background: rgba(0,0,0,.3); padding: 2px 8px; border-radius: 6px; color: var(--txt); font-size: 14px; }
 
   /* ---- Imprimante 3D ---- */
-  #v-imprimante { position: relative; }
+  #v-imprimante { position: relative; flex-direction: column; padding-top: 18px; }
+  #v-imprimante .imp { flex: 1; }
   .imp { display: flex; width: 100%; padding: 6px 0 4px; min-height: 0; }
   .imp-left { width: 390px; flex: none; margin-right: 26px; display: flex; flex-direction: column; }
   .imp-right { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
-  .imp-main { padding: 24px; display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 14px; }
-  .imp-ring { width: 190px; height: 190px; border-radius: 50%; padding: 12px; background: rgba(255,255,255,0.10); }
+  .imp-main { flex: 1; justify-content: center; padding: 18px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 14px; }
+  .imp-ring { width: 160px; height: 160px; border-radius: 50%; padding: 12px; background: rgba(255,255,255,0.10); }
   .imp-ring > div { width: 100%; height: 100%; border-radius: 50%; background: #151a33; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .imp-ring b { font-size: 46px; font-weight: 200; }
   .imp-ring small { color: var(--muted); font-size: 13px; margin-top: 2px; }
-  .imp-nom { font-size: 20px; font-weight: 500; margin-top: 18px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .imp-nom { font-size: 20px; font-weight: 500; margin-top: 14px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .imp-sub { margin-top: 10px; }
   .imp-temps { display: flex; justify-content: center; margin-top: 16px; color: var(--muted); font-size: 14px; }
   .imp-temps div { margin: 0 14px; }
   .imp-temps b { display: block; color: var(--txt); font-size: 22px; font-weight: 300; }
   .imp-btns { display: flex; margin-bottom: 14px; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 22px; padding: 8px; }
-  .imp-btns button { flex: 1; height: 86px; margin-right: 8px; border-radius: 16px; border: 0; background: transparent;
+  .imp-btns button { flex: 1; height: 78px; margin-right: 8px; border-radius: 16px; border: 0; background: transparent;
                      color: var(--txt); font-size: 14px; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .imp-btns button:last-child { margin-right: 0; }
   .imp-btns .ic { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 7px;
@@ -319,7 +320,7 @@
   .fil.vide .bob { background: repeating-linear-gradient(45deg, rgba(255,255,255,.06) 0 6px, transparent 6px 12px); }
   .fil b { display: block; font-size: 15px; font-weight: 500; }
   .fil small { color: var(--muted); font-size: 12px; }
-  .imp-vit { display: flex; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 18px; padding: 5px; margin-bottom: 14px; }
+  .imp-vit { margin-bottom: 0 !important; display: flex; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 18px; padding: 5px; margin-bottom: 14px; }
   .imp-vit a { flex: 1; text-align: center; padding: 12px 0; border-radius: 14px; font-size: 15px; color: var(--muted); }
   .imp-vit a.on { background: rgba(122,162,255,0.20); color: var(--txt); font-weight: 500; }
   .imp-vit.off { opacity: .35; }
@@ -549,13 +550,14 @@
 
   <!-- Imprimante 3D (Bambu Lab) -->
   <div class="view" id="v-imprimante">
+    <a class="m-retour" id="impRetour">‹ <b>Maison</b> / Imprimante</a>
     <div class="imp" id="impVue" style="display:none">
       <div class="imp-left">
         <div class="ph-card imp-main">
           <div class="imp-ring" id="impRing"><div><b id="impPct">–</b><small id="impCouche"></small></div></div>
           <div class="imp-nom" id="impNom">Imprimante</div>
           <div class="imp-sub" id="impEtat"></div>
-          <div class="imp-temps"><div>Reste<b id="impReste">–</b></div><div>Fin vers<b id="impFin">–</b></div></div>
+          <div class="imp-temps"><div>Reste<b id="impReste">–</b></div><div>Fin vers<b id="impFin">–</b></div><div>Wi-Fi<b id="impWifi">–</b></div></div>
         </div>
         <div class="imp-btns">
           <button id="impPause"><span class="ic"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg></span>Pause</button>
@@ -564,7 +566,7 @@
         </div>
         <div class="section">Vitesse</div>
         <div class="imp-vit" id="impVit"><a data-n="1">Silencieux</a><a data-n="2">Standard</a><a data-n="3">Sport</a><a data-n="4">Fou</a></div>
-        <div class="imp-reg"><span id="impWifi"></span></div>
+        
       </div>
       <div class="imp-right">
         <div class="imp-err" id="impErr" style="display:none"></div>
@@ -590,6 +592,7 @@
   <div class="view" id="v-maison">
     <div class="m-grille" id="mAccueil">
       <div class="ph-card m-tuile" id="mWifi"><div class="m-ic"><svg viewBox="0 0 24 24"><path d="M12 18.5a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5zM12 13c-2.1 0-4 .8-5.4 2.2l1.6 1.6A5.4 5.4 0 0 1 12 15.3c1.5 0 2.8.6 3.8 1.5l1.6-1.6A7.6 7.6 0 0 0 12 13zm0-4.6c-3.4 0-6.5 1.4-8.7 3.6l1.6 1.6A10 10 0 0 1 12 10.7c2.8 0 5.3 1.1 7.1 2.9l1.6-1.6A12.3 12.3 0 0 0 12 8.4zm0-4.6C7.3 3.8 3 5.7 0 8.8l1.6 1.6A14.6 14.6 0 0 1 12 6.1c4.1 0 7.8 1.6 10.4 4.3L24 8.8c-3-3.1-7.3-5-12-5z"/></svg></div><span class="m-live" id="mWifiEtat"></span><b>Wi-Fi</b><small id="mWifiSous">…</small></div>
+      <div class="ph-card m-tuile" id="mImp"><div class="m-ic"><svg viewBox="0 0 24 24"><path d="M18 7V3H6v4H4a2 2 0 0 0-2 2v7h4v5h12v-5h4V9a2 2 0 0 0-2-2zM8 5h8v2H8zm8 14H8v-5h8zm2-7a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg></div><span class="m-live" id="mImpEtat"></span><b>Imprimante 3D</b><small id="mImpSous">…</small></div>
       <div class="ph-card m-tuile m-bientot"><div class="m-ic"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zM9 20h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/></svg></div><b>Lumières</b><small>Bientôt</small></div>
       <div class="ph-card m-tuile m-bientot"><div class="m-ic"><svg viewBox="0 0 24 24"><path d="M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0zM12 20a2 2 0 0 1-1-3.73V9h2v7.27A2 2 0 0 1 12 20z"/></svg></div><b>Température</b><small>Bientôt</small></div>
       <div class="ph-card m-tuile m-bientot"><div class="m-ic"><svg viewBox="0 0 24 24"><path d="M16 7V3h-2v4h-4V3H8v4a2 2 0 0 0-2 2v4a6 6 0 0 0 5 5.91V22h2v-3.09A6 6 0 0 0 18 13V9a2 2 0 0 0-2-2z"/></svg></div><b>Prises</b><small>Bientôt</small></div>
@@ -635,7 +638,7 @@
   </div>
 
   <div class="nav" id="nav">
-    <a class="on" data-v="accueil">Accueil</a><a data-v="tele">Télé</a><a data-v="appareils">Appareils</a><a data-v="imprimante">Imprimante</a><a data-v="maison">Maison</a><a data-v="reglages">Réglages</a>
+    <a class="on" data-v="accueil">Accueil</a><a data-v="tele">Télé</a><a data-v="appareils">Appareils</a><a data-v="maison">Maison</a><a data-v="reglages">Réglages</a>
   </div>
 </div>
 <div id="devMenu" class="devmenu"></div>
@@ -675,12 +678,14 @@
 
   // ---- Navigation ----
   var navLinks = $('nav').getElementsByTagName('a');
+  var SOUS = { imprimante: 'maison' };   // pages rangées dans un onglet (ex. Imprimante dans Maison)
   function show(v) {
     for (var i = 0; i < navLinks.length; i++) {
       var a = navLinks[i]; if (!a.getAttribute('data-v')) continue;
-      a.className = a.getAttribute('data-v') === v ? 'on' : '';
-      $('v-' + a.getAttribute('data-v')).className = 'view' + (a.getAttribute('data-v') === v ? ' on' : '');
+      a.className = a.getAttribute('data-v') === (SOUS[v] || v) ? 'on' : '';
     }
+    var vues = document.querySelectorAll('.app > .view');
+    for (var j = 0; j < vues.length; j++) vues[j].className = 'view' + (vues[j].id === 'v-' + v ? ' on' : '');
     $('miniClock').style.visibility = v === 'accueil' ? 'hidden' : 'visible';
   }
   for (var i = 0; i < navLinks.length; i++) {
@@ -1054,7 +1059,7 @@
     var vs = $('impVit').getElementsByTagName('a');
     for (var v = 0; v < vs.length; v++) vs[v].className = +vs[v].getAttribute('data-n') === r.vitesse ? 'on' : '';
     var dbm = parseInt(r.wifi, 10);
-    $('impWifi').textContent = r.connecte && dbm ? 'Wi-Fi ' + (dbm > -60 ? 'excellent' : dbm > -70 ? 'bon' : 'faible') + ' (' + dbm + ' dBm)' : '';
+    $('impWifi').textContent = r.connecte && dbm ? (dbm > -60 ? 'Excellent' : dbm > -70 ? 'Bon' : 'Faible') : '–';
     var fv = r.ventilos || {};
     function fan(n, x) { return x === undefined ? '' : '<div>' + n + '<b>' + x + ' %</b><div class="barre"><i style="width:' + x + '%;background:#7aa2ff"></i></div></div>'; }
     $('impFans').innerHTML = r.connecte ? fan('Ventilo pièce', fv.piece) + fan('Auxiliaire', fv.aux) + fan('Caisson', fv.caisson) : '';
@@ -1090,7 +1095,17 @@
     $('impHum').style.display = ht ? '' : 'none';
     $('impAms').innerHTML = h || '<div class="bt-vide">' + (r.connecte ? 'Aucun filament détecté.' : 'Le filament s\'affichera ici.') + '</div>';
   }
-  function refreshImp() { api('GET', '/api/imprimante/status', null, function (r) { if (r) { imp = r; renderImp(); } }); }
+  function tuileImp(r) {
+    if (!r || !r.configure) { $('mImpEtat').innerHTML = ''; $('mImpSous').textContent = 'À configurer'; return; }
+    var en = r.etat === 'RUNNING' || r.etat === 'PAUSE' || r.etat === 'PREPARE';
+    $('mImpEtat').innerHTML = '<span class="etat' + (r.connecte && r.etat === 'RUNNING' ? ' ok' : '') + '"><span class="dot ' + (r.connecte ? 'ok' : 'bad') + '"></span>' +
+      (r.connecte ? (en ? (r.pourcent || 0) + ' %' : IMP_ETATS[r.etat] || 'Connectée') : 'Hors ligne') + '</span>';
+    var reste = en && r.restant > 0 ? r.restant : 0;
+    $('mImpSous').textContent = !r.connecte ? 'Imprimante éteinte ou injoignable' : en ? (r.fichier || 'Impression') + (reste ? ' · reste ' + (reste >= 60 ? Math.floor(reste / 60) + ' h ' + two(reste % 60) : reste + ' min') : '') : 'Prête à imprimer';
+  }
+  $('mImp').onclick = function () { show('imprimante'); };
+  $('impRetour').onclick = function () { show('maison'); };
+  function refreshImp() { api('GET', '/api/imprimante/status', null, function (r) { if (r) { imp = r; renderImp(); tuileImp(r); } }); }
   function impAction(a, corps, ok) {
     api('POST', '/api/imprimante/action/' + a, corps || {}, function (r) {
       if (!r || !r.ok) return toast((r && r.error) || 'Erreur', true);
