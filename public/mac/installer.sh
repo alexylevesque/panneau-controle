@@ -22,11 +22,13 @@ PANNEAU="$PANNEAU"
 AGENT
 cat >> "$DOSSIER/agent.sh" <<'AGENT'
 NOM=$(scutil --get ComputerName 2>/dev/null || echo Mac)
-VERSION=7
+VERSION=8
 NCPU=$(sysctl -n hw.ncpu); MEM=$(sysctl -n hw.memsize); PS=$(pagesize)
 BOOT=$(sysctl -n kern.boottime | awk -F'[ ,]+' '{print $4}')
 SMC="$HOME/.panneau/smc"; CLES=""
 [ -x "$SMC" ] && CLES=$("$SMC" cles 2>/dev/null)
+# Même PATH que ton Terminal (Homebrew, ~/.local/bin, etc.), sinon plein de commandes sont « not found »
+P=$(/bin/zsh -lic 'printf %s "$PATH"' 2>/dev/null </dev/null | tail -1); [ -n "$P" ] && export PATH="$P"
 # ---- Terminal : le panneau envoie des commandes, protégées par ton code (~/.panneau/code) ----
 CODE_F="$HOME/.panneau/code"; ESSAIS_F="$HOME/.panneau/essais"; CWD_F="$HOME/.panneau/cwd"
 enb64() { base64 | tr -d '\n'; }

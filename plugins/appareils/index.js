@@ -58,7 +58,7 @@ module.exports = (cfg) => {
   }
   const save = () => { try { fs.writeFileSync(FILE, JSON.stringify(liste, null, 2)); } catch (e) {} };
 
-  const MAC_VERSION = 7;   // à monter quand public/mac/installer.sh change : les Mac se mettent à jour tout seuls
+  const MAC_VERSION = 8;   // à monter quand public/mac/installer.sh change : les Mac se mettent à jour tout seuls
 
   // ---- Terminal du Mac ----
   // L'écran envoie une commande + le code ; le Mac (qui attend en « long poll ») la prend, vérifie le code
