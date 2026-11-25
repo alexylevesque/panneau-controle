@@ -22,7 +22,7 @@ PANNEAU="$PANNEAU"
 AGENT
 cat >> "$DOSSIER/agent.sh" <<'AGENT'
 NOM=$(scutil --get ComputerName 2>/dev/null || echo Mac)
-VERSION=6
+VERSION=7
 NCPU=$(sysctl -n hw.ncpu); MEM=$(sysctl -n hw.memsize); PS=$(pagesize)
 BOOT=$(sysctl -n kern.boottime | awk -F'[ ,]+' '{print $4}')
 SMC="$HOME/.panneau/smc"; CLES=""
@@ -30,10 +30,36 @@ SMC="$HOME/.panneau/smc"; CLES=""
 # ---- Terminal : le panneau envoie des commandes, protégées par ton code (~/.panneau/code) ----
 CODE_F="$HOME/.panneau/code"; ESSAIS_F="$HOME/.panneau/essais"; CWD_F="$HOME/.panneau/cwd"
 enb64() { base64 | tr -d '\n'; }
-repondre() {   # id statut sortie dossier
-  curl -s -m 10 -X POST -H 'Content-Type: application/json' \
-    -d "{\"id\":$1,\"statut\":\"$2\",\"sortie\":\"$(printf '%s' "$3" | enb64)\",\"cwd\":\"$(printf '%s' "$4" | enb64)\"}" \
-    "$PANNEAU/api/appareils/action/macResultat" >/dev/null
+repondre() {   # id statut sortie dossier (par l'entrée standard : les images peuvent être grosses)
+  { printf '{"id":%s,"statut":"%s","sortie":"' "$1" "$2"; printf '%s' "$3" | enb64
+    printf '","cwd":"'; printf '%s' "$4" | enb64; printf '"}'; } |
+  curl -s -m 20 -X POST -H 'Content-Type: application/json' --data-binary @- "$PANNEAU/api/appareils/action/macResultat" >/dev/null
+}
+# ---- Fichiers : opérations spéciales envoyées par la page Fichiers (ne touchent pas au dossier du Terminal) ----
+chemin() {   # « ~ » et « ~/… » = ton dossier maison
+  case "$1" in ''|'~') printf '%s' "$HOME" ;; '~/'*) printf '%s/%s' "$HOME" "${1#\~/}" ;; *) printf '%s' "$1" ;; esac
+}
+fichiers() {   # op chemin -> sortie
+  local op="$1" p mime taille
+  p=$(chemin "$2")
+  case "$op" in
+    liste)
+      cd "$p" 2>/dev/null || { echo "ERREUR Dossier introuvable ou protégé : $p"; return; }
+      pwd -P
+      # type<TAB>taille<TAB>date<TAB>nom (les fichiers cachés sont omis)
+      for f in * ; do [ -e "$f" ] || [ -L "$f" ] || continue; stat -f '%HT%t%z%t%m%t%N' -- "$f" 2>/dev/null; done ;;
+    lire)
+      [ -f "$p" ] || { echo "ERREUR Fichier introuvable : $p"; return; }
+      mime=$(file -b --mime-type -- "$p" 2>/dev/null); taille=$(stat -f %z -- "$p" 2>/dev/null)
+      case "$mime" in
+        image/*) if [ "${taille:-0}" -le 1500000 ]; then echo "IMAGE $mime"; base64 < "$p" | tr -d '\n'; else echo "GROS $mime $taille"; fi ;;
+        text/*|application/json|application/xml|application/javascript|inode/x-empty) echo "TEXTE $mime $taille"; head -c 40000 -- "$p" ;;
+        *) echo "BINAIRE $mime $taille" ;;
+      esac ;;
+    ouvrir)
+      [ -e "$p" ] || { echo "ERREUR Introuvable : $p"; return; }
+      open -- "$p" 2>&1 && echo "OUVERT" ;;
+  esac
 }
 executer() {   # id code commande
   local id="$1" code="$2" cmd="$3" cwd out nouveau essais n depuis now
@@ -48,6 +74,13 @@ executer() {   # id code commande
     echo "$((n + 1)) $now" > "$ESSAIS_F"; repondre "$id" refus "" "$cwd"; return
   fi
   echo "0 0" > "$ESSAIS_F"
+  case "$cmd" in
+    "@fichiers "*)   # page Fichiers : « @fichiers op chemin »
+      local reste="${cmd#@fichiers }"
+      out=$(perl -e '$p = fork; if (!$p) { setpgrp(0, 0); exec @ARGV; exit 127 } $SIG{ALRM} = sub { kill 9, -$p; print "ERREUR Trop long (le Mac demande peut-être une permission)\n"; exit 124 }; alarm 20; waitpid($p, 0); exit($? >> 8)' \
+            /bin/bash -c "$(declare -f chemin fichiers); fichiers \"\$1\" \"\$2\"" _ "${reste%% *}" "${reste#* }" 2>&1 < /dev/null)
+      repondre "$id" ok "$out" "$cwd"; return ;;
+  esac
   # 30 s max par commande ; on retient le dossier (pour que « cd » marche)
   # (au bout de 30 s on arrête la commande ET tout ce qu'elle a lancé, sinon ça reste pris)
   out=$(cd "$cwd" && perl -e '$p = fork; if (!$p) { setpgrp(0, 0); exec @ARGV; exit 127 }
