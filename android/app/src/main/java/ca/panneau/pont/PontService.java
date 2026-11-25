@@ -294,7 +294,16 @@ public class PontService extends Service {
                     if (newState == BluetoothProfile.STATE_CONNECTED) {
                         relie = true;
                         log(nom() + " : connecté, recherche des notifications…");
-                        g.discoverServices();
+                        // Petite pause : sur Android 6, chercher tout de suite après une reconnexion bloque parfois
+                        h.postDelayed(() -> { if (gatt == g) g.discoverServices(); }, 800);
+                        // Chien de garde : si ce n'est pas prêt dans 25 s, on recommence au complet
+                        h.postDelayed(() -> {
+                            if (gatt == g && !pret()) {
+                                log(nom() + " : bloqué, je reconnecte…");
+                                fermer(); majEtat();
+                                connecter(false);
+                            }
+                        }, 25000);
                     } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                         log(nom() + " : hors de portée, je réessaie…");
                         try { envoyer(new JSONObject().put("connecte", false)); } catch (Exception e) { }

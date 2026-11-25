@@ -58,6 +58,8 @@ module.exports = (cfg) => {
   }
   const save = () => { try { fs.writeFileSync(FILE, JSON.stringify(liste, null, 2)); } catch (e) {} };
 
+  const MAC_VERSION = 2;   // à monter quand public/mac/installer.sh change : les Mac se mettent à jour tout seuls
+
   // ---- Pushover (faire sonner) ----
   const PO_FILE = path.join(__dirname, '..', '..', 'pushover.json');
   let po = {};
@@ -196,7 +198,10 @@ module.exports = (cfg) => {
         if (!isNaN(b)) a.batterie = b; else delete a.batterie;
         a.enCharge = !!p.enCharge;
         a.vu = Date.now();
+        const n = k => (isFinite(+p[k]) ? Math.round(+p[k]) : undefined);
+        a.stats = { cpu: n('cpu'), ram: n('ram'), disque: n('disque'), libreGo: n('libreGo'), allume: n('allume'), memGo: n('memGo') };
         if (JSON.stringify([a.nom, a.batterie, a.enCharge]) !== avant) save();
+        if ((+p.v || 1) < MAC_VERSION) return 'MAJ';
         verifierSonnerie();
         return po.receipt === 'mac' && po.qui === id ? 'SONNE' : 'OK';
       } },

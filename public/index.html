@@ -144,6 +144,14 @@
   .devmenu .vide { color: var(--muted); padding: 12px; font-size: 14px; }
 
   #v-appareils { position: relative; }
+  /* Stats du Mac */
+  .stats { display: flex; flex-wrap: wrap; padding: 10px; }
+  .st { width: 50%; box-sizing: border-box; padding: 14px 16px; }
+  .st small { display: block; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+  .st b { display: block; font-size: 34px; font-weight: 300; margin: 4px 0 8px; }
+  .st b i { font-style: normal; font-size: 16px; color: var(--muted); margin-left: 6px; }
+  .st .barre { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.10); overflow: hidden; }
+  .st .barre div { height: 100%; border-radius: 4px; }
   .ph { display: flex; width: 100%; padding: 6px 0 4px; min-height: 0; }
   .ph-left { width: 390px; flex: none; margin-right: 26px; display: flex; flex-direction: column; }
   .ph-right { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
@@ -344,7 +352,7 @@
       <!-- Colonne droite : notifications -->
       <div class="ph-right">
         <div class="ph-head">
-          <div class="section">Notifications</div>
+          <div class="section" id="phTitre">Notifications</div>
         </div>
         <div class="ph-card notifs" id="notifs"></div>
       </div>
@@ -611,6 +619,23 @@
   function batColor(p) { return p === undefined ? '#555' : p <= 20 ? '#ff6b6b' : p <= 40 ? '#ffb86b' : '#5fd39a'; }
 
   var shown = null; // appareil affiché (vrai ou démo)
+  // Stats du Mac : processeur, mémoire, disque, allumé depuis
+  function statsMac(d) {
+    var t = d.stats;
+    if (!t || !d.bluetooth) return '<div class="bt-vide">Les stats s\'afficheront ici quand le Mac sera allumé.</div>';
+    function tuile(nom, pct, extra) {
+      var c = pct >= 85 ? '#ff6b6b' : pct >= 60 ? '#ffb86b' : '#5fd39a';
+      return '<div class="st"><small>' + nom + '</small><b>' + (pct === undefined ? '–' : pct + '%') + (extra ? '<i>' + extra + '</i>' : '') + '</b>' +
+             '<div class="barre"><div style="width:' + Math.min(100, pct || 0) + '%;background:' + c + '"></div></div></div>';
+    }
+    var a = t.allume || 0, j = Math.floor(a / 86400), hh = Math.floor(a % 86400 / 3600), mm = Math.floor(a % 3600 / 60);
+    var up = j > 0 ? j + ' j ' + hh + ' h' : hh > 0 ? hh + ' h ' + mm + ' min' : mm + ' min';
+    return '<div class="stats">' + tuile('Processeur', t.cpu) +
+      tuile('Mémoire', t.ram, t.memGo ? 'de ' + t.memGo + ' Go' : '') +
+      tuile('Disque', t.disque, t.libreGo !== undefined ? t.libreGo + ' Go libres' : '') +
+      '<div class="st"><small>Allumé depuis</small><b>' + up + '</b></div></div>';
+  }
+
   function renderDevices() {
     var real = current();
     // Les parties pas encore branchées gardent les exemples
@@ -633,6 +658,9 @@
       : '<span class="etat"><span class="dot"></span>Pile mise à jour ' + ago(d.ilYa) + '</span>';
 
     var h;
+    $('phTitre').textContent = d.type === 'mac' ? 'Stats' : 'Notifications';
+    if (d.type === 'mac') $('notifs').innerHTML = statsMac(d);
+    else {
 
     // Notifications
     h = '';
@@ -648,6 +676,7 @@
     if ($('howBtn')) $('howBtn').onclick = function () { $('how').className = 'sheet show'; };
     var nts = $('notifs').getElementsByClassName('nt');
     for (var k = 0; k < nts.length; k++) nts[k].onclick = function () { openNotif(shown.notifs[+this.getAttribute('data-i')]); };
+    }
 
     // Menu du haut
     h = '';
