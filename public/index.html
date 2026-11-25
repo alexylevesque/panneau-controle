@@ -395,6 +395,33 @@
   .pw span svg { width: 22px; height: 22px; fill: currentColor; }
   .pair svg { width: 18px; height: 18px; fill: currentColor; vertical-align: -4px; margin-right: 8px; }
 
+  /* ---- IA ---- */
+  #v-ia { flex-direction: column; padding-top: 18px; min-height: 0; }
+  .ia-q { display: flex; align-items: center; padding: 8px 8px 8px 22px; margin-bottom: 12px; }
+  .ia-q svg { width: 24px; height: 24px; fill: var(--muted); flex: none; margin-right: 14px; }
+  .ia-q input { flex: 1; min-width: 0; height: 60px; border: 0; background: transparent; color: var(--txt); font-size: 20px; font-family: inherit; outline: none; }
+  .ia-q input::placeholder { color: var(--muted); }
+  .ia-q .x { flex: none; margin-left: 8px; }
+  .ia-recents { display: flex; flex-wrap: nowrap; overflow: hidden; height: 38px; margin-bottom: 16px; }
+  .ia-recents a { flex: none; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid var(--glass-b); background: var(--glass); color: var(--muted);
+                  border-radius: 999px; padding: 8px 14px; margin-right: 8px; font-size: 14px; }
+  .ia-grille { display: flex; flex-wrap: wrap; margin: 0 -7px; align-content: flex-start; }
+  .ia-t { width: calc(25% - 14px); margin: 0 7px 14px; height: 134px; border-radius: 22px; padding: 18px 20px; box-sizing: border-box; display: flex; flex-direction: column;
+          color: #fff; position: relative; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+  .ia-t:active { transform: scale(.97); }
+  .ia-t .lg { width: 44px; height: 44px; border-radius: 13px; background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; }
+  .ia-t b { font-size: 21px; font-weight: 600; margin-top: auto; }
+  .ia-t small { font-size: 13px; opacity: .8; margin-top: 2px; }
+  .ia-t i { position: absolute; top: 18px; right: 18px; font-style: normal; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
+            background: rgba(0,0,0,.22); padding: 4px 8px; border-radius: 999px; }
+  .ia-aide { color: var(--muted); font-size: 14px; margin: 14px 0 0 4px; }
+  .ia-cl { display: flex; }
+  .ia-cl a { flex: 1; height: 64px; margin-right: 12px; border-radius: 18px; background: var(--glass); border: 1px solid var(--glass-b); display: flex; align-items: center; padding: 0 18px; font-size: 16px; }
+  .ia-cl a:last-child { margin-right: 0; }
+  .ia-cl a:active { background: var(--glass-on); }
+  .ia-cl a span { width: 36px; height: 36px; border-radius: 11px; background: rgba(217,119,87,.22); color: #f0a184; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 18px; }
+  .ia-cl a small { display: block; color: var(--muted); font-size: 12px; }
+
   #v-reglages { align-items: center; justify-content: center; }
   .reg { width: 460px; text-align: center; }
   .reg .section { text-align: left; }
@@ -639,6 +666,17 @@
     </div>
   </div>
 
+  <!-- IA : choisir une IA et lui poser une question (ouvre son site) -->
+  <div class="view" id="v-ia">
+    <div class="ph-card ia-q"><svg viewBox="0 0 24 24"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9zM5 15l.7 1.8 1.8.7-1.8.7L5 20l-.7-1.8-1.8-.7 1.8-.7z"/></svg>
+      <input id="iaQ" placeholder="Pose ta question, puis choisis une IA…" autocomplete="off"><button class="x" id="iaEff" style="display:none">✕</button></div>
+    <div class="ia-recents" id="iaRecents"></div>
+    <div class="ia-grille" id="iaGrille"></div>
+    <div class="section" style="margin-top:4px">Claude : aller plus loin</div>
+    <div class="ia-cl" id="iaClaude"></div>
+    <div class="ia-aide">Touche une IA pour l'ouvrir avec ta question. Le bouton Retour de la tablette te ramène au panneau.</div>
+  </div>
+
   <!-- Réglages (pour l'instant : juste la mise à jour) -->
   <div class="view" id="v-reglages">
     <div class="reg">
@@ -651,7 +689,7 @@
   </div>
 
   <div class="nav" id="nav">
-    <a class="on" data-v="accueil">Accueil</a><a data-v="tele">Télé</a><a data-v="appareils">Appareils</a><a data-v="maison">Maison</a><a data-v="reglages">Réglages</a>
+    <a class="on" data-v="accueil">Accueil</a><a data-v="tele">Télé</a><a data-v="appareils">Appareils</a><a data-v="maison">Maison</a><a data-v="ia">IA</a><a data-v="reglages">Réglages</a>
   </div>
 </div>
 <div id="devMenu" class="devmenu"></div>
@@ -1254,6 +1292,64 @@
     var rapide = vu && wfOuvert;
     if (++wfTic % (rapide ? 2 : vu ? 3 : 15) === 0) refreshWifi();
   }, 1000);
+
+  // ---- IA : un raccourci vers chaque IA, avec la question déjà écrite quand le site le permet ----
+  var IAS = [
+    { nom: 'ChatGPT', de: 'OpenAI', lg: 'G', fond: 'linear-gradient(135deg,#19c37d,#0d8a5f)', url: 'https://chatgpt.com/?q=' },
+    { nom: 'Claude', de: 'Anthropic', lg: '✳', fond: 'linear-gradient(135deg,#e08a64,#c0603d)', url: 'https://claude.ai/new?q=' },
+    { nom: 'Gemini', de: 'Google', lg: '✦', fond: 'linear-gradient(135deg,#4f8cf7,#9a6ae0 60%,#d96f9b)', url: 'https://gemini.google.com/app', copie: true },
+    { nom: 'Copilot', de: 'Microsoft', lg: 'C', fond: 'linear-gradient(135deg,#1aa1e8,#7357e8 60%,#e0498f)', url: 'https://copilot.microsoft.com/?q=' },
+    { nom: 'Perplexity', de: 'Recherche + IA', lg: 'P', fond: 'linear-gradient(135deg,#2a9aa6,#16636d)', url: 'https://www.perplexity.ai/search?q=' },
+    { nom: 'Le Chat', de: 'Mistral', lg: 'M', fond: 'linear-gradient(135deg,#ff8a2b,#e8461a)', url: 'https://chat.mistral.ai/chat?q=' },
+    { nom: 'Grok', de: 'xAI', lg: 'X', fond: 'linear-gradient(135deg,#3a3f4b,#111318)', url: 'https://grok.com/?q=' },
+    { nom: 'Meta AI', de: 'Meta', lg: '∞', fond: 'linear-gradient(135deg,#1877f2,#a23bd1)', url: 'https://www.meta.ai/', copie: true }
+  ];
+  var iaRecents = []; try { iaRecents = JSON.parse(localStorage.getItem('iaRecents') || '[]'); } catch (e) {}
+  function iaRenderRecents() {
+    var h = '';
+    for (var i = 0; i < iaRecents.length; i++) h += '<a data-i="' + i + '">' + esc(iaRecents[i]) + '</a>';
+    $('iaRecents').innerHTML = h;
+    var as = $('iaRecents').getElementsByTagName('a');
+    for (var k = 0; k < as.length; k++) as[k].onclick = function () { $('iaQ').value = iaRecents[+this.getAttribute('data-i')]; $('iaEff').style.display = ''; };
+  }
+  function iaCopier(t) {
+    try { var z = document.createElement('textarea'); z.value = t; document.body.appendChild(z); z.select(); document.execCommand('copy'); document.body.removeChild(z); return true; } catch (e) { return false; }
+  }
+  function iaOuvrir(ia) {
+    var q = $('iaQ').value.trim();
+    if (q) {
+      iaRecents = [q].concat(iaRecents.filter(function (x) { return x !== q; })).slice(0, 6);
+      try { localStorage.setItem('iaRecents', JSON.stringify(iaRecents)); } catch (e) {}
+      iaRenderRecents();
+    }
+    var url = ia.copie || !q ? ia.url.replace(/\?q=$/, '') : ia.url + encodeURIComponent(q);
+    if (q && ia.copie && iaCopier(q)) toast('Question copiée : colle-la dans ' + ia.nom);
+    else toast('Ouverture de ' + ia.nom + '…');
+    setTimeout(function () { location.href = url; }, q && ia.copie ? 900 : 200);
+  }
+  (function () {
+    var h = '';
+    for (var i = 0; i < IAS.length; i++) {
+      var a = IAS[i];
+      h += '<div class="ia-t" data-i="' + i + '" style="background:' + a.fond + '"><div class="lg">' + a.lg + '</div>' + (a.copie ? '<i>copie</i>' : '') + '<b>' + a.nom + '</b><small>' + a.de + '</small></div>';
+    }
+    $('iaGrille').innerHTML = h;
+    var ts = $('iaGrille').getElementsByClassName('ia-t');
+    for (var k = 0; k < ts.length; k++) ts[k].onclick = function () { iaOuvrir(IAS[+this.getAttribute('data-i')]); };
+    $('iaQ').oninput = function () { $('iaEff').style.display = this.value ? '' : 'none'; };
+    $('iaEff').onclick = function () { $('iaQ').value = ''; this.style.display = 'none'; $('iaQ').focus(); };
+    iaRenderRecents();
+    var CL = [
+      { nom: 'Nouveau projet', de: 'Démarrer un projet', ic: '+', url: 'https://claude.ai/projects/create' },
+      { nom: 'Mes projets', de: 'Reprendre un projet', ic: '▤', url: 'https://claude.ai/projects' },
+      { nom: 'Claude Code', de: 'Coder sur tes dépôts', ic: '›_', url: 'https://claude.ai/code' }
+    ];
+    var hc = '';
+    for (var c = 0; c < CL.length; c++) hc += '<a data-u="' + CL[c].url + '"><span>' + CL[c].ic + '</span><div>' + CL[c].nom + '<small>' + CL[c].de + '</small></div></a>';
+    $('iaClaude').innerHTML = hc;
+    var cls = $('iaClaude').getElementsByTagName('a');
+    for (var d = 0; d < cls.length; d++) cls[d].onclick = function () { toast('Ouverture de Claude…'); var u = this.getAttribute('data-u'); setTimeout(function () { location.href = u; }, 200); };
+  })();
 
   refreshTv(); refreshMeteo();
   setInterval(refreshTv, 30000); setInterval(refreshMeteo, 60000);
