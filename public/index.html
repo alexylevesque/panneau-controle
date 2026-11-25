@@ -180,6 +180,12 @@
   .f-img { display: flex; align-items: center; justify-content: center; min-height: 100%; padding: 10px; box-sizing: border-box; }
   .f-img img { max-width: 100%; max-height: 100%; border-radius: 10px; }
   .page > .fich { flex: 1; min-height: 0; }
+  .f-img video { max-width: 100%; max-height: 100%; border-radius: 10px; background: #000; }
+  .f-doc { width: 100%; height: 100%; border: 0; background: #fff; border-radius: 0 0 18px 18px; }
+  .f-pdf { padding: 10px; text-align: center; }
+  .f-pdf canvas { display: block; margin: 0 auto 10px; border-radius: 6px; background: #fff; }
+  .f-note { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; color: var(--muted); font-size: 13px; }
+  .f-contenu { position: relative; }
   /* Stats du Mac */
   .stats { display: flex; flex-wrap: wrap; padding: 10px; }
   .st { width: 50%; box-sizing: border-box; padding: 14px 16px; }
@@ -785,13 +791,74 @@
     $('fApercu').className = 'f-apercu show';
     if (/\.app$/i.test(e.nom)) { $('fContenu').innerHTML = '<div class="bientot"><b>🧩</b>Application : touche « Ouvrir sur le Mac » pour la lancer.</div>'; return; }
     $('fContenu').innerHTML = '<div class="bientot">Chargement…</div>';
-    fAppel('lire', plein, function (t) {
-      var nl = t.indexOf('\n'), tete = (nl < 0 ? t : t.slice(0, nl)).split(' '), corps = nl < 0 ? '' : t.slice(nl + 1);
-      if (tete[0] === 'IMAGE') $('fContenu').innerHTML = '<div class="f-img"><img src="data:' + esc(tete[1]) + ';base64,' + corps + '"></div>';
-      else if (tete[0] === 'TEXTE') $('fContenu').innerHTML = '<pre class="f-texte">' + esc(corps) + (+tete[2] > 40000 ? '\n\n… (le reste est coupé)' : '') + '</pre>';
-      else $('fContenu').innerHTML = '<div class="bientot"><b>' + fIcone(e) + '</b>' + esc(tete[1] || '') + (tete[2] ? ' · ' + fTaille(tete[2]) : '') +
-        '<br><small>' + (tete[0] === 'GROS' ? 'Image trop grosse pour l\'aperçu.' : 'Pas d\'aperçu pour ce type de fichier.') + ' Touche « Ouvrir sur le Mac ».</small></div>';
+    // Le Mac donne un lien secret vers son petit serveur de fichiers : la tablette lit le fichier directement
+    fAppel('lien', plein, function (t) {
+      var m = t.match(/^LIEN (\S+) (\S+) (\d*)/);
+      if (!m) { $('fContenu').innerHTML = '<div class="bientot">Le Mac n\'a pas pu ouvrir ce fichier.</div>'; return; }
+      fVoir(e, m[1], m[2], +m[3]);
     });
+  }
+  function fRepli(e, url, msg) {   // aperçu Quick Look du Mac (Excel, PowerPoint, vidéo pas supportée…)
+    $('fContenu').innerHTML = '<div class="f-img"><img id="fQl" src="' + url + '?ql"></div>' + (msg ? '<div class="f-note">' + msg + '</div>' : '');
+    $('fQl').onerror = function () { $('fContenu').innerHTML = '<div class="bientot"><b>' + fIcone(e) + '</b>' + esc(e.nom) + '<br><small>Pas d\'aperçu possible : touche « Ouvrir sur le Mac ».</small></div>'; };
+  }
+  function fVoir(e, url, mime, taille) {
+    var x = (e.nom.split('.').pop() || '').toLowerCase(), c = $('fContenu');
+    if (/^image\/(heic|heif|tiff|x-tga|x-portable)/.test(mime) || /^(heic|heif|tif|tiff|psd|raw|cr2|nef|dng)$/.test(x)) {
+      c.innerHTML = '<div class="f-img"><img id="fImg" src="' + url + '?jpg"></div>';
+      $('fImg').onerror = function () { fRepli(e, url); };
+    } else if (/^image\//.test(mime)) {
+      c.innerHTML = '<div class="f-img"><img id="fImg" src="' + url + '"></div>';
+      $('fImg').onerror = function () { fRepli(e, url); };
+    } else if (/^video\//.test(mime)) {
+      c.innerHTML = '<div class="f-img"><video id="fVid" controls autoplay playsinline src="' + url + '"></video></div>';
+      $('fVid').onerror = function () { fRepli(e, url, 'Ce format vidéo ne joue pas sur cette tablette (souvent le HEVC de l\'iPhone).'); };
+    } else if (/^audio\//.test(mime)) {
+      c.innerHTML = '<div class="bientot"><b>🎵</b>' + esc(e.nom) + '<audio controls autoplay src="' + url + '" style="margin-top:18px;width:80%"></audio></div>';
+    } else if (mime === 'application/pdf') {
+      fPdf(e, url);
+    } else if (/^(doc|docx|rtf|rtfd|odt|pages|wordml|webarchive)$/.test(x)) {
+      c.innerHTML = '<iframe class="f-doc" src="' + url + '?html"></iframe>';
+    } else if (/^text\/|json|xml|javascript|x-sh|x-empty|x-php|x-python|x-c|x-java|yaml|toml|csv/.test(mime) || taille === 0) {
+      c.innerHTML = '<div class="bientot">Chargement…</div>';
+      var r = new XMLHttpRequest();
+      r.open('GET', url); r.setRequestHeader('Range', 'bytes=0-299999');
+      r.onload = function () { c.innerHTML = '<pre class="f-texte">' + esc(r.responseText) + (taille > 300000 ? '\n\n… (le reste est coupé)' : '') + '</pre>'; };
+      r.onerror = function () { fRepli(e, url); };
+      r.send();
+    } else fRepli(e, url);
+  }
+  // PDF : dessiné page par page avec pdf.js (marche aussi sur la tablette, qui n'a pas de lecteur PDF)
+  var pdfjsCharge = null;
+  function fPdf(e, url) {
+    var c = $('fContenu');
+    c.innerHTML = '<div class="bientot">Chargement du PDF…</div>';
+    function go() {
+      var lib = window.pdfjsLib;
+      lib.GlobalWorkerOptions.workerSrc = '/lib/pdf.worker.min.js';
+      lib.getDocument({ url: url, disableRange: true, disableStream: true }).promise.then(function (doc) {
+        c.innerHTML = '<div class="f-pdf" id="fPdf"></div>';
+        var box = $('fPdf'), largeur = box.clientWidth - 20, n = 1;
+        (function page() {
+          if (n > doc.numPages || $('fPdf') !== box) return;
+          doc.getPage(n++).then(function (pg) {
+            var v = pg.getViewport({ scale: 1 }), echelle = largeur / v.width, dpr = window.devicePixelRatio || 1;
+            var vp = pg.getViewport({ scale: echelle * dpr }), cv = document.createElement('canvas');
+            cv.width = vp.width; cv.height = vp.height; cv.style.width = (vp.width / dpr) + 'px';
+            box.appendChild(cv);
+            pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise.then(page);
+          });
+        })();
+      }, function () { fRepli(e, url); });
+    }
+    if (window.pdfjsLib) return go();
+    if (!pdfjsCharge) {
+      pdfjsCharge = document.createElement('script');
+      pdfjsCharge.src = '/lib/pdf.min.js';
+      document.head.appendChild(pdfjsCharge);
+    }
+    pdfjsCharge.addEventListener('load', go);
+    pdfjsCharge.addEventListener('error', function () { fRepli(e, url); });
   }
 
   // Stats du Mac : processeur, mémoire, disque, allumé depuis
