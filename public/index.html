@@ -285,15 +285,18 @@
   .imp-temps { display: flex; justify-content: center; margin-top: 16px; color: var(--muted); font-size: 14px; }
   .imp-temps div { margin: 0 14px; }
   .imp-temps b { display: block; color: var(--txt); font-size: 22px; font-weight: 300; }
-  .imp-btns { display: flex; margin-bottom: 14px; }
-  .imp-btns button { flex: 1; height: 64px; margin-right: 12px; border-radius: 20px; border: 1px solid var(--glass-b); background: var(--glass);
-                     color: var(--txt); font-size: 16px; font-family: inherit; display: flex; align-items: center; justify-content: center; }
+  .imp-btns { display: flex; margin-bottom: 14px; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 22px; padding: 8px; }
+  .imp-btns button { flex: 1; height: 86px; margin-right: 8px; border-radius: 16px; border: 0; background: transparent;
+                     color: var(--txt); font-size: 14px; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .imp-btns button:last-child { margin-right: 0; }
-  .imp-btns button span { font-size: 22px; margin-right: 8px; }
-  .imp-btns button:active { transform: scale(.97); background: var(--glass-on); }
-  .imp-btns button.on { background: rgba(255,211,107,.18); border-color: rgba(255,211,107,.5); }
+  .imp-btns .ic { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 7px;
+                  background: rgba(122,162,255,.16); color: #a9c1ff; }
+  .imp-btns svg { width: 22px; height: 22px; fill: currentColor; }
+  .imp-btns .stop .ic { background: rgba(255,107,107,.16); color: #ff8f8f; }
+  .imp-btns .lum .ic { background: rgba(255,255,255,.08); color: var(--muted); }
+  .imp-btns .lum.on .ic { background: rgba(255,200,90,.22); color: #ffd36b; box-shadow: 0 0 16px rgba(255,200,90,.35); }
+  .imp-btns button:active { background: var(--glass-on); }
   .imp-btns button[disabled] { opacity: .35; }
-  .imp-btns .stop { color: #ff9a9a; }
   .imp-reg { color: var(--muted); font-size: 14px; text-align: center; padding: 6px; }
   .imp-reg a { text-decoration: underline; cursor: pointer; }
   .imp-card { flex: 1; }
@@ -508,9 +511,9 @@
           <div class="imp-temps"><div>Reste<b id="impReste">–</b></div><div>Fin vers<b id="impFin">–</b></div></div>
         </div>
         <div class="imp-btns">
-          <button id="impPause"><span>⏸️</span>Pause</button>
-          <button id="impStop" class="stop"><span>⏹️</span>Arrêter</button>
-          <button id="impLum"><span>💡</span>Lumière</button>
+          <button id="impPause"><span class="ic"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg></span>Pause</button>
+          <button id="impStop" class="stop"><span class="ic"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg></span>Arrêter</button>
+          <button id="impLum" class="lum"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zM9 20h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/></svg></span>Lumière</button>
         </div>
         <div class="section">Vitesse</div>
         <div class="imp-vit" id="impVit"><a data-n="1">Silencieux</a><a data-n="2">Standard</a><a data-n="3">Sport</a><a data-n="4">Fou</a></div>
@@ -934,6 +937,7 @@
   var imp = null, impCfgOuvert = false;
   var IMP_ETATS = { IDLE: 'Prête', RUNNING: 'Impression en cours', PAUSE: 'En pause', FINISH: 'Terminée', FAILED: 'Arrêtée',
                     PREPARE: 'Préparation', SLICING: 'Préparation' };
+  var IC_PAUSE = '<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>', IC_REPRENDRE = '<svg viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.2-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>';
   function renderImp() {
     var r = imp;
     var cfg = !r || !r.configure || impCfgOuvert;
@@ -960,8 +964,8 @@
     $('impPause').disabled = !r.connecte || !enCours;
     $('impStop').disabled = !r.connecte || !enCours;
     $('impLum').disabled = !r.connecte;
-    $('impPause').innerHTML = r.etat === 'PAUSE' ? '<span>▶️</span>Reprendre' : '<span>⏸️</span>Pause';
-    $('impLum').className = r.lumiere ? 'on' : '';
+    $('impPause').innerHTML = r.etat === 'PAUSE' ? '<span class="ic">'+IC_REPRENDRE+'</span>Reprendre' : '<span class="ic">'+IC_PAUSE+'</span>Pause';
+    $('impLum').className = 'lum' + (r.lumiere ? ' on' : '');
     $('impVit').className = 'imp-vit' + (r.connecte && enCours ? '' : ' off');
     var vs = $('impVit').getElementsByTagName('a');
     for (var v = 0; v < vs.length; v++) vs[v].className = +vs[v].getAttribute('data-n') === r.vitesse ? 'on' : '';
