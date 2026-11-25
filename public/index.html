@@ -145,7 +145,7 @@
 
   #v-appareils { position: relative; }
   /* Pages du Mac qu'on fait glisser */
-  .mac-tabs { display: flex; }
+  .mac-tabs { display: flex; margin: 0 0 12px 4px; }
   .mac-tabs a { color: var(--muted); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; padding: 4px 12px; margin-right: 6px; border-radius: 999px; }
   .mac-tabs a.on { background: rgba(122,162,255,0.16); color: var(--txt); }
   .notifs.pages { overflow-x: auto; overflow-y: hidden; display: flex; scroll-snap-type: x mandatory; padding: 0; }
@@ -153,6 +153,15 @@
   .page { flex: none; width: 100%; height: 100%; overflow-y: auto; scroll-snap-align: start; box-sizing: border-box; padding: 6px; }
   .bientot { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--muted); text-align: center; }
   .bientot b { font-size: 40px; margin-bottom: 10px; }
+  /* Terminal du Mac */
+  .term { display: flex; flex-direction: column; height: 100%; }
+  .term-out { flex: 1; overflow-y: auto; padding: 12px 14px; font: 14px/1.45 Menlo, 'DejaVu Sans Mono', monospace; white-space: pre-wrap; word-break: break-all; color: #d7defa; }
+  .term-out > div { margin-bottom: 6px; }
+  .t-ps { color: #5fd39a; } .t-err { color: #ffb86b; } .t-info { color: var(--muted); }
+  .term-in { display: flex; align-items: center; margin: 6px; padding: 6px 6px 6px 14px; border-radius: 16px; background: rgba(0,0,0,0.25); }
+  .term-in span { font: 14px Menlo, monospace; color: #5fd39a; margin-right: 10px; white-space: nowrap; }
+  .term-in input { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--txt); font: 15px Menlo, 'DejaVu Sans Mono', monospace; padding: 8px 0; }
+  .term-in button { border: 0; border-radius: 12px; padding: 9px 16px; background: rgba(122,162,255,0.2); color: var(--txt); font: inherit; font-size: 14px; }
   /* Stats du Mac */
   .stats { display: flex; flex-wrap: wrap; padding: 10px; }
   .st { width: 50%; box-sizing: border-box; padding: 14px 16px; }
@@ -632,7 +641,7 @@
   // Le Mac a des pages qu'on fait glisser : Stats, Terminal, Fichiers… (on en ajoutera)
   var PAGES_MAC = [
     { id: 'stats', nom: 'Stats' },
-    { id: 'terminal', nom: 'Terminal', bientot: '⌨️' },
+    { id: 'terminal', nom: 'Terminal' },
     { id: 'fichiers', nom: 'Fichiers', bientot: '📁' }
   ];
   function pagesMac(d) {
@@ -646,6 +655,7 @@
         h += '<div class="page" id="pg-' + p.id + '">' + (p.bientot ? '<div class="bientot"><b>' + p.bientot + '</b>' + p.nom + ' : bientôt</div>' : '') + '</div>';
       }
       box.innerHTML = h; $('macTabs').innerHTML = t;
+      termInit();
       var as = $('macTabs').getElementsByTagName('a');
       for (var k = 0; k < as.length; k++) as[k].onclick = function () { box.scrollLeft = +this.getAttribute('data-i') * box.clientWidth; };
       box.onscroll = function () {
@@ -654,6 +664,50 @@
       };
     }
     $('pg-stats').innerHTML = statsMac(d);
+  }
+
+  // Terminal du Mac : protégé par un code choisi sur le Mac (gardé seulement sur cette tablette)
+  var termDossier = '~', termOcc = false;
+  function termCode() { try { return localStorage.getItem('codeMac') || ''; } catch (e) { return ''; } }
+  function termSetCode(c) { try { if (c) localStorage.setItem('codeMac', c); else localStorage.removeItem('codeMac'); } catch (e) {} }
+  function termInit() {
+    $('pg-terminal').innerHTML = '<div class="term"><div class="term-out" id="termOut"></div>' +
+      '<form class="term-in" id="termForm"><span id="termPs"></span><input id="termCmd" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">' +
+      '<button type="submit">Envoyer</button></form></div>';
+    $('termForm').onsubmit = function (e) { e.preventDefault(); termEnvoyer(); return false; };
+    termPrompt();
+    termEcrire('<span class="t-info">Terminal de ton Mac. Les commandes roulent dans ton compte, 30 s max chacune.</span>');
+  }
+  function termPrompt() {
+    var c = termCode();
+    $('termPs').textContent = c ? termDossier + ' %' : '🔒';
+    $('termCmd').type = c ? 'text' : 'password';
+    $('termCmd').placeholder = c ? (termOcc ? 'En cours…' : 'Commande') : 'Ton code du Mac';
+  }
+  function termEcrire(html) { var o = $('termOut'); o.innerHTML += '<div>' + html + '</div>'; o.scrollTop = o.scrollHeight; }
+  function termEnvoyer() {
+    var v = $('termCmd').value;
+    if (!termCode()) { if (v) { termSetCode(v); $('termCmd').value = ''; termEcrire('<span class="t-info">Code enregistré sur cette tablette.</span>'); termPrompt(); } return; }
+    if (!v.trim() || termOcc) return;
+    $('termCmd').value = '';
+    if (v.trim() === 'clear') { $('termOut').innerHTML = ''; return; }
+    termEcrire('<span class="t-ps">' + esc(termDossier) + ' %</span> ' + esc(v));
+    termOcc = true; termPrompt();
+    api('POST', '/api/appareils/action/terminal', { cmd: v, code: termCode() }, function (r) {
+      termOcc = false;
+      var x = r && r.result;
+      if (!r || !r.ok || !x) termEcrire('<span class="t-err">' + esc((r && r.error) || 'Pas de réponse du panneau') + '</span>');
+      else if (x.statut === 'pascode') termEcrire('<span class="t-err">Tu n\'as pas encore choisi de code sur le Mac. Dans Terminal sur le Mac, colle :</span>\n' +
+        esc('bash -c \'read -s -p "Code : " c; echo; printf "%s" "$c" > ~/.panneau/code; chmod 600 ~/.panneau/code; echo "✔ Code enregistré"\''));
+      else if (x.statut === 'refus') { termSetCode(''); termEcrire('<span class="t-err">Mauvais code. Entre-le de nouveau.</span>'); }
+      else if (x.statut === 'bloque') termEcrire('<span class="t-err">Trop de mauvais codes : bloqué 10 minutes.</span>');
+      else if (x.statut === 'delai') termEcrire('<span class="t-err">' + esc(x.sortie) + '</span>');
+      else {
+        if (x.sortie) termEcrire(esc(x.sortie));
+        if (x.cwd) { var parts = x.cwd.split('/'); termDossier = parts[parts.length - 1] || '/'; }
+      }
+      termPrompt();
+    });
   }
 
   // Stats du Mac : processeur, mémoire, disque, allumé depuis

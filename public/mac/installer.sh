@@ -22,11 +22,55 @@ PANNEAU="$PANNEAU"
 AGENT
 cat >> "$DOSSIER/agent.sh" <<'AGENT'
 NOM=$(scutil --get ComputerName 2>/dev/null || echo Mac)
-VERSION=4
+VERSION=5
 NCPU=$(sysctl -n hw.ncpu); MEM=$(sysctl -n hw.memsize); PS=$(pagesize)
 BOOT=$(sysctl -n kern.boottime | awk -F'[ ,]+' '{print $4}')
 SMC="$HOME/.panneau/smc"; CLES=""
 [ -x "$SMC" ] && CLES=$("$SMC" cles 2>/dev/null)
+# ---- Terminal : le panneau envoie des commandes, protégées par ton code (~/.panneau/code) ----
+CODE_F="$HOME/.panneau/code"; ESSAIS_F="$HOME/.panneau/essais"; CWD_F="$HOME/.panneau/cwd"
+enb64() { base64 | tr -d '\n'; }
+repondre() {   # id statut sortie dossier
+  curl -s -m 10 -X POST -H 'Content-Type: application/json' \
+    -d "{\"id\":$1,\"statut\":\"$2\",\"sortie\":\"$(printf '%s' "$3" | enb64)\",\"cwd\":\"$(printf '%s' "$4" | enb64)\"}" \
+    "$PANNEAU/api/appareils/action/macResultat" >/dev/null
+}
+executer() {   # id code commande
+  local id="$1" code="$2" cmd="$3" cwd out nouveau essais n depuis now
+  cwd=$(cat "$CWD_F" 2>/dev/null); [ -d "$cwd" ] || cwd="$HOME"
+  if [ ! -s "$CODE_F" ]; then repondre "$id" pascode "" "$cwd"; return; fi
+  essais=$(cat "$ESSAIS_F" 2>/dev/null); [ -z "$essais" ] && essais="0 0"
+  n=${essais% *}; depuis=${essais#* }; now=$(date +%s)
+  # 5 mauvais codes = bloqué 10 minutes
+  if [ "$n" -ge 5 ] && [ $((now - depuis)) -lt 600 ]; then repondre "$id" bloque "" "$cwd"; return; fi
+  if [ "$code" != "$(cat "$CODE_F")" ]; then
+    [ $((now - depuis)) -ge 600 ] && n=0
+    echo "$((n + 1)) $now" > "$ESSAIS_F"; repondre "$id" refus "" "$cwd"; return
+  fi
+  echo "0 0" > "$ESSAIS_F"
+  # 30 s max par commande ; on retient le dossier (pour que « cd » marche)
+  out=$(cd "$cwd" && perl -e 'alarm 30; exec @ARGV' /bin/bash -c "$cmd"$'\n''printf "\n__PWD__%s" "$PWD"' 2>&1 < /dev/null | head -c 60000)
+  nouveau=$(printf '%s\n' "$out" | sed -n 's/^__PWD__//p' | tail -1)
+  out=$(printf '%s\n' "$out" | sed '/^__PWD__/d')
+  if [ -n "$nouveau" ] && [ -d "$nouveau" ]; then cwd="$nouveau"; echo "$cwd" > "$CWD_F"; fi
+  repondre "$id" ok "$out" "$cwd"
+}
+ecoute() {
+  while true; do
+    R=$(curl -s -m 35 -X POST -H 'Content-Type: application/json' -d '{}' "$PANNEAU/api/appareils/action/macAttente")
+    if [ -z "$R" ]; then sleep 3; continue; fi
+    L=$(printf '%s' "$R" | sed -n 's/.*"result":"\([^"]*\)".*/\1/p')
+    for e in $L; do
+      id=${e%%:*}; r=${e#*:}
+      c=$(printf '%s' "${r%%:*}" | base64 -D); m=$(printf '%s' "${r#*:}" | base64 -D)
+      executer "$id" "$c" "$m" &
+    done
+  done
+}
+ecoute &
+ECOUTE=$!
+trap 'kill $ECOUTE 2>/dev/null' EXIT
+
 SONNEUR=""
 arreter_son() { [ -n "$SONNEUR" ] && kill "$SONNEUR" 2>/dev/null; SONNEUR=""; }
 while true; do
