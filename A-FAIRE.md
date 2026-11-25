@@ -14,7 +14,7 @@ Idées notées pour le panneau, à faire quand Alexy le demande.
 - [x] Imprimante (Bambu Lab P1S) : progression, temps restant, températures, ventilos, filament AMS, caméra, pause/arrêt/lumière/vitesse, alerte de fin sur l'iPhone
 - [x] Maison : page avec des tuiles. Wi-Fi fait (Internet en direct, appareils branchés, QR pour partager ; test de vitesse retiré à sa demande)
 - [ ] Maison : Lumières, Température, Prises
-- [x] Section IA : raccourcis vers ChatGPT, Claude, Gemini, Copilot, Perplexity, Le Chat, Grok, Meta AI (sans appels API), question pré-écrite, raccourcis Claude (projets, Claude Code)
+- [x] Section IA : page de choix (ChatGPT, Claude, Gemini, Copilot, Grok, Muse), puis une page par IA : nouvelle convo (question pré-écrite), mes conversations, projets. Pas d'appels API ; les sites ne laissent pas lire l'historique, alors on ouvre leur page d'historique.
 
 ## Objets à imprimer
 - [ ] Support mural (STL) pour la tablette (Galaxy Tab A 10.1, SM-T580 : 254,2 × 155,3 × 8,2 mm, port USB-C en bas) avec passage pour le chargeur, à imprimer sur la P1S
