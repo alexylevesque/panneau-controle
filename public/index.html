@@ -395,43 +395,74 @@
   .pw span svg { width: 22px; height: 22px; fill: currentColor; }
   .pair svg { width: 18px; height: 18px; fill: currentColor; vertical-align: -4px; margin-right: 8px; }
 
-  /* ---- IA ---- */
-  #v-ia { flex-direction: column; padding-top: 18px; min-height: 0; }
-  .ia-grille { display: flex; flex-wrap: wrap; margin: 6px -8px 0; align-content: flex-start; }
-  .ia-t { width: calc(33.33% - 16px); margin: 0 8px 16px; height: 190px; border-radius: 24px; padding: 22px 24px; box-sizing: border-box; display: flex; flex-direction: column;
-          color: #fff; position: relative; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
-  .ia-t:active { transform: scale(.98); }
-  .ia-t .lg, .ia-carte .lg { width: 52px; height: 52px; border-radius: 15px; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; }
-  .ia-t b { font-size: 24px; font-weight: 600; margin-top: auto; }
-  .ia-t small { font-size: 14px; opacity: .8; margin-top: 2px; }
-  .ia-t .lg.img, .ia-carte .lg.img { background: none; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
-  .ia-t .lg img, .ia-carte .lg img { width: 100%; height: 100%; border-radius: 15px; display: block; }
-  .ia-t .lg, .ia-carte .lg { width: 64px; height: 64px; border-radius: 17px; }
-  .ia-p { display: flex; flex: 1; min-height: 0; }
-  .ia-carte { width: 330px; flex: none; margin-right: 22px; border-radius: 24px; padding: 26px; box-sizing: border-box; color: #fff; display: flex; flex-direction: column; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
-  .ia-carte b { font-size: 34px; font-weight: 600; margin-top: auto; }
-  .ia-carte small { font-size: 15px; opacity: .85; margin-top: 4px; }
-  .ia-carte p { font-size: 14px; opacity: .85; line-height: 1.5; margin-top: 14px; }
-  .ia-droite { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .ia-q { display: flex; align-items: center; padding: 8px 8px 8px 22px; margin-bottom: 12px; flex: none; }
-  .ia-q svg { width: 24px; height: 24px; fill: var(--muted); flex: none; margin-right: 14px; }
-  .ia-q input { flex: 1; min-width: 0; height: 56px; border: 0; background: transparent; color: var(--txt); font-size: 19px; font-family: inherit; outline: none; }
-  .ia-q input::placeholder { color: var(--muted); }
-  .ia-q .x { flex: none; margin-left: 8px; }
-  .ia-recents { display: flex; flex-wrap: nowrap; overflow: hidden; min-height: 0; margin-bottom: 14px; flex: none; }
-  .ia-recents:empty { display: none; }
-  .ia-recents a { flex: none; max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid var(--glass-b); background: var(--glass); color: var(--muted);
-                  border-radius: 999px; padding: 8px 14px; margin-right: 8px; font-size: 14px; }
-  .ia-acts { display: flex; flex-wrap: wrap; margin: 0 -6px; }
-  .ia-acts a { width: calc(50% - 12px); margin: 0 6px 12px; height: 84px; border-radius: 20px; background: var(--glass); border: 1px solid var(--glass-b); display: flex; align-items: center; padding: 0 20px; box-sizing: border-box; font-size: 17px; }
-  .ia-acts a:active { background: var(--glass-on); }
-  .ia-acts a.prim { color: #fff; border: 0; }
-  .ia-acts a span { width: 44px; height: 44px; border-radius: 13px; background: rgba(255,255,255,.12); display: flex; align-items: center; justify-content: center; margin-right: 14px; flex: none; }
-  .ia-acts a span svg { width: 22px; height: 22px; fill: currentColor; }
-  .ia-acts a small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
-  .ia-acts a.prim small { color: rgba(255,255,255,.8); }
-  .ia-aide { color: var(--muted); font-size: 14px; margin: 4px 0 0 4px; }
-  #v-reglages { align-items: center; justify-content: center; }
+  /* ---- IA : chat Gemini ---- */
+  #v-ia { flex-direction: row; padding-top: 18px; min-height: 0; }
+  .ia-cote { width: 300px; flex: none; margin-right: 20px; display: flex; flex-direction: column; min-height: 0; padding: 18px; box-sizing: border-box; }
+  .ia-entete { display: flex; align-items: center; margin-bottom: 16px; }
+  .ia-lg { width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg,#4f8cf7,#9a6ae0 60%,#d96f9b); display: flex; align-items: center; justify-content: center; flex: none; margin-right: 12px; }
+  .ia-lg svg { width: 26px; height: 26px; fill: #fff; }
+  .ia-entete b { font-size: 22px; font-weight: 600; display: block; }
+  .ia-entete small { font-size: 13px; color: var(--muted); }
+  .ia-nouv { display: flex; align-items: center; justify-content: center; height: 52px; border-radius: 16px; color: #fff; font-size: 17px; font-weight: 500;
+             background: linear-gradient(135deg,#4f8cf7,#9a6ae0); margin-bottom: 14px; flex: none; }
+  .ia-nouv svg { width: 22px; height: 22px; fill: currentColor; margin-right: 8px; }
+  .ia-nouv:active { opacity: .85; }
+  .ia-liste { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; margin: 0 -6px; }
+  .ia-liste .vide { color: var(--muted); font-size: 14px; padding: 10px 8px; line-height: 1.5; }
+  .ia-c { display: flex; align-items: center; padding: 11px 6px 11px 12px; border-radius: 14px; margin-bottom: 4px; }
+  .ia-c.on { background: var(--glass-on); }
+  .ia-c div { flex: 1; min-width: 0; }
+  .ia-c b { display: block; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ia-c small { font-size: 12px; color: var(--muted); }
+  .ia-c .sup { flex: none; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 15px; }
+  .ia-c .sup:active { background: rgba(255,107,107,.2); color: var(--bad); }
+  .ia-cleb { flex: none; color: var(--muted); font-size: 13px; padding: 12px 6px 0; }
+  .ia-chat { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; padding: 0; overflow: hidden; }
+  .ia-fil { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 24px 28px 10px; }
+  .ia-m { display: flex; margin-bottom: 18px; }
+  .ia-m.moi { justify-content: flex-end; }
+  .ia-m.moi .bul { background: linear-gradient(135deg,#4f6ff0,#7a5ae0); color: #fff; border-radius: 22px 22px 6px 22px; padding: 12px 18px; max-width: 72%; font-size: 17px; line-height: 1.45; white-space: pre-wrap; word-wrap: break-word; }
+  .ia-m.lui .ia-lg { width: 34px; height: 34px; border-radius: 11px; margin: 2px 14px 0 0; }
+  .ia-m.lui .ia-lg svg { width: 19px; height: 19px; }
+  .ia-m.lui .bul { flex: 1; min-width: 0; font-size: 17px; line-height: 1.55; word-wrap: break-word; }
+  .bul p { margin: 0 0 10px; } .bul p:last-child { margin-bottom: 0; }
+  .bul h4 { font-size: 18px; margin: 14px 0 6px; font-weight: 600; }
+  .bul ul, .bul ol { margin: 0 0 10px; padding-left: 24px; } .bul li { margin-bottom: 4px; }
+  .bul code { background: rgba(255,255,255,.1); border-radius: 6px; padding: 1px 6px; font-family: monospace; font-size: 15px; }
+  .bul pre { background: rgba(0,0,0,.35); border: 1px solid var(--glass-b); border-radius: 14px; padding: 12px 14px; overflow-x: auto; margin: 0 0 10px; }
+  .bul pre code { background: none; padding: 0; font-size: 14px; white-space: pre; }
+  .bul table { border-collapse: collapse; margin: 0 0 10px; font-size: 15px; }
+  .bul td, .bul th { border: 1px solid var(--glass-b); padding: 6px 10px; text-align: left; }
+  .bul th { background: var(--glass); }
+  .bul.err { color: var(--bad); }
+  .bul.err a { display: inline-block; margin-top: 8px; color: var(--txt); background: var(--glass-on); border-radius: 10px; padding: 6px 12px; font-size: 15px; }
+  .ia-pts span { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin: 10px 3px 0; animation: iaPt 1.2s infinite; }
+  .ia-pts span:nth-child(2) { animation-delay: .2s; } .ia-pts span:nth-child(3) { animation-delay: .4s; }
+  @keyframes iaPt { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
+  .ia-accueil { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .ia-accueil .ia-lg { width: 76px; height: 76px; border-radius: 24px; margin: 0 0 18px; }
+  .ia-accueil .ia-lg svg { width: 42px; height: 42px; }
+  .ia-accueil h3 { font-size: 30px; font-weight: 500; margin: 0 0 6px; }
+  .ia-accueil p { color: var(--muted); font-size: 16px; margin: 0 0 22px; }
+  .ia-sugg { display: flex; flex-wrap: wrap; justify-content: center; max-width: 720px; }
+  .ia-sugg a { border: 1px solid var(--glass-b); background: var(--glass); border-radius: 16px; padding: 12px 16px; margin: 0 6px 10px; font-size: 15px; }
+  .ia-sugg a:active { background: var(--glass-on); }
+  .ia-saisie { flex: none; display: flex; align-items: flex-end; margin: 6px 18px 18px; background: rgba(255,255,255,.07); border: 1px solid var(--glass-b); border-radius: 22px; padding: 6px 6px 6px 20px; }
+  .ia-saisie textarea { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--txt); font-size: 18px; font-family: inherit; outline: none; resize: none; box-sizing: border-box; height: 50px; max-height: 160px; padding: 13px 0; line-height: 24px; display: block; }
+  .ia-saisie textarea::placeholder { color: var(--muted); }
+  .ia-env { flex: none; width: 50px; height: 50px; border-radius: 16px; border: 0; background: linear-gradient(135deg,#4f8cf7,#9a6ae0); display: flex; align-items: center; justify-content: center; margin-left: 8px; }
+  .ia-env svg { width: 24px; height: 24px; fill: #fff; }
+  .ia-env:disabled { opacity: .4; }
+  .ia-cfg { margin: auto; max-width: 600px; padding: 30px; }
+  .ia-cfg h3 { font-size: 26px; font-weight: 500; margin: 0 0 8px; }
+  .ia-cfg ol { color: var(--muted); font-size: 16px; line-height: 1.7; padding-left: 22px; margin: 0 0 18px; }
+  .ia-cfg ol b { color: var(--txt); }
+  .ia-cfg input { width: 100%; box-sizing: border-box; height: 56px; border-radius: 16px; border: 1px solid var(--glass-b); background: rgba(255,255,255,.07); color: var(--txt); font-size: 17px; padding: 0 18px; font-family: monospace; outline: none; }
+  .ia-cfg .bts { display: flex; margin-top: 14px; }
+  .ia-cfg .bts a { height: 50px; border-radius: 15px; display: flex; align-items: center; padding: 0 22px; font-size: 16px; margin-right: 10px; background: var(--glass-on); }
+  .ia-cfg .bts a.prim { background: linear-gradient(135deg,#4f8cf7,#9a6ae0); color: #fff; }
+  .ia-cfg small { display: block; color: var(--muted); font-size: 13px; margin-top: 14px; line-height: 1.5; }
+  .ia-aide  #v-reglages { align-items: center; justify-content: center; }
   .reg { width: 460px; text-align: center; }
   .reg .section { text-align: left; }
   .reg-ver { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 18px; padding: 18px; margin-bottom: 16px; color: var(--muted); }
@@ -675,20 +706,20 @@
     </div>
   </div>
 
-  <!-- IA : choisir une IA, puis nouvelle conversation / historique / projets (ouvre son site) -->
+  <!-- IA : chat avec Gemini (API gratuite), conversations gardées sur la tablette -->
   <div class="view" id="v-ia">
-    <div class="ia-grille" id="iaGrille"></div>
-    <div id="iaPage" style="display:none; flex: 1; min-height: 0; flex-direction: column">
-      <a class="m-retour" id="iaRetour">‹ <b>IA</b> / <span id="iaNomFil"></span></a>
-      <div class="ia-p">
-        <div class="ia-carte" id="iaCarte"></div>
-        <div class="ia-droite">
-          <div class="ph-card ia-q"><svg viewBox="0 0 24 24"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9zM5 15l.7 1.8 1.8.7-1.8.7L5 20l-.7-1.8-1.8-.7 1.8-.7z"/></svg>
-            <input id="iaQ" placeholder="Ta question (facultatif)…" autocomplete="off"><button class="x" id="iaEff" style="display:none">✕</button></div>
-          <div class="ia-recents" id="iaRecents"></div>
-          <div class="ia-acts" id="iaActs"></div>
-          <div class="ia-aide">Sur la tablette, les IA s'ouvrent dans Firefox. Pour revenir au panneau, touche le bouton des applis récentes et choisis Fully Kiosk.</div>
-        </div>
+    <div class="ph-card ia-cote">
+      <div class="ia-entete"><div class="ia-lg" id="iaLgSrc"><svg viewBox="0 0 24 24"><path d="M12 2c.6 5.4 4.6 9.4 10 10-5.4.6-9.4 4.6-10 10-.6-5.4-4.6-9.4-10-10 5.4-.6 9.4-4.6 10-10z"/></svg></div>
+        <div><b>Gemini</b><small id="iaModele">Google</small></div></div>
+      <a class="ia-nouv" id="iaNouv"><svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>Nouvelle conversation</a>
+      <div class="ia-liste" id="iaListe"></div>
+      <a class="ia-cleb" id="iaCleBtn">⚙ Clé Gemini</a>
+    </div>
+    <div class="ph-card ia-chat">
+      <div class="ia-fil" id="iaFil"></div>
+      <div class="ia-saisie" id="iaSaisie">
+        <textarea id="iaTxt" rows="1" placeholder="Écris à Gemini…"></textarea>
+        <button class="ia-env" id="iaEnv" disabled><svg viewBox="0 0 24 24"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg></button>
       </div>
     </div>
   </div>
@@ -1309,122 +1340,161 @@
     if (++wfTic % (rapide ? 2 : vu ? 3 : 15) === 0) refreshWifi();
   }, 1000);
 
-  // ---- IA : page de choix, puis une page par IA (nouvelle convo, historique, projets) qui ouvre son site ----
-  var IC = {
-    plus: '<svg viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z"/></svg>',
-    hist: '<svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l4 4 4-4H6a7 7 0 1 1 2.05 4.95l-1.42 1.42A9 9 0 1 0 13 3zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8z"/></svg>',
-    proj: '<svg viewBox="0 0 24 24"><path d="M10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8z"/></svg>',
-    code: '<svg viewBox="0 0 24 24"><path d="M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6zm5.2 0 4.6-4.6-4.6-4.6L16 6l6 6-6 6z"/></svg>',
-    etoile: '<svg viewBox="0 0 24 24"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9z"/></svg>'
-  };
-  var IAS = [
-    { nom: 'ChatGPT', de: 'OpenAI', lg: 'G', fond: 'linear-gradient(135deg,#19c37d,#0d8a5f)', nouveau: 'https://chatgpt.com/?q=',
-      liens: [{ n: 'Mes conversations', d: 'Ta liste est à gauche sur le site', ic: 'hist', u: 'https://chatgpt.com/' },
-              { n: 'Mes GPTs', d: 'Tes GPT personnalisés', ic: 'etoile', u: 'https://chatgpt.com/gpts/mine' }] },
-    { nom: 'Claude', de: 'Anthropic', lg: '✳', fond: 'linear-gradient(135deg,#e08a64,#c0603d)', nouveau: 'https://claude.ai/new?q=',
-      liens: [{ n: 'Mes conversations', d: 'Toutes tes convos récentes', ic: 'hist', u: 'https://claude.ai/recents' },
-              { n: 'Mes projets', d: 'Reprendre ou créer un projet', ic: 'proj', u: 'https://claude.ai/projects' },
-              { n: 'Claude Code', d: 'Coder sur tes dépôts', ic: 'code', u: 'https://claude.ai/code' }] },
-    { nom: 'Gemini', de: 'Google', lg: '✦', fond: 'linear-gradient(135deg,#4f8cf7,#9a6ae0 60%,#d96f9b)', nouveau: 'https://gemini.google.com/app', copie: true,
-      liens: [{ n: 'Mes conversations', d: 'Ton activité Gemini', ic: 'hist', u: 'https://myactivity.google.com/product/gemini' },
-              { n: 'Mes Gems', d: 'Tes assistants personnalisés', ic: 'etoile', u: 'https://gemini.google.com/gems/view' }] },
-    { nom: 'Copilot', de: 'Microsoft', lg: 'C', fond: 'linear-gradient(135deg,#1aa1e8,#7357e8 60%,#e0498f)', nouveau: 'https://copilot.microsoft.com/?q=',
-      liens: [{ n: 'Mes conversations', d: 'Ta liste est sur le côté du site', ic: 'hist', u: 'https://copilot.microsoft.com/' }] },
-    { nom: 'Grok', de: 'xAI', lg: 'X', fond: 'linear-gradient(135deg,#3a3f4b,#111318)', nouveau: 'https://grok.com/?q=',
-      liens: [{ n: 'Mes conversations', d: 'Ta liste est sur le côté du site', ic: 'hist', u: 'https://grok.com/' }] },
-    { nom: 'Muse', de: 'muse.ai', lg: 'm', fond: 'linear-gradient(135deg,#ff5f6d,#b8338a)', nouveau: 'https://muse.ai/', copie: true,
-      liens: [{ n: 'Ouvrir Muse', d: 'Tes vidéos et ta bibliothèque', ic: 'proj', u: 'https://muse.ai/' }] }
-  ];
-  var iaSel = null, iaIcones = {};
-  var IA_SITE = { ChatGPT: 'chatgpt.com', Claude: 'claude.ai', Gemini: 'gemini.google.com', Copilot: 'copilot.microsoft.com', Grok: 'grok.com', Muse: 'muse.ai' };
-  function iaLogo(ia) {
-    var u = iaIcones[ia.nom] || 'https://www.google.com/s2/favicons?sz=128&domain=' + IA_SITE[ia.nom];
-    return '<div class="lg" data-n="' + ia.nom + '" data-l="' + ia.lg + '"><img src="' + esc(u) + '" alt="" onload="this.parentNode.className=\'lg img\'" onerror="this.parentNode.innerHTML=this.parentNode.getAttribute(\'data-l\')"></div>';
+  // ---- IA : chat avec Gemini. Le serveur (tablette) garde la clé et les conversations ----
+  var ia = { cle: true, conv: null, msgs: [], liste: [], envoi: false, err: '', cfg: false };
+  var IA_SUGG = ['Donne-moi une idée de souper rapide', 'Explique-moi un sujet simplement', 'Aide-moi à écrire un message', 'Trouve une idée d\'objet à imprimer en 3D'];
+  function iaInline(t) {
+    return esc(t).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+      .replace(/(^|[^*\w])\*([^*\s][^*]*)\*(?!\w)/g, '$1<i>$2</i>').replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '$1');
   }
-  function iaChargerIcones() {
-    api('POST', '/api/ia/action/icones', {}, function (r) {
-      if (!r || !r.ok || !r.result) return;
-      var nouveau = false;
-      for (var k in r.result) if (r.result[k] && iaIcones[k] !== r.result[k]) { iaIcones[k] = r.result[k]; nouveau = true; }
-      if (nouveau) iaGrille();
+  function iaMd(s) {
+    var morceaux = String(s).split('```'), h = '';
+    for (var i = 0; i < morceaux.length; i++) {
+      if (i % 2) { h += '<pre><code>' + esc(morceaux[i].replace(/^[\w+-]*\n/, '').replace(/\n$/, '')) + '</code></pre>'; continue; }
+      var lignes = morceaux[i].split('\n'), liste = '', para = [], tab = [];
+      var finPara = function () { if (para.length) { h += '<p>' + para.join('<br>') + '</p>'; para = []; } };
+      var finListe = function () { if (liste) { h += '</' + liste + '>'; liste = ''; } };
+      var finTab = function () {
+        if (!tab.length) return;
+        h += '<table>';
+        for (var r = 0; r < tab.length; r++) {
+          var cs = tab[r].replace(/^\s*\|/, '').replace(/\|\s*$/, '').split('|'), c = r === 0 ? 'th' : 'td';
+          h += '<tr>'; for (var q = 0; q < cs.length; q++) h += '<' + c + '>' + iaInline(cs[q].trim()) + '</' + c + '>'; h += '</tr>';
+        }
+        h += '</table>'; tab = [];
+      };
+      for (var k = 0; k < lignes.length; k++) {
+        var l = lignes[k], m;
+        if (/^\s*\|.*\|\s*$/.test(l)) { finPara(); finListe(); if (!/^[\s|:-]+$/.test(l)) tab.push(l); continue; }
+        finTab();
+        if (!l.trim()) { finPara(); finListe(); continue; }
+        if ((m = l.match(/^\s*#{1,6}\s+(.*)$/))) { finPara(); finListe(); h += '<h4>' + iaInline(m[1]) + '</h4>'; continue; }
+        if ((m = l.match(/^\s*[-*•]\s+(.*)$/)) || (m = l.match(/^\s*\d+[.)]\s+(.*)$/))) {
+          var type = /^\s*\d/.test(l) ? 'ol' : 'ul';
+          finPara(); if (liste !== type) { finListe(); h += '<' + type + '>'; liste = type; }
+          h += '<li>' + iaInline(m[1]) + '</li>'; continue;
+        }
+        finListe(); para.push(iaInline(l));
+      }
+      finPara(); finListe(); finTab();
+    }
+    return h;
+  }
+  function iaQuand(t) {
+    var d = new Date(t), n = new Date(), j = Math.round((new Date(n.getFullYear(), n.getMonth(), n.getDate()) - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
+    if (j === 0) return 'Aujourd\'hui, ' + d.getHours() + ':' + two(d.getMinutes());
+    if (j === 1) return 'Hier';
+    if (j < 7) return 'Il y a ' + j + ' jours';
+    return d.getDate() + ' ' + ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'][d.getMonth()];
+  }
+  var IA_LG = '';
+  function iaListeRender() {
+    var h = '';
+    if (!ia.liste.length) h = '<div class="vide">Tes conversations vont apparaître ici. Elles sont créées toutes seules quand tu poses une question.</div>';
+    for (var i = 0; i < ia.liste.length; i++) {
+      var c = ia.liste[i];
+      h += '<div class="ia-c' + (c.id === ia.conv ? ' on' : '') + '" data-id="' + esc(c.id) + '"><div><b>' + esc(c.titre) + '</b><small>' + iaQuand(c.maj) + '</small></div><a class="sup" data-sup="' + esc(c.id) + '">✕</a></div>';
+    }
+    $('iaListe').innerHTML = h;
+    var cs = $('iaListe').getElementsByClassName('ia-c');
+    for (var k = 0; k < cs.length; k++) cs[k].onclick = function (e) {
+      var sup = (e.target || {}).getAttribute && e.target.getAttribute('data-sup');
+      if (sup) {
+        if (!confirm('Supprimer cette conversation ?')) return;
+        api('POST', '/api/ia/action/supprimer', { id: sup }, function () { if (ia.conv === sup) iaNouvelle(); iaCharger(); });
+        return;
+      }
+      iaOuvrir(this.getAttribute('data-id'));
+    };
+  }
+  function iaFil() {
+    var h = '', f = $('iaFil');
+    $('iaSaisie').style.display = ia.cfg || !ia.cle ? 'none' : '';
+    if (ia.cfg || !ia.cle) {
+      f.innerHTML = '<div class="ia-cfg"><h3>' + (ia.cle ? 'Changer la clé Gemini' : 'Branche Gemini au panneau') + '</h3><ol>' +
+        '<li>Sur ton Mac ou ton cell, va sur <b>aistudio.google.com/apikey</b></li>' +
+        '<li>Connecte-toi avec ton compte Google et touche <b>Create API key</b></li>' +
+        '<li>Copie la clé et colle-la ici</li></ol>' +
+        '<input id="iaCleIn" placeholder="AIza…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">' +
+        '<div class="bts"><a class="prim" id="iaCleOk">Enregistrer</a>' + (ia.cle ? '<a id="iaCleAnn">Annuler</a>' : '') + '</div>' +
+        '<small>C\'est gratuit (avec une limite de questions par jour). La clé reste seulement sur la tablette. Astuce : ouvre le panneau sur ton Mac pour coller la clé plus facilement. ' +
+        'Avec la version gratuite, Google peut se servir de tes questions pour améliorer ses produits : évite d\'y mettre des infos personnelles.</small></div>';
+      $('iaCleOk').onclick = function () {
+        var v = $('iaCleIn').value.trim(); if (!v) return;
+        toast('Vérification de la clé…');
+        api('POST', '/api/ia/action/cle', { cle: v }, function (r) {
+          if (!r || !r.ok) return toast((r && r.error) || 'Erreur', true);
+          toast('Gemini est branché ✓'); ia.cle = true; ia.cfg = false; iaFil(); iaStatut();
+        });
+      };
+      if ($('iaCleAnn')) $('iaCleAnn').onclick = function () { ia.cfg = false; iaFil(); };
+      return;
+    }
+    if (!ia.msgs.length && !ia.envoi) {
+      h = '<div class="ia-accueil">' + IA_LG + '<h3>Salut, je peux t\'aider ?</h3><p>Pose ta question : une conversation est créée automatiquement.</p><div class="ia-sugg">';
+      for (var s = 0; s < IA_SUGG.length; s++) h += '<a data-s="' + s + '">' + esc(IA_SUGG[s]) + '</a>';
+      f.innerHTML = h + '</div></div>';
+      var as = f.querySelectorAll('a[data-s]');
+      for (var a = 0; a < as.length; a++) as[a].onclick = function () { $('iaTxt').value = IA_SUGG[+this.getAttribute('data-s')]; iaTaille(); $('iaTxt').focus(); };
+      return;
+    }
+    for (var i = 0; i < ia.msgs.length; i++) {
+      var m = ia.msgs[i];
+      h += m.r === 'user' ? '<div class="ia-m moi"><div class="bul">' + esc(m.t) + '</div></div>'
+        : '<div class="ia-m lui">' + IA_LG + '<div class="bul">' + iaMd(m.t) + '</div></div>';
+    }
+    if (ia.envoi) h += '<div class="ia-m lui">' + IA_LG + '<div class="bul ia-pts"><span></span><span></span><span></span></div></div>';
+    else if (ia.err) h += '<div class="ia-m lui">' + IA_LG + '<div class="bul err">' + esc(ia.err) + '<br><a id="iaRe">Réessayer</a></div></div>';
+    f.innerHTML = h;
+    if ($('iaRe')) $('iaRe').onclick = function () { var d = ia.msgs.pop(); ia.err = ''; iaEnvoyer(d.t); };
+    f.scrollTop = f.scrollHeight;
+  }
+  function iaTaille() {
+    var t = $('iaTxt'); t.style.height = '50px'; t.style.height = Math.min(160, t.scrollHeight) + 'px';
+    $('iaEnv').disabled = ia.envoi || !t.value.trim();
+  }
+  function iaEnvoyer(texte) {
+    if (ia.envoi || !texte) return;
+    ia.envoi = true; ia.err = '';
+    ia.msgs.push({ r: 'user', t: texte });
+    $('iaTxt').value = ''; iaTaille(); iaFil();
+    var conv = ia.conv;
+    api('POST', '/api/ia/action/envoyer', { id: conv, texte: texte }, function (r) {
+      ia.envoi = false;
+      if (ia.conv !== conv) return iaTaille();   // on a changé de conversation entre-temps
+      if (r && r.ok) { ia.conv = r.result.id; ia.msgs.push({ r: 'model', t: r.result.reponse }); if (r.result.modele) $('iaModele').textContent = r.result.modele; iaCharger(); }
+      else ia.err = (r && r.error) || 'Erreur';
+      iaFil(); iaTaille();
     });
   }
-  var iaRecents = []; try { iaRecents = JSON.parse(localStorage.getItem('iaRecents') || '[]'); } catch (e) {}
-  function iaVue() {
-    $('iaGrille').style.display = iaSel ? 'none' : '';
-    $('iaPage').style.display = iaSel ? 'flex' : 'none';
+  function iaOuvrir(id) {
+    if (ia.envoi) return toast('Attends la réponse de Gemini…');
+    api('POST', '/api/ia/action/lire', { id: id }, function (r) {
+      if (!r || !r.ok) return toast((r && r.error) || 'Erreur', true);
+      ia.conv = id; ia.msgs = r.result.messages.slice(); ia.err = ''; ia.cfg = false; iaListeRender(); iaFil();
+    });
   }
-  function iaRenderRecents() {
-    var h = '';
-    for (var i = 0; i < iaRecents.length; i++) h += '<a data-i="' + i + '">' + esc(iaRecents[i]) + '</a>';
-    $('iaRecents').innerHTML = h;
-    var as = $('iaRecents').getElementsByTagName('a');
-    for (var k = 0; k < as.length; k++) as[k].onclick = function () { $('iaQ').value = iaRecents[+this.getAttribute('data-i')]; $('iaEff').style.display = ''; };
+  function iaNouvelle() {
+    if (ia.envoi) return;
+    ia.conv = null; ia.msgs = []; ia.err = ''; ia.cfg = false; iaListeRender(); iaFil(); $('iaTxt').focus();
   }
-  function iaCopier(t) {
-    try { var z = document.createElement('textarea'); z.value = t; document.body.appendChild(z); z.select(); document.execCommand('copy'); document.body.removeChild(z); return true; } catch (e) { return false; }
-  }
-  // Sur la tablette (Android), on ouvre les IA dans Firefox : le navigateur de Fully Kiosk est trop vieux pour ces sites
-  var ANDROID = /Android/i.test(navigator.userAgent);
-  function iaLien(url) {
-    if (!ANDROID) return url;
-    return 'intent://' + url.replace(/^https:\/\//, '') + '#Intent;scheme=https;package=org.mozilla.firefox;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
-  }
-  function iaAller(url, msg) {
-    toast(msg);
-    setTimeout(function () {
-      if (!ANDROID) { location.href = url; return; }
-      // Le panneau (Termux) ouvre Firefox ; sinon on essaie par Fully
-      api('POST', '/api/ia/action/ouvrir', { url: url }, function (r) {
-        if (r && r.ok) return;
-        var l = iaLien(url);
-        try { if (window.fully && fully.startIntent) { fully.startIntent(l); return; } } catch (e) {}
-        toast('Impossible d\'ouvrir Firefox : ' + ((r && r.error) || 'erreur'), true);
-        location.href = l;
-      });
-    }, 250);
-  }
-  function iaNouveau() {
-    var ia = iaSel, q = $('iaQ').value.trim();
-    if (q) {
-      iaRecents = [q].concat(iaRecents.filter(function (x) { return x !== q; })).slice(0, 6);
-      try { localStorage.setItem('iaRecents', JSON.stringify(iaRecents)); } catch (e) {}
-      iaRenderRecents();
-    }
-    var prefill = /\?q=$/.test(ia.nouveau);
-    var url = prefill && q ? ia.nouveau + encodeURIComponent(q) : ia.nouveau.replace(/\?q=$/, '');
-    if (q && !prefill && iaCopier(q)) iaAller(url, 'Question copiée : colle-la dans ' + ia.nom);
-    else iaAller(url, 'Ouverture de ' + ia.nom + '…');
-  }
-  function iaOuvrirPage(ia) {
-    iaSel = ia; iaVue();
-    $('iaNomFil').textContent = ia.nom;
-    $('iaCarte').style.background = ia.fond;
-    $('iaCarte').innerHTML = iaLogo(ia) + '<b>' + ia.nom + '</b><small>' + ia.de + '</small>' +
-      '<p>' + (/\?q=$/.test(ia.nouveau) ? 'Écris ta question à droite : elle sera déjà tapée quand ' + ia.nom + ' va s\'ouvrir.' : 'Écris ta question à droite : elle sera copiée, tu n\'auras qu\'à la coller.') + '</p>';
-    var h = '<a class="prim" id="iaNew" style="background:' + ia.fond + '"><span>' + IC.plus + '</span><div>Nouvelle conversation<small>Avec ta question, si tu en as écrit une</small></div></a>';
-    for (var i = 0; i < ia.liens.length; i++) h += '<a data-u="' + ia.liens[i].u + '"><span>' + IC[ia.liens[i].ic] + '</span><div>' + ia.liens[i].n + '<small>' + ia.liens[i].d + '</small></div></a>';
-    $('iaActs').innerHTML = h;
-    $('iaNew').onclick = iaNouveau;
-    var ls = $('iaActs').querySelectorAll('a[data-u]');
-    for (var k = 0; k < ls.length; k++) ls[k].onclick = function () { iaAller(this.getAttribute('data-u'), 'Ouverture de ' + iaSel.nom + '…'); };
-  }
-  function iaGrille() {
-    var h = '';
-    for (var i = 0; i < IAS.length; i++) {
-      var a = IAS[i];
-      h += '<div class="ia-t" data-i="' + i + '" style="background:' + a.fond + '">' + iaLogo(a) + '<b>' + a.nom + '</b><small>' + a.de + '</small></div>';
-    }
-    $('iaGrille').innerHTML = h;
-    var ts = $('iaGrille').getElementsByClassName('ia-t');
-    for (var k = 0; k < ts.length; k++) ts[k].onclick = function () { iaOuvrirPage(IAS[+this.getAttribute('data-i')]); };
+  function iaCharger() { api('POST', '/api/ia/action/liste', {}, function (r) { if (r && r.ok) { ia.liste = r.result; iaListeRender(); } }); }
+  function iaStatut() {
+    api('GET', '/api/ia/status', null, function (r) {
+      if (!r || r.error) return;
+      var avant = ia.cle; ia.cle = !!r.cle;
+      if (r.modele) $('iaModele').textContent = r.modele;
+      if (avant !== ia.cle) iaFil();
+    });
   }
   (function () {
-    iaGrille(); iaChargerIcones(); setTimeout(iaChargerIcones, 8000);
-    $('iaRetour').onclick = function () { iaSel = null; iaVue(); };
-    $('iaQ').oninput = function () { $('iaEff').style.display = this.value ? '' : 'none'; };
-    $('iaEff').onclick = function () { $('iaQ').value = ''; this.style.display = 'none'; $('iaQ').focus(); };
-    iaRenderRecents();
+    IA_LG = $('iaLgSrc').outerHTML.replace(' id="iaLgSrc"', '');
+    $('iaNouv').onclick = iaNouvelle;
+    $('iaCleBtn').onclick = function () { ia.cfg = true; iaFil(); };
+    $('iaTxt').oninput = iaTaille;
+    $('iaTxt').onkeydown = function (e) { if (e.keyCode === 13 && !e.shiftKey) { e.preventDefault(); iaEnvoyer(this.value.trim()); } };
+    $('iaEnv').onclick = function () { iaEnvoyer($('iaTxt').value.trim()); };
+    iaFil(); iaStatut(); iaCharger();
   })();
 
   refreshTv(); refreshMeteo();
