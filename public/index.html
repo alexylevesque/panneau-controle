@@ -687,7 +687,7 @@
             <input id="iaQ" placeholder="Ta question (facultatif)…" autocomplete="off"><button class="x" id="iaEff" style="display:none">✕</button></div>
           <div class="ia-recents" id="iaRecents"></div>
           <div class="ia-acts" id="iaActs"></div>
-          <div class="ia-aide">Le bouton Retour de la tablette te ramène au panneau.</div>
+          <div class="ia-aide">Sur la tablette, les IA s'ouvrent dans Firefox. Pour revenir au panneau, touche le bouton des applis récentes et choisis Fully Kiosk.</div>
         </div>
       </div>
     </div>
@@ -1364,7 +1364,20 @@
   function iaCopier(t) {
     try { var z = document.createElement('textarea'); z.value = t; document.body.appendChild(z); z.select(); document.execCommand('copy'); document.body.removeChild(z); return true; } catch (e) { return false; }
   }
-  function iaAller(url, msg) { toast(msg); setTimeout(function () { location.href = url; }, 250); }
+  // Sur la tablette (Android), on ouvre les IA dans Firefox : le navigateur de Fully Kiosk est trop vieux pour ces sites
+  var ANDROID = /Android/i.test(navigator.userAgent);
+  function iaLien(url) {
+    if (!ANDROID) return url;
+    return 'intent://' + url.replace(/^https:\/\//, '') + '#Intent;scheme=https;package=org.mozilla.firefox;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
+  }
+  function iaAller(url, msg) {
+    toast(msg);
+    setTimeout(function () {
+      var l = iaLien(url);
+      try { if (ANDROID && window.fully && fully.startIntent) { fully.startIntent(l); return; } } catch (e) {}
+      location.href = l;
+    }, 250);
+  }
   function iaNouveau() {
     var ia = iaSel, q = $('iaQ').value.trim();
     if (q) {
@@ -1374,7 +1387,7 @@
     }
     var prefill = /\?q=$/.test(ia.nouveau);
     var url = prefill && q ? ia.nouveau + encodeURIComponent(q) : ia.nouveau.replace(/\?q=$/, '');
-    if (q && !prefill && iaCopier(q)) { toast('Question copiée : colle-la dans ' + ia.nom); setTimeout(function () { location.href = url; }, 900); }
+    if (q && !prefill && iaCopier(q)) iaAller(url, 'Question copiée : colle-la dans ' + ia.nom);
     else iaAller(url, 'Ouverture de ' + ia.nom + '…');
   }
   function iaOuvrirPage(ia) {
