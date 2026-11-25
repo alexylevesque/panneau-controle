@@ -11,5 +11,6 @@ Idées notées pour le panneau, à faire quand Alexy le demande.
 - [x] Le programme Mac marche sur plusieurs Mac : le Mac mini apparaît comme « macmini » (🖥️), avec stats et Faire sonner
 
 ## Nouvelles sections
-- [ ] Bambu Lab : suivre l'imprimante 3D (progression, temps restant, températures, caméra)
+- [x] Imprimante (Bambu Lab P1S) : progression, temps restant, températures, ventilos, filament AMS, caméra, pause/arrêt/lumière/vitesse, alerte de fin sur l'iPhone
+- [ ] Maison : du stock (« dans maison on peut tu metton commencer a mettre du stock »)
 - [ ] Section IA

@@ -270,6 +270,65 @@
   .how b { color: var(--txt); font-weight: 500; }
   .how code { background: rgba(0,0,0,.3); padding: 2px 8px; border-radius: 6px; color: var(--txt); font-size: 14px; }
 
+  /* ---- Imprimante 3D ---- */
+  #v-imprimante { position: relative; }
+  .imp { display: flex; width: 100%; padding: 6px 0 4px; min-height: 0; }
+  .imp-left { width: 390px; flex: none; margin-right: 26px; display: flex; flex-direction: column; }
+  .imp-right { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+  .imp-main { padding: 24px; display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 14px; }
+  .imp-ring { width: 190px; height: 190px; border-radius: 50%; padding: 12px; background: rgba(255,255,255,0.10); }
+  .imp-ring > div { width: 100%; height: 100%; border-radius: 50%; background: #151a33; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .imp-ring b { font-size: 46px; font-weight: 200; }
+  .imp-ring small { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .imp-nom { font-size: 20px; font-weight: 500; margin-top: 18px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .imp-sub { margin-top: 10px; }
+  .imp-temps { display: flex; justify-content: center; margin-top: 16px; color: var(--muted); font-size: 14px; }
+  .imp-temps div { margin: 0 14px; }
+  .imp-temps b { display: block; color: var(--txt); font-size: 22px; font-weight: 300; }
+  .imp-btns { display: flex; margin-bottom: 14px; }
+  .imp-btns button { flex: 1; height: 64px; margin-right: 12px; border-radius: 20px; border: 1px solid var(--glass-b); background: var(--glass);
+                     color: var(--txt); font-size: 16px; font-family: inherit; display: flex; align-items: center; justify-content: center; }
+  .imp-btns button:last-child { margin-right: 0; }
+  .imp-btns button span { font-size: 22px; margin-right: 8px; }
+  .imp-btns button:active { transform: scale(.97); background: var(--glass-on); }
+  .imp-btns button.on { background: rgba(255,211,107,.18); border-color: rgba(255,211,107,.5); }
+  .imp-btns button[disabled] { opacity: .35; }
+  .imp-btns .stop { color: #ff9a9a; }
+  .imp-reg { color: var(--muted); font-size: 14px; text-align: center; padding: 6px; }
+  .imp-reg a { text-decoration: underline; cursor: pointer; }
+  .imp-card { flex: 1; }
+  .imp-card .stats { padding: 6px; flex-wrap: nowrap; }
+  .imp-card .st b { font-size: 30px; white-space: nowrap; }
+  .imp-card .st b i { font-size: 15px; margin-left: 4px; }
+  .imp-cam { flex: 1; min-height: 0; margin-bottom: 16px; overflow: hidden; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+  .imp-cam img { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .imp-cam img.on { display: block; }
+  .imp-cam span { position: absolute; color: var(--muted); font-size: 14px; }
+  .imp-cam img.on + span { display: none; }
+  .imp-bas { display: flex; flex: none; }
+  .imp-col1 { width: 46%; margin-right: 16px; display: flex; flex-direction: column; }
+  .imp-col2 { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .ams { display: flex; flex-wrap: wrap; padding: 14px 10px 6px; }
+  .fil { width: 25%; box-sizing: border-box; padding: 0 6px 12px; text-align: center; }
+  .fil .bob { width: 64px; height: 64px; margin: 0 auto 8px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.12); position: relative;
+              display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+  .fil .bob:after { content: ''; width: 18px; height: 18px; border-radius: 50%; background: #151a33; position: absolute; }
+  .fil.actif .bob { border-color: var(--ok); box-shadow: 0 0 14px rgba(95,211,154,.45); }
+  .fil.vide .bob { background: repeating-linear-gradient(45deg, rgba(255,255,255,.06) 0 6px, transparent 6px 12px); }
+  .fil b { display: block; font-size: 15px; font-weight: 500; }
+  .fil small { color: var(--muted); font-size: 12px; }
+  .imp-vit { display: flex; background: var(--glass); border: 1px solid var(--glass-b); border-radius: 18px; padding: 5px; margin-bottom: 14px; }
+  .imp-vit a { flex: 1; text-align: center; padding: 12px 0; border-radius: 14px; font-size: 15px; color: var(--muted); }
+  .imp-vit a.on { background: rgba(122,162,255,0.20); color: var(--txt); font-weight: 500; }
+  .imp-vit.off { opacity: .35; }
+  .imp-reg span { margin-right: 14px; }
+  .imp-fans { display: flex; border-top: 1px solid var(--glass-b); margin: 0 16px; padding: 12px 0 14px; color: var(--muted); font-size: 13px; }
+  .imp-fans div { flex: 1; }
+  .imp-fans b { display: block; color: var(--txt); font-size: 18px; font-weight: 400; margin-top: 2px; }
+  .imp-err { flex: none; background: rgba(255,107,107,.14); border: 1px solid rgba(255,107,107,.45); color: #ffc9c9; border-radius: 16px; padding: 12px 16px; margin-bottom: 12px; font-size: 15px; }
+  .imp-cfg { margin: auto; width: 560px; padding: 26px; }
+  .imp-cfg .how { margin-bottom: 6px; }
+
   #v-reglages { align-items: center; justify-content: center; }
   .reg { width: 460px; text-align: center; }
   .reg .section { text-align: left; }
@@ -435,6 +494,45 @@
     </div>
   </div>
 
+  <!-- Imprimante 3D (Bambu Lab) -->
+  <div class="view" id="v-imprimante">
+    <div class="imp" id="impVue" style="display:none">
+      <div class="imp-left">
+        <div class="ph-card imp-main">
+          <div class="imp-ring" id="impRing"><div><b id="impPct">–</b><small id="impCouche"></small></div></div>
+          <div class="imp-nom" id="impNom">Imprimante</div>
+          <div class="imp-sub" id="impEtat"></div>
+          <div class="imp-temps"><div>Reste<b id="impReste">–</b></div><div>Fin vers<b id="impFin">–</b></div></div>
+        </div>
+        <div class="imp-btns">
+          <button id="impPause"><span>⏸️</span>Pause</button>
+          <button id="impStop" class="stop"><span>⏹️</span>Arrêter</button>
+          <button id="impLum"><span>💡</span>Lumière</button>
+        </div>
+        <div class="section">Vitesse</div>
+        <div class="imp-vit" id="impVit"><a data-n="1">Silencieux</a><a data-n="2">Standard</a><a data-n="3">Sport</a><a data-n="4">Fou</a></div>
+        <div class="imp-reg"><span id="impWifi"></span><a id="impCfgBtn">Réglages de l'imprimante</a></div>
+      </div>
+      <div class="imp-right">
+        <div class="imp-err" id="impErr" style="display:none"></div>
+        <div class="ph-card imp-cam" id="impCam"><img id="impImg" alt=""><span id="impCamTxt">Caméra</span></div>
+        <div class="imp-bas">
+          <div class="imp-col1"><div class="section">Températures</div><div class="ph-card imp-card"><div class="stats" id="impTemp"></div><div class="imp-fans" id="impFans"></div></div></div>
+          <div class="imp-col2"><div class="section">Filament</div><div class="ph-card imp-card"><div class="ams" id="impAms"></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="ph-card imp-cfg" id="impCfg" style="display:none">
+      <div class="sheet-top"><div class="sheet-meta"><b>Brancher ton imprimante Bambu Lab</b><small>Une seule fois</small></div><button class="x" id="impCfgX" style="display:none">✕</button></div>
+      <ol class="how">
+        <li>Sur l'écran de l'imprimante : <b>Réglages</b> &gt; <b>Réseau</b> (ou WLAN). Note l'<b>adresse IP</b> et le <b>code d'accès</b>.</li>
+        <li>Dans <b>Réglages</b> &gt; <b>Appareil</b> : note le <b>numéro de série</b>.</li>
+      </ol>
+      <div class="po-f"><input id="impIp" placeholder="Adresse IP (ex. 192.168.2.50)"><input id="impSerie" placeholder="Numéro de série"><input id="impCode" placeholder="Code d'accès"></div>
+      <button class="pw on po-ok" id="impSave">Enregistrer</button>
+    </div>
+  </div>
+
   <!-- Réglages (pour l'instant : juste la mise à jour) -->
   <div class="view" id="v-reglages">
     <div class="reg">
@@ -445,7 +543,7 @@
   </div>
 
   <div class="nav" id="nav">
-    <a class="on" data-v="accueil">Accueil</a><a data-v="tele">Télé</a><a data-v="appareils">Appareils</a><a class="off">Maison</a><a data-v="reglages">Réglages</a>
+    <a class="on" data-v="accueil">Accueil</a><a data-v="tele">Télé</a><a data-v="appareils">Appareils</a><a data-v="imprimante">Imprimante</a><a class="off">Maison</a><a data-v="reglages">Réglages</a>
   </div>
 </div>
 <div id="devMenu" class="devmenu"></div>
@@ -826,6 +924,105 @@
   $('devMenu').onclick = function (e) { e.stopPropagation(); };
   renderDevices();
   refreshDevices(); setInterval(refreshDevices, 3000);
+
+  // ---- Imprimante 3D ----
+  var imp = null, impCfgOuvert = false;
+  var IMP_ETATS = { IDLE: 'Prête', RUNNING: 'Impression en cours', PAUSE: 'En pause', FINISH: 'Terminée', FAILED: 'Arrêtée',
+                    PREPARE: 'Préparation', SLICING: 'Préparation' };
+  function renderImp() {
+    var r = imp;
+    var cfg = !r || !r.configure || impCfgOuvert;
+    $('impCfg').style.display = cfg ? '' : 'none';
+    $('impVue').style.display = cfg ? 'none' : '';
+    $('impCfgX').style.display = r && r.configure ? '' : 'none';
+    if (cfg || !r) return;
+    var enCours = r.etat === 'RUNNING' || r.etat === 'PAUSE' || r.etat === 'PREPARE';
+    var pct = enCours || r.etat === 'FINISH' ? (r.pourcent || 0) : 0, deg = Math.round(pct * 3.6);
+    var c = r.etat === 'FAILED' ? '#ff6b6b' : r.etat === 'PAUSE' ? '#ffb86b' : r.etat === 'FINISH' ? '#5fd39a' : '#7aa2ff';
+    $('impRing').style.background = 'conic-gradient(' + c + ' ' + deg + 'deg, rgba(255,255,255,0.10) ' + deg + 'deg)';
+    $('impPct').textContent = enCours || r.etat === 'FINISH' ? pct + '%' : '–';
+    $('impCouche').textContent = r.couches ? 'couche ' + (r.couche || 0) + ' / ' + r.couches : '';
+    $('impNom').textContent = r.fichier && r.etat !== 'IDLE' ? r.fichier : 'Imprimante 3D';
+    $('impEtat').innerHTML = !r.connecte ? '<span class="etat"><span class="dot bad"></span>' + esc(r.erreur || 'Connexion…') + '</span>'
+      : '<span class="etat' + (r.etat === 'RUNNING' ? ' ok' : '') + '"><span class="dot ok"></span>' + esc(IMP_ETATS[r.etat] || r.etat || 'Connectée') + '</span>';
+    var ETAPES = { 1: 'Nivellement du plateau', 2: 'Chauffe du plateau', 3: 'Calibration des vibrations', 4: 'Changement de filament',
+                   7: 'Chauffe de la buse', 8: 'Calibration de l\'extrusion', 9: 'Scan du plateau', 13: 'Mise à zéro des axes', 14: 'Nettoyage de la buse' };
+    if (r.connecte && enCours && ETAPES[r.etape]) $('impEtat').innerHTML = '<span class="etat"><span class="dot ok"></span>' + ETAPES[r.etape] + '</span>';
+    var reste = enCours && r.restant > 0 ? r.restant : 0;
+    $('impReste').textContent = reste ? (reste >= 60 ? Math.floor(reste / 60) + ' h ' + two(reste % 60) : reste + ' min') : '–';
+    var fin = new Date(Date.now() + reste * 60000);
+    $('impFin').textContent = reste ? fin.getHours() + ':' + two(fin.getMinutes()) : '–';
+    $('impPause').disabled = !r.connecte || !enCours;
+    $('impStop').disabled = !r.connecte || !enCours;
+    $('impLum').disabled = !r.connecte;
+    $('impPause').innerHTML = r.etat === 'PAUSE' ? '<span>▶️</span>Reprendre' : '<span>⏸️</span>Pause';
+    $('impLum').className = r.lumiere ? 'on' : '';
+    $('impVit').className = 'imp-vit' + (r.connecte && enCours ? '' : ' off');
+    var vs = $('impVit').getElementsByTagName('a');
+    for (var v = 0; v < vs.length; v++) vs[v].className = +vs[v].getAttribute('data-n') === r.vitesse ? 'on' : '';
+    var dbm = parseInt(r.wifi, 10);
+    $('impWifi').textContent = r.connecte && dbm ? 'Wi-Fi ' + (dbm > -60 ? 'excellent' : dbm > -70 ? 'bon' : 'faible') + ' (' + dbm + ' dBm)' : '';
+    var fv = r.ventilos || {};
+    function fan(n, x) { return x === undefined ? '' : '<div>' + n + '<b>' + x + '%</b></div>'; }
+    $('impFans').innerHTML = r.connecte ? fan('Ventilo pièce', fv.piece) + fan('Auxiliaire', fv.aux) + fan('Caisson', fv.caisson) : '';
+    $('impFans').style.display = $('impFans').innerHTML ? '' : 'none';
+    var errs = (r.hms || []).slice();
+    if (r.erreurTexte) errs.unshift(r.erreurTexte);
+    $('impErr').style.display = r.connecte && errs.length ? '' : 'none';
+    $('impErr').textContent = '⚠️ L\'imprimante signale un problème (code ' + errs.join(', ') + '). Regarde son écran pour le détail.';
+    function t(nom, v, cible, max) {
+      if (v === undefined) return '';
+      var pc = Math.round(100 * v / max), col = v >= 45 ? '#ffb86b' : '#7aa2ff';
+      return '<div class="st"><small>' + nom + '</small><b>' + Math.round(v) + '°' + (cible > 0 ? '<i>→ ' + Math.round(cible) + '°</i>' : '') + '</b>' +
+             '<div class="barre"><div style="width:' + Math.min(100, pc) + '%;background:' + col + '"></div></div></div>';
+    }
+    $('impTemp').innerHTML = !r.connecte ? '<div class="bt-vide">Les températures s\'afficheront quand l\'imprimante sera connectée.</div>'
+      : t('Buse', r.buse, r.buseCible, 300) + t('Plateau', r.plateau, r.plateauCible, 110);
+    var h = '';
+    for (var i = 0; i < (r.ams || []).length; i++) {
+      var f = r.ams[i], vide = !f.type;
+      h += '<div class="fil' + (f.actif ? ' actif' : '') + (vide ? ' vide' : '') + '"><div class="bob" style="background-color:' + (vide ? 'transparent' : esc(f.couleur || '#888')) + '"></div>' +
+           '<b>' + esc(vide ? 'Vide' : f.type) + '</b><small>' + esc(f.fente) + (f.reste !== undefined && !vide ? ' · ' + f.reste + '%' : '') + '</small></div>';
+    }
+    $('impAms').innerHTML = h || '<div class="bt-vide">' + (r.connecte ? 'Aucun filament détecté.' : 'Le filament s\'affichera ici.') + '</div>';
+  }
+  function refreshImp() { api('GET', '/api/imprimante/status', null, function (r) { if (r) { imp = r; renderImp(); } }); }
+  function impAction(a, corps, ok) {
+    api('POST', '/api/imprimante/action/' + a, corps || {}, function (r) {
+      if (!r || !r.ok) return toast((r && r.error) || 'Erreur', true);
+      if (ok) toast(ok);
+      setTimeout(refreshImp, 800);
+    });
+  }
+  $('impPause').onclick = function () { if (imp && imp.etat === 'PAUSE') impAction('reprendre', null, 'Reprise ▶️'); else impAction('pause', null, 'En pause ⏸️'); };
+  $('impStop').onclick = function () { if (confirm('Arrêter l\'impression pour de bon ?')) impAction('arreter', null, 'Impression arrêtée'); };
+  $('impLum').onclick = function () { impAction('lumiere', { on: !(imp && imp.lumiere) }); };
+  var impVs = $('impVit').getElementsByTagName('a');
+  for (var iv = 0; iv < impVs.length; iv++) impVs[iv].onclick = function () {
+    if ($('impVit').className.indexOf('off') > -1) return toast('La vitesse se change pendant une impression');
+    impAction('vitesse', { niveau: +this.getAttribute('data-n') }, 'Vitesse : ' + this.textContent);
+  };
+  $('impCfgBtn').onclick = function () { impCfgOuvert = true; if (imp && imp.ip) $('impIp').value = imp.ip; renderImp(); };
+  $('impCfgX').onclick = function () { impCfgOuvert = false; renderImp(); };
+  $('impSave').onclick = function () {
+    api('POST', '/api/imprimante/action/configurer', { ip: $('impIp').value, serie: $('impSerie').value, code: $('impCode').value }, function (r) {
+      if (!r || !r.ok) return toast((r && r.error) || 'Erreur', true);
+      impCfgOuvert = false; $('impCode').value = ''; toast('Enregistré ✔ Connexion à l\'imprimante…'); refreshImp();
+    });
+  };
+  refreshImp(); setInterval(refreshImp, 3000);
+  // Caméra : une nouvelle image aux 2 s, seulement quand la page Imprimante est ouverte
+  var camEnCours = false;
+  setInterval(function () {
+    if (camEnCours || !imp || !imp.configure || impCfgOuvert || $('v-imprimante').className.indexOf('on') < 0) return;
+    camEnCours = true;
+    api('POST', '/api/imprimante/action/camera', {}, function (r) {
+      camEnCours = false;
+      var res = r && r.ok && r.result;
+      if (res && res.image) { $('impImg').src = res.image; $('impImg').className = 'on'; }
+      else { $('impImg').className = ''; $('impCamTxt').textContent = (res && res.erreur) || 'Caméra indisponible'; }
+    });
+  }, 2000);
 
   refreshTv(); refreshMeteo();
   setInterval(refreshTv, 30000); setInterval(refreshMeteo, 60000);
