@@ -335,6 +335,62 @@
   .imp-cfg { margin: auto; width: 560px; padding: 26px; }
   .imp-cfg .how { margin-bottom: 6px; }
 
+  /* ---- Maison ---- */
+  #v-maison { flex-direction: column; min-height: 0; padding-top: 18px; }
+  .m-grille { display: flex; flex-wrap: wrap; align-content: flex-start; margin: 6px -8px 0; }
+  .m-tuile { width: calc(33.33% - 16px); margin: 0 8px 16px; height: 190px; padding: 22px 24px; box-sizing: border-box; display: flex; flex-direction: column; position: relative; }
+  .m-tuile:active { transform: scale(.98); }
+  .m-tuile .m-ic { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; background: rgba(122,162,255,.16); color: #a9c1ff; }
+  .m-tuile .m-ic svg { width: 26px; height: 26px; fill: currentColor; }
+  .m-tuile b { font-size: 22px; font-weight: 500; margin-top: auto; }
+  .m-tuile small { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .m-tuile.m-bientot { opacity: .45; }
+  .m-tuile .m-live { position: absolute; top: 24px; right: 24px; }
+  .m-retour { color: var(--muted); font-size: 15px; margin: 0 0 12px 4px; cursor: pointer; display: inline-block; }
+  .m-retour b { color: var(--txt); font-weight: 500; }
+  .wf { display: flex; flex: 1; min-height: 0; }
+  .wf-g { width: 430px; flex: none; margin-right: 22px; display: flex; flex-direction: column; min-height: 0; }
+  .wf-d { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+  .wf-net { padding: 20px 22px 16px; margin-bottom: 14px; }
+  .wf-tete { display: flex; align-items: center; justify-content: space-between; }
+  .wf-ms { font-size: 52px; font-weight: 200; line-height: 1; }
+  .wf-ms i { font-style: normal; font-size: 18px; color: var(--muted); margin-left: 4px; }
+  .wf-graph { width: 100%; height: 70px; margin: 12px 0 10px; display: block; }
+  .wf-ch { display: flex; }
+  .wf-ch div { flex: 1; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  .wf-ch b { display: block; color: var(--txt); font-size: 18px; font-weight: 400; text-transform: none; letter-spacing: 0; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wf-ch + .wf-ch { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--glass-b); }
+  .wf-vit { flex: 1; min-height: 0; padding: 16px 22px; display: flex; flex-direction: column; align-items: center; }
+  .wf-jauge { width: 250px; height: 140px; position: relative; }
+  .wf-jauge svg { width: 250px; height: 140px; }
+  .wf-jauge div { position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; }
+  .wf-jauge b { display: block; font-size: 40px; font-weight: 200; line-height: 1; }
+  .wf-jauge small { color: var(--muted); font-size: 13px; }
+  .wf-res { display: flex; width: 100%; margin: 10px 0 12px; text-align: center; }
+  .wf-res div { flex: 1; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  .wf-res b { display: block; color: var(--txt); font-size: 22px; font-weight: 300; text-transform: none; letter-spacing: 0; margin-top: 2px; }
+  .wf-go { width: 100%; height: 54px; border-radius: 16px; border: 0; font-family: inherit; font-size: 16px; font-weight: 600; color: #0b1020; background: linear-gradient(135deg, #8fb0ff, #6f8dff); margin-top: auto; }
+  .wf-go[disabled] { opacity: .5; }
+  .wf-app { flex: 1; min-height: 0; display: flex; flex-direction: column; margin-bottom: 14px; }
+  .wf-app-t { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px; }
+  .wf-app-t b { font-weight: 500; font-size: 17px; }
+  .wf-app-t a { color: var(--accent); font-size: 14px; cursor: pointer; }
+  .wf-liste { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 10px 8px; }
+  .wf-it { display: flex; align-items: center; padding: 10px; border-radius: 14px; }
+  .wf-it:active { background: var(--glass-on); }
+  .wf-it .ic { width: 38px; height: 38px; border-radius: 11px; background: rgba(255,255,255,.07); display: flex; align-items: center; justify-content: center; font-size: 19px; margin-right: 12px; flex: none; }
+  .wf-it .n { flex: 1; min-width: 0; }
+  .wf-it .n b { display: block; font-weight: 500; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wf-it .n b.inc { color: var(--muted); font-weight: 400; }
+  .wf-it .n small { color: var(--muted); font-size: 12px; }
+  .wf-it .nv { background: rgba(255,184,107,.18); color: var(--warm); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; margin-left: 8px; }
+  .wf-qr { flex: none; display: flex; align-items: center; padding: 14px 20px; }
+  .wf-qr .code { width: 120px; height: 120px; background: #fff; border-radius: 12px; padding: 6px; box-sizing: border-box; flex: none; margin-right: 18px; }
+  .wf-qr .code img { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+  .wf-qr b { display: block; font-weight: 500; font-size: 17px; }
+  .wf-qr small { display: block; color: var(--muted); font-size: 13px; margin: 4px 0 10px; }
+  .wf-qr a { color: var(--accent); font-size: 14px; cursor: pointer; }
+
   #v-reglages { align-items: center; justify-content: center; }
   .reg { width: 460px; text-align: center; }
   .reg .section { text-align: left; }
@@ -346,6 +402,7 @@
   #toast.show { opacity: 1; }
   #toast.err { background: rgba(200,40,40,0.9); }
 </style>
+<script src="/lib/qrcode.js"></script>
 </head>
 <body>
 <div class="app">
@@ -539,6 +596,49 @@
     </div>
   </div>
 
+  <!-- Maison -->
+  <div class="view" id="v-maison">
+    <div class="m-grille" id="mAccueil">
+      <div class="ph-card m-tuile" id="mWifi"><div class="m-ic"><svg viewBox="0 0 24 24"><path d="M12 18.5a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5zM12 13c-2.1 0-4 .8-5.4 2.2l1.6 1.6A5.4 5.4 0 0 1 12 15.3c1.5 0 2.8.6 3.8 1.5l1.6-1.6A7.6 7.6 0 0 0 12 13zm0-4.6c-3.4 0-6.5 1.4-8.7 3.6l1.6 1.6A10 10 0 0 1 12 10.7c2.8 0 5.3 1.1 7.1 2.9l1.6-1.6A12.3 12.3 0 0 0 12 8.4zm0-4.6C7.3 3.8 3 5.7 0 8.8l1.6 1.6A14.6 14.6 0 0 1 12 6.1c4.1 0 7.8 1.6 10.4 4.3L24 8.8c-3-3.1-7.3-5-12-5z"/></svg></div><span class="m-live" id="mWifiEtat"></span><b>Wi-Fi</b><small id="mWifiSous">…</small></div>
+      <div class="ph-card m-tuile m-bientot"><div class="m-ic"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zM9 20h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/></svg></div><b>Lumières</b><small>Bientôt</small></div>
+      <div class="ph-card m-tuile m-bientot"><div class="m-ic"><svg viewBox="0 0 24 24"><path d="M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0zM12 20a2 2 0 0 1-1-3.73V9h2v7.27A2 2 0 0 1 12 20z"/></svg></div><b>Température</b><small>Bientôt</small></div>
+      <div class="ph-card m-tuile m-bientot"><div class="m-ic"><svg viewBox="0 0 24 24"><path d="M16 7V3h-2v4h-4V3H8v4a2 2 0 0 0-2 2v4a6 6 0 0 0 5 5.91V22h2v-3.09A6 6 0 0 0 18 13V9a2 2 0 0 0-2-2z"/></svg></div><b>Prises</b><small>Bientôt</small></div>
+      <div class="ph-card m-tuile m-bientot"><div class="m-ic"><svg viewBox="0 0 24 24"><path d="M20 6h-3V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zM9 4h6v2H9zm11 15H4v-5h16zm0-7H4V8h16z"/></svg></div><b>Stock</b><small>Bientôt</small></div>
+    </div>
+    <div id="mWifiPage" style="display:none; flex: 1; min-height: 0; flex-direction: column">
+      <a class="m-retour" id="mRetour">‹ <b>Maison</b> / Wi-Fi</a>
+      <div class="wf">
+        <div class="wf-g">
+          <div class="ph-card wf-net">
+            <div class="wf-tete"><span id="wfEtat"></span><div class="wf-ms" id="wfMs">–</div></div>
+            <svg class="wf-graph" id="wfGraph" viewBox="0 0 300 70" preserveAspectRatio="none"></svg>
+            <div class="wf-ch"><div>Moyenne<b id="wfMoy">–</b></div><div>Gigue<b id="wfGigue">–</b></div><div>Pertes<b id="wfPertes">–</b></div><div>Routeur<b id="wfGw">–</b></div></div>
+            <div class="wf-ch"><div>Coupures<b id="wfCoup">–</b></div><div style="flex:1.6">Fournisseur<b id="wfFai">–</b></div><div style="flex:1.4">IP publique<b id="wfIp">–</b></div></div>
+          </div>
+          <div class="ph-card wf-vit">
+            <div class="wf-jauge"><svg viewBox="0 0 250 140" id="wfJauge"></svg><div><b id="wfDirect">–</b><small id="wfPhase">Mb/s</small></div></div>
+            <div class="wf-res"><div>↓ Réception<b id="wfBas">–</b></div><div>↑ Envoi<b id="wfHaut">–</b></div><div>Ping<b id="wfPing">–</b></div></div>
+            <button class="wf-go" id="wfGo">Lancer le test de vitesse</button>
+          </div>
+        </div>
+        <div class="wf-d">
+          <div class="ph-card wf-app">
+            <div class="wf-app-t"><b id="wfNb">Appareils sur le Wi-Fi</b><a id="wfScan">Rechercher</a></div>
+            <div class="wf-liste" id="wfListe"></div>
+          </div>
+          <div class="ph-card wf-qr" id="wfQr"></div>
+        </div>
+      </div>
+    </div>
+    <div class="sheet" id="wfCfg">
+      <div class="sheet-box">
+        <div class="sheet-top"><div class="sheet-meta"><b>Partager le Wi-Fi</b><small>Les invités scannent le code avec leur caméra</small></div><button class="x" id="wfCfgX">✕</button></div>
+        <div class="po-f"><input id="wfSsid" placeholder="Nom du Wi-Fi (ex. BELL855)"><input id="wfMdp" placeholder="Mot de passe"></div>
+        <button class="pw on po-ok" id="wfCfgOk">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Réglages (pour l'instant : juste la mise à jour) -->
   <div class="view" id="v-reglages">
     <div class="reg">
@@ -551,7 +651,7 @@
   </div>
 
   <div class="nav" id="nav">
-    <a class="on" data-v="accueil">Accueil</a><a data-v="tele">Télé</a><a data-v="appareils">Appareils</a><a data-v="imprimante">Imprimante</a><a class="off">Maison</a><a data-v="reglages">Réglages</a>
+    <a class="on" data-v="accueil">Accueil</a><a data-v="tele">Télé</a><a data-v="appareils">Appareils</a><a data-v="imprimante">Imprimante</a><a data-v="maison">Maison</a><a data-v="reglages">Réglages</a>
   </div>
 </div>
 <div id="devMenu" class="devmenu"></div>
@@ -1043,6 +1143,128 @@
       else { $('impImg').className = ''; $('impCamTxt').textContent = (res && res.erreur) || 'Caméra indisponible'; }
     });
   }, 2000);
+
+  // ---- Maison ----
+  var wf = null, wfOuvert = false;
+  function msTxt(x) { return x === null || x === undefined ? '–' : x + ' ms'; }
+  function wfCouleur(ms) { return ms === null ? '#ff6b6b' : ms < 40 ? '#5fd39a' : ms < 100 ? '#ffb86b' : '#ff6b6b'; }
+  function maisonVue() {
+    $('mAccueil').style.display = wfOuvert ? 'none' : '';
+    $('mWifiPage').style.display = wfOuvert ? 'flex' : 'none';
+  }
+  $('mWifi').onclick = function () { wfOuvert = true; maisonVue(); renderWifi(); };
+  $('mRetour').onclick = function () { wfOuvert = false; maisonVue(); };
+  var mBientots = document.querySelectorAll('.m-tuile.m-bientot');
+  for (var mb = 0; mb < mBientots.length; mb++) mBientots[mb].onclick = function () { toast('Bientôt disponible'); };
+
+  function iconeAppareil(a) {
+    var n = (a.nom || '').toLowerCase();
+    if (a.role === 'routeur') return '📡'; if (a.role === 'imprimante') return '🖨️'; if (a.role === 'tablette') return '📟';
+    if (/iphone|android|galaxy|pixel|cell/.test(n)) return '📱'; if (/ipad|tab/.test(n)) return '📱';
+    if (/mac|book|pc|ordi|desktop|laptop/.test(n)) return '💻'; if (/tv|fire|roku|chromecast|apple-tv|appletv|télé/.test(n)) return '📺';
+    if (/echo|alexa|home|nest|sonos|speaker/.test(n)) return '🔊'; if (/xbox|playstation|ps[345]|switch|nintendo/.test(n)) return '🎮';
+    return '🔌';
+  }
+  function renderWifi() {
+    var r = wf; if (!r) return;
+    var c = wfCouleur(r.enLigne ? r.latence : null);
+    $('mWifiEtat').innerHTML = '<span class="etat' + (r.enLigne ? ' ok' : '') + '"><span class="dot ' + (r.enLigne ? 'ok' : 'bad') + '"></span>' + (r.enLigne ? 'En ligne' : 'Hors ligne') + '</span>';
+    $('mWifiSous').textContent = (r.enLigne ? msTxt(r.latence) + ' · ' : '') + (r.appareils || []).length + ' appareils' + (r.test && r.test.bas ? ' · ↓ ' + Math.round(r.test.bas) + ' Mb/s' : '');
+    if (!wfOuvert) return;
+    $('wfEtat').innerHTML = '<span class="etat' + (r.enLigne ? ' ok' : '') + '"><span class="dot ' + (r.enLigne ? 'ok' : 'bad') + '"></span>' + (r.enLigne ? 'Internet en ligne' : 'Internet coupé') + '</span>';
+    $('wfMs').innerHTML = r.enLigne && r.latence !== null ? r.latence + '<i>ms</i>' : '–';
+    $('wfMs').style.color = c;
+    // Graphique de latence (3 dernières minutes)
+    var h = r.historique || [], max = 50, pts = '', i;
+    for (i = 0; i < h.length; i++) if (h[i] !== null && h[i] > max) max = h[i];
+    max = Math.ceil(max * 1.2);
+    var g = '<line x1="0" y1="69" x2="300" y2="69" stroke="rgba(255,255,255,.12)"/>';
+    for (i = 0; i < h.length; i++) {
+      var x = Math.round(300 * i / 89);
+      if (h[i] === null) { g += '<rect x="' + (x - 1) + '" y="0" width="3" height="70" fill="rgba(255,107,107,.45)"/>'; continue; }
+      pts += x + ',' + (68 - Math.round(62 * h[i] / max)) + ' ';
+    }
+    if (pts) g += '<polyline points="' + pts + '300,69 ' + pts.split(' ')[0].split(',')[0] + ',69" fill="rgba(122,162,255,.14)" stroke="none"/>' +
+                  '<polyline points="' + pts + '" fill="none" stroke="#7aa2ff" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
+    $('wfGraph').innerHTML = g;
+    $('wfMoy').textContent = msTxt(r.latenceMoy); $('wfGigue').textContent = msTxt(r.gigue);
+    $('wfPertes').textContent = r.pertes + ' %'; $('wfPertes').style.color = r.pertes > 2 ? '#ff6b6b' : '';
+    $('wfGw').textContent = msTxt(r.latenceRouteur);
+    $('wfCoup').textContent = r.coupures24h; $('wfCoup').style.color = r.coupures24h ? '#ffb86b' : '';
+    $('wfFai').textContent = r.fai || '–'; $('wfIp').textContent = r.ipPublique || '–';
+    // Test de vitesse
+    var t = r.test || {}, enCours = t.phase === 'ping' || t.phase === 'bas' || t.phase === 'haut';
+    var val = enCours ? t.direct : t.bas, angle = Math.min(1, Math.log(1 + (val || 0)) / Math.log(1001));
+    var a0 = Math.PI, a1 = Math.PI * (1 - angle), cx = 125, cy = 125, rr = 105;
+    var arc = function (a, b, col, w) {
+      var x1 = cx + rr * Math.cos(a), y1 = cy - rr * Math.sin(a), x2 = cx + rr * Math.cos(b), y2 = cy - rr * Math.sin(b);
+      return '<path d="M' + x1.toFixed(1) + ' ' + y1.toFixed(1) + ' A' + rr + ' ' + rr + ' 0 0 1 ' + x2.toFixed(1) + ' ' + y2.toFixed(1) + '" fill="none" stroke="' + col + '" stroke-width="' + w + '" stroke-linecap="round"/>';
+    };
+    var jg = arc(Math.PI, 0.0001, 'rgba(255,255,255,.10)', 14);
+    if (val) jg += arc(a0, Math.max(a1, 0.0001), t.phase === 'haut' ? '#c38bff' : '#7aa2ff', 14);
+    $('wfJauge').innerHTML = jg;
+    $('wfDirect').textContent = val ? (val >= 100 ? Math.round(val) : val) : '–';
+    $('wfPhase').textContent = t.phase === 'ping' ? 'Mesure du ping…' : t.phase === 'bas' ? '↓ Réception · Mb/s' : t.phase === 'haut' ? '↑ Envoi · Mb/s'
+      : t.phase === 'erreur' ? 'Le test a échoué' : t.quand ? 'Mb/s · test de ' + new Date(t.quand).getHours() + ':' + two(new Date(t.quand).getMinutes()) : 'Mb/s';
+    $('wfBas').textContent = t.bas !== null && t.bas !== undefined ? t.bas : '–';
+    $('wfHaut').textContent = t.haut !== null && t.haut !== undefined ? t.haut : '–';
+    $('wfPing').textContent = t.ping !== null && t.ping !== undefined ? t.ping + ' ms' : '–';
+    $('wfGo').disabled = enCours;
+    $('wfGo').textContent = enCours ? 'Test en cours… ' + (t.progression || 0) + ' %' : 'Lancer le test de vitesse';
+    // Appareils
+    var l = r.appareils || [], hh = '';
+    for (i = 0; i < l.length; i++) {
+      var d = l[i];
+      hh += '<div class="wf-it" data-i="' + i + '"><div class="ic">' + iconeAppareil(d) + '</div><div class="n"><b' + (d.nom ? '' : ' class="inc"') + '>' + esc(d.nom || 'Appareil inconnu') + '</b>' +
+            '<small>' + esc(d.ip) + (d.mac ? ' · ' + esc(d.mac.toUpperCase()) : '') + '</small></div>' + (d.nouveau ? '<span class="nv">Nouveau</span>' : '') + '</div>';
+    }
+    $('wfListe').innerHTML = hh || '<div class="bt-vide">' + (r.scan && r.scan.enCours ? 'Recherche des appareils…' : 'Aucun appareil trouvé pour l\'instant.') + '</div>';
+    $('wfNb').textContent = 'Appareils sur le Wi-Fi' + (l.length ? ' (' + l.length + ')' : '');
+    $('wfScan').textContent = r.scan && r.scan.enCours ? 'Recherche…' : 'Rechercher';
+    var its = $('wfListe').getElementsByClassName('wf-it');
+    for (i = 0; i < its.length; i++) its[i].onclick = function () {
+      var d = l[+this.getAttribute('data-i')];
+      if (d.role) return toast('Celui-là est nommé automatiquement');
+      var nom = prompt('Nom de cet appareil (' + d.ip + ')', d.nom || '');
+      if (nom === null) return;
+      api('POST', '/api/wifi/action/nommer', { cle: d.cle, nom: nom }, function (x) { if (!x || !x.ok) toast((x && x.error) || 'Erreur', true); refreshWifi(); });
+    };
+    // Partage (QR)
+    var qrKey = (r.ssid || '') + '\n' + (r.mdp || '');
+    if ($('wfQr').getAttribute('data-k') !== qrKey) {
+      $('wfQr').setAttribute('data-k', qrKey);
+      if (r.ssid && window.qrcode) {
+        var q = qrcode(0, 'M'); q.addData('WIFI:T:WPA;S:' + qrEsc(r.ssid) + ';P:' + qrEsc(r.mdp || '') + ';;', 'Byte'); q.make();
+        $('wfQr').innerHTML = '<div class="code"><img src="' + q.createDataURL(4, 0) + '" alt=""></div><div><b>' + esc(r.ssid) + '</b><small>Scanne avec la caméra pour te connecter.</small><a id="wfCfgBtn">Modifier</a></div>';
+      } else $('wfQr').innerHTML = '<div><b>Partager le Wi-Fi</b><small>Un code QR que tes invités scannent pour se connecter, sans taper le mot de passe.</small><a id="wfCfgBtn">Configurer</a></div>';
+      $('wfCfgBtn').onclick = function () { $('wfSsid').value = (wf && wf.ssid) || ''; $('wfMdp').value = (wf && wf.mdp) || ''; $('wfCfg').className = 'sheet show'; };
+    }
+  }
+  function qrEsc(t) { return String(t).replace(/([\;,:"])/g, '\\$1'); }
+  $('wfCfgX').onclick = function () { $('wfCfg').className = 'sheet'; };
+  $('wfCfgOk').onclick = function () {
+    api('POST', '/api/wifi/action/partage', { ssid: $('wfSsid').value, mdp: $('wfMdp').value }, function (x) {
+      if (!x || !x.ok) return toast((x && x.error) || 'Erreur', true);
+      $('wfCfg').className = 'sheet'; refreshWifi();
+    });
+  };
+  $('wfGo').onclick = function () {
+    api('POST', '/api/wifi/action/vitesse', {}, function (x) { if (!x || !x.ok) return toast((x && x.error) || 'Erreur', true); refreshWifi(); });
+  };
+  $('wfScan').onclick = function () {
+    toast('Recherche des appareils… (environ 30 s)');
+    api('POST', '/api/wifi/action/scanner', {}, function () { refreshWifi(); });
+    setTimeout(refreshWifi, 500);
+  };
+  function refreshWifi() { api('GET', '/api/wifi/status', null, function (r) { if (r && !r.error) { wf = r; renderWifi(); } }); }
+  refreshWifi();
+  var wfTic = 0;
+  setInterval(function () {
+    var vu = $('v-maison').className.indexOf('on') > -1;
+    var rapide = vu && wfOuvert, test = wf && wf.test && /^(ping|bas|haut)$/.test(wf.test.phase);
+    if (rapide && test) return refreshWifi();          // test en cours : chaque seconde
+    if (++wfTic % (rapide ? 2 : vu ? 3 : 15) === 0) refreshWifi();
+  }, 1000);
 
   refreshTv(); refreshMeteo();
   setInterval(refreshTv, 30000); setInterval(refreshMeteo, 60000);

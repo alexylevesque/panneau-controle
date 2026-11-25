@@ -12,5 +12,6 @@ Idées notées pour le panneau, à faire quand Alexy le demande.
 
 ## Nouvelles sections
 - [x] Imprimante (Bambu Lab P1S) : progression, temps restant, températures, ventilos, filament AMS, caméra, pause/arrêt/lumière/vitesse, alerte de fin sur l'iPhone
-- [ ] Maison : du stock (« dans maison on peut tu metton commencer a mettre du stock »)
+- [x] Maison : page avec des tuiles. Wi-Fi fait (Internet en direct, test de vitesse, appareils branchés, QR pour partager)
+- [ ] Maison : Lumières, Température, Prises, Stock
 - [ ] Section IA
