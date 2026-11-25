@@ -15,6 +15,19 @@ if [ "$1" = "retirer" ]; then
   return 0
 fi
 
+# Chaque Mac a son nom dans le panneau. Ton premier Mac (déjà installé) reste « mac ».
+if [ ! -s "$DOSSIER/id" ]; then
+  mkdir -p "$DOSSIER"
+  if [ -f "$DOSSIER/agent.sh" ]; then echo mac > "$DOSSIER/id"
+  else
+    MODELE=$(system_profiler SPHardwareDataType 2>/dev/null | awk -F': ' '/Model Name/{print $2; exit}')
+    case "$MODELE" in *"Mac mini"*) T=macmini; BASE=macmini ;; *) T=mac; BASE=mac ;; esac
+    echo "$T" > "$DOSSIER/type"
+    # « mac » est déjà pris par ton premier Mac : on ajoute un bout de son nom
+    SUFFIXE=$(scutil --get LocalHostName 2>/dev/null | tr 'A-Z' 'a-z' | tr -c 'a-z0-9\n' '-' | cut -c1-20)
+    if [ "$BASE" = "macmini" ]; then echo macmini > "$DOSSIER/id"; else echo "mac-${SUFFIXE:-2}" > "$DOSSIER/id"; fi
+  fi
+fi
 mkdir -p "$DOSSIER" "$HOME/Library/LaunchAgents"
 cat > "$DOSSIER/agent.sh" <<AGENT
 #!/bin/bash
@@ -22,106 +35,16 @@ PANNEAU="$PANNEAU"
 AGENT
 cat >> "$DOSSIER/agent.sh" <<'AGENT'
 NOM=$(scutil --get ComputerName 2>/dev/null || echo Mac)
-VERSION=10
+ID=$(cat "$HOME/.panneau/id" 2>/dev/null); [ -z "$ID" ] && ID=mac
+TYPE=$(cat "$HOME/.panneau/type" 2>/dev/null); [ -z "$TYPE" ] && TYPE=mac
+VERSION=12
 NCPU=$(sysctl -n hw.ncpu); MEM=$(sysctl -n hw.memsize); PS=$(pagesize)
 BOOT=$(sysctl -n kern.boottime | awk -F'[ ,]+' '{print $4}')
 SMC="$HOME/.panneau/smc"; CLES=""
 [ -x "$SMC" ] && CLES=$("$SMC" cles 2>/dev/null)
-# Même PATH que ton Terminal (Homebrew, ~/.local/bin, etc.), sinon plein de commandes sont « not found »
-P=$(/bin/zsh -lic 'printf %s "$PATH"' 2>/dev/null </dev/null | tail -1); [ -n "$P" ] && export PATH="$P"
-# ---- Terminal : le panneau envoie des commandes, protégées par ton code (~/.panneau/code) ----
-CODE_F="$HOME/.panneau/code"; ESSAIS_F="$HOME/.panneau/essais"; CWD_F="$HOME/.panneau/cwd"
-enb64() { base64 | tr -d '\n'; }
-repondre() {   # id statut sortie dossier (par l'entrée standard : les images peuvent être grosses)
-  { printf '{"id":%s,"statut":"%s","sortie":"' "$1" "$2"; printf '%s' "$3" | enb64
-    printf '","cwd":"'; printf '%s' "$4" | enb64; printf '"}'; } |
-  curl -s -m 20 -X POST -H 'Content-Type: application/json' --data-binary @- "$PANNEAU/api/appareils/action/macResultat" >/dev/null
-}
-# ---- Fichiers : opérations spéciales envoyées par la page Fichiers (ne touchent pas au dossier du Terminal) ----
-chemin() {   # « ~ » et « ~/… » = ton dossier maison
-  case "$1" in ''|'~') printf '%s' "$HOME" ;; '~/'*) printf '%s/%s' "$HOME" "${1#\~/}" ;; *) printf '%s' "$1" ;; esac
-}
-fichiers() {   # op chemin -> sortie
-  local op="$1" p mime taille
-  p=$(chemin "$2")
-  case "$op" in
-    liste)
-      cd "$p" 2>/dev/null || { echo "ERREUR Dossier introuvable ou protégé : $p"; return; }
-      pwd -P
-      # type<TAB>taille<TAB>date<TAB>nom (les fichiers cachés sont omis)
-      for f in * ; do [ -e "$f" ] || [ -L "$f" ] || continue; stat -f '%HT%t%z%t%m%t%N' -- "$f" 2>/dev/null; done ;;
-    lire)
-      [ -f "$p" ] || { echo "ERREUR Fichier introuvable : $p"; return; }
-      mime=$(file -b --mime-type -- "$p" 2>/dev/null); taille=$(stat -f %z -- "$p" 2>/dev/null)
-      case "$mime" in
-        image/*) if [ "${taille:-0}" -le 1500000 ]; then echo "IMAGE $mime"; base64 < "$p" | tr -d '\n'; else echo "GROS $mime $taille"; fi ;;
-        text/*|application/json|application/xml|application/javascript|inode/x-empty) echo "TEXTE $mime $taille"; head -c 40000 -- "$p" ;;
-        *) echo "BINAIRE $mime $taille" ;;
-      esac ;;
-    lien)   # lien secret (6 h) vers le serveur de fichiers du Mac
-      [ -f "$p" ] || { echo "ERREUR Fichier introuvable : $p"; return; }
-      mkdir -p "$HOME/.panneau/liens"
-      find "$HOME/.panneau/liens" -type f -mmin +360 -delete 2>/dev/null
-      local j ip
-      j=$(openssl rand -hex 16); printf '%s' "$p" > "$HOME/.panneau/liens/$j"
-      ip=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null)
-      echo "LIEN http://$ip:8091/f/$j $(file -b --mime-type -- "$p" 2>/dev/null) $(stat -f %z -- "$p" 2>/dev/null)" ;;
-    ouvrir)
-      [ -e "$p" ] || { echo "ERREUR Introuvable : $p"; return; }
-      open -- "$p" 2>&1 && echo "OUVERT" ;;
-  esac
-}
-executer() {   # id code commande
-  local id="$1" code="$2" cmd="$3" cwd out nouveau essais n depuis now
-  cwd=$(cat "$CWD_F" 2>/dev/null); [ -d "$cwd" ] || cwd="$HOME"
-  if [ ! -s "$CODE_F" ]; then repondre "$id" pascode "" "$cwd"; return; fi
-  essais=$(cat "$ESSAIS_F" 2>/dev/null); [ -z "$essais" ] && essais="0 0"
-  n=${essais% *}; depuis=${essais#* }; now=$(date +%s)
-  # 5 mauvais codes = bloqué 10 minutes
-  if [ "$n" -ge 5 ] && [ $((now - depuis)) -lt 600 ]; then repondre "$id" bloque "" "$cwd"; return; fi
-  if [ "$code" != "$(cat "$CODE_F")" ]; then
-    [ $((now - depuis)) -ge 600 ] && n=0
-    echo "$((n + 1)) $now" > "$ESSAIS_F"; repondre "$id" refus "" "$cwd"; return
-  fi
-  echo "0 0" > "$ESSAIS_F"
-  case "$cmd" in
-    "@fichiers "*)   # page Fichiers : « @fichiers op chemin »
-      local reste="${cmd#@fichiers }"
-      out=$(perl -e '$p = fork; if (!$p) { setpgrp(0, 0); exec @ARGV; exit 127 } $SIG{ALRM} = sub { kill 9, -$p; print "ERREUR Trop long (le Mac demande peut-être une permission)\n"; exit 124 }; alarm 20; waitpid($p, 0); exit($? >> 8)' \
-            /bin/bash -c "$(declare -f chemin fichiers); fichiers \"\$1\" \"\$2\"" _ "${reste%% *}" "${reste#* }" 2>&1 < /dev/null)
-      repondre "$id" ok "$out" "$cwd"; return ;;
-  esac
-  # Le Terminal a été retiré du panneau : on refuse toute commande qui n'est pas pour la page Fichiers
-  repondre "$id" ok "Le Terminal est désactivé." "$cwd"; return
-  # 30 s max par commande ; on retient le dossier (pour que « cd » marche)
-  # (au bout de 30 s on arrête la commande ET tout ce qu'elle a lancé, sinon ça reste pris)
-  out=$(cd "$cwd" && perl -e '$p = fork; if (!$p) { setpgrp(0, 0); exec @ARGV; exit 127 }
-      $SIG{ALRM} = sub { kill 9, -$p; print "\n⏱ Arrêté après 30 s. Si c\x27est dans Bureau, Documents ou Téléchargements, regarde si le Mac demande une permission.\n"; exit 124 };
-      alarm 30; waitpid($p, 0); exit($? >> 8)' /bin/bash -c "$cmd"$'\n''printf "\n__PWD__%s" "$PWD"' 2>&1 < /dev/null | head -c 60000)
-  nouveau=$(printf '%s\n' "$out" | sed -n 's/^__PWD__//p' | tail -1)
-  out=$(printf '%s\n' "$out" | sed '/^__PWD__/d')
-  if [ -n "$nouveau" ] && [ -d "$nouveau" ]; then cwd="$nouveau"; echo "$cwd" > "$CWD_F"; fi
-  repondre "$id" ok "$out" "$cwd"
-}
-ecoute() {
-  while true; do
-    R=$(curl -s -m 35 -X POST -H 'Content-Type: application/json' -d '{}' "$PANNEAU/api/appareils/action/macAttente")
-    if [ -z "$R" ]; then sleep 3; continue; fi
-    L=$(printf '%s' "$R" | sed -n 's/.*"result":"\([^"]*\)".*/\1/p')
-    for e in $L; do
-      id=${e%%:*}; r=${e#*:}
-      c=$(printf '%s' "${r%%:*}" | base64 -D); m=$(printf '%s' "${r#*:}" | base64 -D)
-      executer "$id" "$c" "$m" &
-    done
-  done
-}
-ecoute &
-ECOUTE=$!
-# Serveur de fichiers
+# (Terminal et Fichiers retirés : on arrête l'ancien serveur de fichiers et on efface ses liens)
 pkill -f "panneau/serveur.py" 2>/dev/null
-python3 "$HOME/.panneau/serveur.py" >/dev/null 2>&1 &
-SERVEUR=$!
-trap 'kill $ECOUTE $SERVEUR 2>/dev/null' EXIT
+rm -rf "$HOME/.panneau/liens" "$HOME/.panneau/serveur.py" "$HOME/.panneau/cwd" "$HOME/.panneau/essais"
 
 SONNEUR=""
 arreter_son() { [ -n "$SONNEUR" ] && kill "$SONNEUR" 2>/dev/null; SONNEUR=""; }
@@ -137,7 +60,7 @@ while true; do
   UP=$(( $(date +%s) - BOOT ))
   CAPT=""; [ -x "$SMC" ] && CAPT=$("$SMC" $CLES 2>/dev/null)
   R=$(curl -s -m 4 -X POST -H 'Content-Type: application/json' \
-      -d "{\"id\":\"mac\",\"v\":$VERSION,\"nom\":\"$NOM\",\"batterie\":\"$PCT\",\"enCharge\":$CHG,\"cpu\":${CPU:-0},\"ram\":${RAM:-0},\"disque\":${DF% *},\"libreGo\":${DF#* },\"allume\":$UP,\"memGo\":$((MEM/1073741824))$CAPT}" \
+      -d "{\"id\":\"$ID\",\"type\":\"$TYPE\",\"v\":$VERSION,\"nom\":\"$NOM\",\"batterie\":\"$PCT\",\"enCharge\":$CHG,\"cpu\":${CPU:-0},\"ram\":${RAM:-0},\"disque\":${DF% *},\"libreGo\":${DF#* },\"allume\":$UP,\"memGo\":$((MEM/1073741824))$CAPT}" \
       "$PANNEAU/api/appareils/action/mac")
   # Nouvelle version du programme sur le panneau : on se met à jour tout seul
   if echo "$R" | grep -q MAJ; then
@@ -165,119 +88,6 @@ while true; do
 done
 AGENT
 chmod +x "$DOSSIER/agent.sh"
-
-# Serveur de fichiers (vidéos, PDF, images… pour la page Fichiers), port 8091
-cat > "$DOSSIER/serveur.py" <<'PYSRC'
-# Panneau : sert les fichiers du Mac à la tablette (vidéo, audio, PDF, images…), avec reprise (Range).
-# Un fichier n'est servi que par un lien secret créé par la page Fichiers (après ton code), valide 6 h.
-import os, time, mimetypes, subprocess, tempfile, urllib.parse
-from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
-
-LIENS = os.path.expanduser('~/.panneau/liens')
-mimetypes.add_type('video/mp4', '.mov')      # les .mov de l'iPhone (H.264) jouent comme des mp4
-mimetypes.add_type('video/mp4', '.m4v')
-mimetypes.add_type('audio/mp4', '.m4a')
-
-class H(BaseHTTPRequestHandler):
-    def log_message(self, *a): pass
-    def do_HEAD(self): self.servir(True)
-    def do_GET(self): self.servir(False)
-    def do_OPTIONS(self):
-        self.send_response(204)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Headers', 'Range')
-        self.end_headers()
-
-    def servir(self, tete):
-        u = urllib.parse.urlparse(self.path)
-        parts = u.path.split('/')
-        if len(parts) < 3 or parts[1] != 'f' or not parts[2].isalnum():
-            return self.send_error(404)
-        jeton = parts[2]
-        f = os.path.join(LIENS, jeton)
-        try:
-            if time.time() - os.path.getmtime(f) > 6 * 3600:
-                return self.send_error(410)
-            with open(f, encoding='utf-8') as x:
-                original = x.read().strip()
-        except OSError:
-            return self.send_error(404)
-        q = urllib.parse.parse_qs(u.query)
-        chemin = original
-        tmpd = tempfile.gettempdir()
-        if 'jpg' in q:   # HEIC, TIFF… : converti en JPEG par macOS (sips)
-            tmp = os.path.join(tmpd, 'panneau-' + jeton + '.jpg')
-            if not os.path.exists(tmp):
-                subprocess.run(['sips', '-s', 'format', 'jpeg', '-Z', '2400', original, '--out', tmp],
-                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            chemin = tmp
-        elif 'html' in q:   # Word, RTF, Pages… : converti en page web par macOS (textutil)
-            tmp = os.path.join(tmpd, 'panneau-' + jeton + '.html')
-            if not os.path.exists(tmp):
-                subprocess.run(['textutil', '-convert', 'html', original, '-output', tmp],
-                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            chemin = tmp
-        elif 'ql' in q:   # tout le reste (Excel, PowerPoint, Keynote…) : aperçu Quick Look en image
-            dossier = os.path.join(tmpd, 'panneau-ql-' + jeton)
-            tmp = os.path.join(dossier, os.path.basename(original) + '.png')
-            if not os.path.exists(tmp):
-                os.makedirs(dossier, exist_ok=True)
-                subprocess.run(['qlmanage', '-t', '-s', '1600', '-o', dossier, original],
-                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30)
-            chemin = tmp
-        try:
-            taille = os.path.getsize(chemin)
-            fh = open(chemin, 'rb')
-        except OSError:
-            return self.send_error(404)
-        with fh:
-            mime = mimetypes.guess_type(chemin)[0] or 'application/octet-stream'
-            if mime.startswith('text/') or mime in ('application/json', 'application/javascript'):
-                mime += '; charset=utf-8'
-            debut, fin, code = 0, max(taille - 1, 0), 200
-            r = self.headers.get('Range')
-            if r and r.startswith('bytes=') and taille:
-                a, _, b = r[6:].split(',')[0].strip().partition('-')
-                try:
-                    if a:
-                        debut = int(a); fin = int(b) if b else taille - 1
-                    else:
-                        debut = max(0, taille - int(b))
-                    fin = min(fin, taille - 1); code = 206
-                except ValueError:
-                    pass
-                if debut > fin:
-                    self.send_response(416)
-                    self.send_header('Content-Range', 'bytes */%d' % taille)
-                    self.end_headers()
-                    return
-            longueur = fin - debut + 1 if taille else 0
-            self.send_response(code)
-            self.send_header('Content-Type', mime)
-            self.send_header('Accept-Ranges', 'bytes')
-            self.send_header('Content-Length', str(longueur))
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Access-Control-Expose-Headers', 'Content-Range, Content-Length, Accept-Ranges')
-            if code == 206:
-                self.send_header('Content-Range', 'bytes %d-%d/%d' % (debut, fin, taille))
-            self.end_headers()
-            if tete:
-                return
-            fh.seek(debut)
-            reste = longueur
-            try:
-                while reste > 0:
-                    bloc = fh.read(min(262144, reste))
-                    if not bloc:
-                        break
-                    self.wfile.write(bloc)
-                    reste -= len(bloc)
-            except (BrokenPipeError, ConnectionResetError):
-                pass
-
-ThreadingHTTPServer.daemon_threads = True
-ThreadingHTTPServer(('0.0.0.0', 8091), H).serve_forever()
-PYSRC
 
 # Ventilateurs + température : petit outil compilé sur place (il faut les outils de développement d'Apple)
 cat > "$DOSSIER/smc.c" <<'SMCSRC'

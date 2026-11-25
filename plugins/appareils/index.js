@@ -58,22 +58,8 @@ module.exports = (cfg) => {
   }
   const save = () => { try { fs.writeFileSync(FILE, JSON.stringify(liste, null, 2)); } catch (e) {} };
 
-  const MAC_VERSION = 10;   // à monter quand public/mac/installer.sh change : les Mac se mettent à jour tout seuls
-
-  // ---- Terminal du Mac ----
-  // L'écran envoie une commande + le code ; le Mac (qui attend en « long poll ») la prend, vérifie le code
-  // lui-même (le panneau ne le garde pas), l'exécute et renvoie la sortie.
-  let macFile = [], macAttend = null, macNum = 0;
-  const macReponses = {};
-  const b64 = t => Buffer.from(String(t), 'utf8').toString('base64');
-  const deb64 = t => { try { return Buffer.from(String(t || ''), 'base64').toString('utf8'); } catch (e) { return ''; } };
-  function macDonner() {
-    if (!macAttend || !macFile.length) return;
-    const r = macAttend; macAttend = null;
-    clearTimeout(r.minuterie);
-    r.resolve(macFile.map(c => c.id + ':' + b64(c.code) + ':' + b64(c.cmd)).join(' '));
-    macFile = [];
-  }
+  const estMac = a => a && (a.type === 'mac' || a.type === 'macmini');   // MacBook, Mac mini…
+  const MAC_VERSION = 12;   // à monter quand public/mac/installer.sh change : les Mac se mettent à jour tout seuls
 
   // ---- Pushover (faire sonner) ----
   const PO_FILE = path.join(__dirname, '..', '..', 'pushover.json');
@@ -104,7 +90,7 @@ module.exports = (cfg) => {
     // Chaque iPhone = un appareil dans le même compte Pushover, nommé comme son id (ex. iphone, iphone2)
     qui = String(qui || 'iphone').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 25) || 'iphone';
     // Un Mac sonne lui-même : son petit programme demande au panneau aux 3 s s'il doit sonner
-    if (liste[qui] && liste[qui].type === 'mac') {
+    if (liste[qui] && estMac(liste[qui])) {
       if (po.token) await toutArreter();
       po.receipt = 'mac'; po.depuis = Date.now(); po.qui = qui;
       fs.writeFileSync(PO_FILE, JSON.stringify(po));
@@ -173,7 +159,7 @@ module.exports = (cfg) => {
         if (ic === undefined) chercherIcone(n.appId);
         return ic ? Object.assign({}, n, { icone: ic.url, nomApp: ic.nom }) : n;
       });
-      o.bluetooth = a.type === 'mac' ? now - (a.vu || 0) < 20000 : !!(a.bt && now - pontVu < 15000);
+      o.bluetooth = estMac(a) ? now - (a.vu || 0) < 20000 : !!(a.bt && now - pontVu < 15000);
       if (o.airpods) o.airpods = Object.assign({}, o.airpods, { actifs: now - o.airpods.vu < 2 * 60 * 1000 });
       return o;
     }).sort((a, b) => b.vu - a.vu);
@@ -205,8 +191,9 @@ module.exports = (cfg) => {
       mac: { label: 'Mac', run: async (p) => {
         const id = String(p.id || 'mac').toLowerCase().replace(/[^a-z0-9-]+/g, '-').slice(0, 40) || 'mac';
         const a = liste[id] || (liste[id] = { type: 'mac' });
+        const typeMac = p.type === 'macmini' ? 'macmini' : 'mac';
         const avant = JSON.stringify([a.nom, a.batterie, a.enCharge]);
-        a.type = 'mac'; a.raccourci = true;
+        a.type = typeMac; a.raccourci = true;
         if (p.nom) a.nom = String(p.nom).slice(0, 40);
         if (!a.nom) a.nom = 'Mac';
         const b = parseInt(p.batterie, 10);
@@ -220,35 +207,6 @@ module.exports = (cfg) => {
         if ((+p.v || 1) < MAC_VERSION) return 'MAJ';
         verifierSonnerie();
         return po.receipt === 'mac' && po.qui === id ? 'SONNE' : 'OK';
-      } },
-      // Depuis l'écran : lancer une commande sur le Mac
-      terminal: { label: 'Fichiers du Mac', run: async ({ cmd, code }) => {
-        cmd = String(cmd || '').slice(0, 4000);
-        if (!cmd.trim()) throw new Error('Commande vide');
-        const m = liste.mac;
-        if (!m || Date.now() - (m.vu || 0) > 20000) throw new Error('Le Mac n\'est pas connecté');
-        const id = ++macNum;
-        macFile.push({ id, cmd, code: String(code || '') });
-        macDonner();
-        return new Promise(resolve => {
-          const t = setTimeout(() => { delete macReponses[id]; macFile = macFile.filter(c => c.id !== id);
-            resolve({ statut: 'delai', sortie: 'Le Mac n\'a pas répondu à temps.' }); }, 45000);
-          macReponses[id] = r => { clearTimeout(t); resolve(r); };
-        });
-      } },
-      // Le Mac attend une commande (jusqu'à 25 s)
-      macAttente: { label: 'Mac : attente', run: async () => {
-        if (macAttend) { clearTimeout(macAttend.minuterie); macAttend.resolve(''); }
-        return new Promise(resolve => {
-          macAttend = { resolve, minuterie: setTimeout(() => { if (macAttend && macAttend.resolve === resolve) macAttend = null; resolve(''); }, 25000) };
-          macDonner();
-        });
-      } },
-      // Le Mac renvoie la sortie d'une commande
-      macResultat: { label: 'Mac : résultat', run: async ({ id, statut, sortie, cwd }) => {
-        const f = macReponses[+id];
-        if (f) { delete macReponses[+id]; f({ statut: String(statut || 'ok'), sortie: deb64(sortie), cwd: deb64(cwd) }); }
-        return 'OK';
       } },
       // Faire sonner
       pushover: { label: 'Configurer Pushover', run: async ({ user, token }) => {
