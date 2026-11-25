@@ -213,7 +213,8 @@ module.exports = () => {
       ((e.ams && e.ams.ams) || []).forEach((u, n) => (u.tray || []).forEach(t => {
         ams.push({ fente: 'ABCD'.charAt(n) + (+t.id + 1), type: t.tray_type || '', couleur: couleur(t.tray_color), reste: t.remain >= 0 ? t.remain : undefined, actif: e.ams.tray_now === String(n * 4 + +t.id) });
       }));
-      if (e.vt_tray && e.vt_tray.tray_type) ams.push({ fente: 'Ext', type: e.vt_tray.tray_type, couleur: couleur(e.vt_tray.tray_color), actif: e.ams && e.ams.tray_now === '254' });
+      // La bobine externe (Ext) : l'imprimante garde un type par défaut même vide, alors on la montre seulement quand elle sert
+      if (e.vt_tray && e.vt_tray.tray_type && e.ams && e.ams.tray_now === '254') ams.push({ fente: 'Ext', type: e.vt_tray.tray_type, couleur: couleur(e.vt_tray.tray_color), actif: e.ams && e.ams.tray_now === '254' });
       return {
         configure: true, ip: cfg.ip, connecte: connecte && Date.now() - vuA < 120000, erreur: connecte ? '' : erreur,
         etat: e.gcode_state || '', fichier: e.subtask_name || '', pourcent: e.mc_percent, restant: e.mc_remaining_time,
