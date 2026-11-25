@@ -153,16 +153,10 @@
   .notifs.pages { scrollbar-width: none; }
   .page { flex: none; width: 100%; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; scroll-snap-align: start; box-sizing: border-box; padding: 6px; display: flex; flex-direction: column; }
   .page > * { flex: none; }
-  .page > .term, .page > .bientot { flex: 1; min-height: 0; }
+  .page > .bientot { flex: 1; min-height: 0; }
   .bientot { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--muted); text-align: center; }
   .bientot b { font-size: 40px; margin-bottom: 10px; }
-  /* Terminal du Mac */
-  .term { display: flex; flex-direction: column; }
-  .term-out { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding: 12px 14px; font: 14px/1.45 Menlo, 'DejaVu Sans Mono', monospace; white-space: pre-wrap; word-break: break-all; color: #d7defa; }
-  .term-out > div { margin-bottom: 6px; }
-  .t-ps { color: #5fd39a; } .t-err { color: #ffb86b; } .t-info { color: var(--muted); }
   .term-in { display: flex; align-items: center; margin: 6px; padding: 6px 6px 6px 14px; border-radius: 16px; background: rgba(0,0,0,0.25); }
-  .term-in span { font: 14px Menlo, monospace; color: #5fd39a; margin-right: 10px; white-space: nowrap; }
   .term-in input { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--txt); font: 15px Menlo, 'DejaVu Sans Mono', monospace; padding: 8px 0; }
   .term-in button { border: 0; border-radius: 12px; padding: 9px 16px; background: rgba(122,162,255,0.2); color: var(--txt); font: inherit; font-size: 14px; }
   /* Fichiers du Mac */
@@ -662,10 +656,9 @@
   function batColor(p) { return p === undefined ? '#555' : p <= 20 ? '#ff6b6b' : p <= 40 ? '#ffb86b' : '#5fd39a'; }
 
   var shown = null; // appareil affiché (vrai ou démo)
-  // Le Mac a des pages qu'on fait glisser : Stats, Terminal, Fichiers… (on en ajoutera)
+  // Le Mac a des pages qu'on fait glisser : Stats, Fichiers… (on en ajoutera)
   var PAGES_MAC = [
     { id: 'stats', nom: 'Stats' },
-    { id: 'terminal', nom: 'Terminal' },
     { id: 'fichiers', nom: 'Fichiers' }
   ];
   function pagesMac(d) {
@@ -679,7 +672,7 @@
         h += '<div class="page" id="pg-' + p.id + '">' + (p.bientot ? '<div class="bientot"><b>' + p.bientot + '</b>' + p.nom + ' : bientôt</div>' : '') + '</div>';
       }
       box.innerHTML = h; $('macTabs').innerHTML = t;
-      termInit(); fichInit();
+      fichInit();
       var as = $('macTabs').getElementsByTagName('a');
       for (var k = 0; k < as.length; k++) as[k].onclick = function () { box.scrollLeft = +this.getAttribute('data-i') * box.clientWidth; };
       box.onscroll = function () {
@@ -690,52 +683,11 @@
     $('pg-stats').innerHTML = statsMac(d);
   }
 
-  // Terminal du Mac : protégé par un code choisi sur le Mac (gardé seulement sur cette tablette)
-  var termDossier = '~', termOcc = false;
+  // Code du Mac (choisi sur le Mac, gardé seulement sur cette tablette) : protège la page Fichiers
   function termCode() { try { return localStorage.getItem('codeMac') || ''; } catch (e) { return ''; } }
   function termSetCode(c) { try { if (c) localStorage.setItem('codeMac', c); else localStorage.removeItem('codeMac'); } catch (e) {} }
-  function termInit() {
-    $('pg-terminal').innerHTML = '<div class="term"><div class="term-out" id="termOut"></div>' +
-      '<form class="term-in" id="termForm"><span id="termPs"></span><input id="termCmd" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">' +
-      '<button type="submit">Envoyer</button></form></div>';
-    $('termForm').onsubmit = function (e) { e.preventDefault(); termEnvoyer(); return false; };
-    termPrompt();
-    termEcrire('<span class="t-info">Terminal de ton Mac. Les commandes roulent dans ton compte, 30 s max chacune.</span>');
-  }
-  function termPrompt() {
-    var c = termCode();
-    $('termPs').textContent = c ? termDossier + ' %' : '🔒';
-    $('termCmd').type = c ? 'text' : 'password';
-    $('termCmd').placeholder = c ? (termOcc ? 'En cours…' : 'Commande') : 'Ton code du Mac';
-  }
-  function termEcrire(html) { var o = $('termOut'); o.innerHTML += '<div>' + html + '</div>'; o.scrollTop = o.scrollHeight; }
-  function termEnvoyer() {
-    var v = $('termCmd').value;
-    if (!termCode()) { if (v) { termSetCode(v); $('termCmd').value = ''; termEcrire('<span class="t-info">Code enregistré sur cette tablette.</span>'); termPrompt(); } return; }
-    if (!v.trim() || termOcc) return;
-    $('termCmd').value = '';
-    if (v.trim() === 'clear') { $('termOut').innerHTML = ''; return; }
-    termEcrire('<span class="t-ps">' + esc(termDossier) + ' %</span> ' + esc(v));
-    termOcc = true; termPrompt();
-    api('POST', '/api/appareils/action/terminal', { cmd: v, code: termCode() }, function (r) {
-      termOcc = false;
-      var x = r && r.result;
-      if (!r || !r.ok || !x) termEcrire('<span class="t-err">' + esc((r && r.error) || 'Pas de réponse du panneau') + '</span>');
-      else if (x.statut === 'pascode') termEcrire('<span class="t-err">Tu n\'as pas encore choisi de code sur le Mac. Dans Terminal sur le Mac, colle :</span>\n' +
-        esc('bash -c \'read -s -p "Code : " c; echo; printf "%s" "$c" > ~/.panneau/code; chmod 600 ~/.panneau/code; echo "✔ Code enregistré"\''));
-      else if (x.statut === 'refus') { termSetCode(''); termEcrire('<span class="t-err">Mauvais code. Entre-le de nouveau.</span>'); }
-      else if (x.statut === 'bloque') termEcrire('<span class="t-err">Trop de mauvais codes : bloqué 10 minutes.</span>');
-      else if (x.statut === 'delai') termEcrire('<span class="t-err">' + esc(x.sortie) + '</span>');
-      else {
-        if (x.sortie) termEcrire(esc(x.sortie));
-        if (/Operation not permitted/.test(x.sortie || '')) termEcrire('<span class="t-err">macOS protège ce dossier. Sur le Mac : Réglages Système > Confidentialité et sécurité > Accès complet au disque > + , puis Cmd+Maj+G, tape /bin/bash et ajoute-le.</span>');
-        if (x.cwd) { var parts = x.cwd.split('/'); termDossier = parts[parts.length - 1] || '/'; }
-      }
-      termPrompt();
-    });
-  }
 
-  // Fichiers du Mac : même canal et même code que le Terminal (« @fichiers op chemin »)
+  // Fichiers du Mac : protégés par le code du Mac (« @fichiers op chemin »)
   var fDossier = '~', fMaison = '', fApercuChemin = '';
   function fichInit() {
     $('pg-fichiers').innerHTML = '<div class="fich">' +
@@ -759,8 +711,9 @@
     api('POST', '/api/appareils/action/terminal', { cmd: '@fichiers ' + op + ' ' + chemin, code: termCode() }, function (r) {
       var x = r && r.result;
       if (!r || !r.ok || !x) return fMessage(esc((r && r.error) || 'Pas de réponse du panneau') + ' <a id="fReessai">Réessayer</a>'), ($('fReessai').onclick = function () { fListe(fDossier); });
-      if (x.statut === 'pascode') return fMessage('Choisis d\'abord un code sur le Mac (voir la page Terminal).');
-      if (x.statut === 'refus') { termSetCode(''); termPrompt(); return fDemanderCode('Mauvais code.'); }
+      if (x.statut === 'pascode') return fMessage('Choisis d\'abord un code sur le Mac. Dans Terminal sur le Mac, colle :<pre class="f-texte">' +
+        esc('bash -c \'read -s -p "Code : " c; echo; printf "%s" "$c" > ~/.panneau/code; chmod 600 ~/.panneau/code; echo "✔ Code enregistré"\'') + '</pre>');
+      if (x.statut === 'refus') { termSetCode(''); return fDemanderCode('Mauvais code.'); }
       if (x.statut === 'bloque') return fMessage('Trop de mauvais codes : bloqué 10 minutes.');
       if (x.statut === 'delai') return fMessage(esc(x.sortie));
       if (/^ERREUR /.test(x.sortie || '')) {
@@ -773,7 +726,7 @@
   }
   function fDemanderCode(msg) {
     fMessage((msg ? esc(msg) + '<br>' : '') + 'Entre ton code du Mac :<form id="fCodeForm" class="term-in f-code"><input id="fCode" type="password"><button type="submit">OK</button></form>');
-    $('fCodeForm').onsubmit = function (e) { e.preventDefault(); var v = $('fCode').value; if (v) { termSetCode(v); termPrompt(); fListe(fDossier); } return false; };
+    $('fCodeForm').onsubmit = function (e) { e.preventDefault(); var v = $('fCode').value; if (v) { termSetCode(v); fListe(fDossier); } return false; };
   }
   function fJoli(c) { return fMaison && c.indexOf(fMaison) === 0 ? '~' + c.slice(fMaison.length) : c; }
   function fTaille(n) { n = +n || 0; return n < 1024 ? n + ' o' : n < 1048576 ? Math.round(n / 1024) + ' Ko' : n < 1073741824 ? (n / 1048576).toFixed(1) + ' Mo' : (n / 1073741824).toFixed(1) + ' Go'; }

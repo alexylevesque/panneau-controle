@@ -58,7 +58,7 @@ module.exports = (cfg) => {
   }
   const save = () => { try { fs.writeFileSync(FILE, JSON.stringify(liste, null, 2)); } catch (e) {} };
 
-  const MAC_VERSION = 8;   // à monter quand public/mac/installer.sh change : les Mac se mettent à jour tout seuls
+  const MAC_VERSION = 9;   // à monter quand public/mac/installer.sh change : les Mac se mettent à jour tout seuls
 
   // ---- Terminal du Mac ----
   // L'écran envoie une commande + le code ; le Mac (qui attend en « long poll ») la prend, vérifie le code
@@ -222,7 +222,7 @@ module.exports = (cfg) => {
         return po.receipt === 'mac' && po.qui === id ? 'SONNE' : 'OK';
       } },
       // Depuis l'écran : lancer une commande sur le Mac
-      terminal: { label: 'Terminal du Mac', run: async ({ cmd, code }) => {
+      terminal: { label: 'Fichiers du Mac', run: async ({ cmd, code }) => {
         cmd = String(cmd || '').slice(0, 4000);
         if (!cmd.trim()) throw new Error('Commande vide');
         const m = liste.mac;

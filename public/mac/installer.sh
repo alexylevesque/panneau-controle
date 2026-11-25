@@ -22,7 +22,7 @@ PANNEAU="$PANNEAU"
 AGENT
 cat >> "$DOSSIER/agent.sh" <<'AGENT'
 NOM=$(scutil --get ComputerName 2>/dev/null || echo Mac)
-VERSION=8
+VERSION=9
 NCPU=$(sysctl -n hw.ncpu); MEM=$(sysctl -n hw.memsize); PS=$(pagesize)
 BOOT=$(sysctl -n kern.boottime | awk -F'[ ,]+' '{print $4}')
 SMC="$HOME/.panneau/smc"; CLES=""
@@ -83,6 +83,8 @@ executer() {   # id code commande
             /bin/bash -c "$(declare -f chemin fichiers); fichiers \"\$1\" \"\$2\"" _ "${reste%% *}" "${reste#* }" 2>&1 < /dev/null)
       repondre "$id" ok "$out" "$cwd"; return ;;
   esac
+  # Le Terminal a été retiré du panneau : on refuse toute commande qui n'est pas pour la page Fichiers
+  repondre "$id" ok "Le Terminal est désactivé." "$cwd"; return
   # 30 s max par commande ; on retient le dossier (pour que « cd » marche)
   # (au bout de 30 s on arrête la commande ET tout ce qu'elle a lancé, sinon ça reste pris)
   out=$(cd "$cwd" && perl -e '$p = fork; if (!$p) { setpgrp(0, 0); exec @ARGV; exit 127 }
