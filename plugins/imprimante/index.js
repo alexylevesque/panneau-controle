@@ -220,6 +220,8 @@ module.exports = () => {
         etat: e.gcode_state || '', fichier: e.subtask_name || '', pourcent: e.mc_percent, restant: e.mc_remaining_time,
         couche: e.layer_num, couches: e.total_layer_num,
         buse: e.nozzle_temper, buseCible: e.nozzle_target_temper, plateau: e.bed_temper, plateauCible: e.bed_target_temper,
+        humidite: ((e.ams && e.ams.ams) || []).map(u => ({ pct: u.humidity_raw !== undefined && u.humidity_raw !== '' ? +u.humidity_raw : undefined,
+          niveau: u.humidity !== undefined ? +u.humidity : undefined, temp: u.temp !== undefined && +u.temp > 0 ? +u.temp : undefined })),
         vitesse: e.spd_lvl, etape: e.stg_cur, wifi: e.wifi_signal, buseDiametre: e.nozzle_diameter,
         ventilos: { piece: pc(e.cooling_fan_speed), aux: pc(e.big_fan1_speed), caisson: pc(e.big_fan2_speed) },
         hms: (e.hms || []).map(h => code32(h.attr) + '_' + code32(h.code)),

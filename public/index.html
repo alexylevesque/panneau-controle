@@ -325,6 +325,7 @@
   .imp-fans { display: flex; border-top: 1px solid var(--glass-b); margin: 0 16px; padding: 12px 0 14px; color: var(--muted); font-size: 13px; }
   .imp-fans div { flex: 1; }
   .imp-fans b { display: block; color: var(--txt); font-size: 18px; font-weight: 400; margin-top: 2px; }
+  .imp-hum { float: right; text-transform: none; letter-spacing: 0; color: var(--txt); font-size: 14px; margin-right: 6px; }
   .imp-err { flex: none; background: rgba(255,107,107,.14); border: 1px solid rgba(255,107,107,.45); color: #ffc9c9; border-radius: 16px; padding: 12px 16px; margin-bottom: 12px; font-size: 15px; }
   .imp-cfg { margin: auto; width: 560px; padding: 26px; }
   .imp-cfg .how { margin-bottom: 6px; }
@@ -518,7 +519,7 @@
         <div class="ph-card imp-cam" id="impCam"><img id="impImg" alt=""><span id="impCamTxt">Caméra</span></div>
         <div class="imp-bas">
           <div class="imp-col1"><div class="section">Températures</div><div class="ph-card imp-card"><div class="stats" id="impTemp"></div><div class="imp-fans" id="impFans"></div></div></div>
-          <div class="imp-col2"><div class="section">Filament</div><div class="ph-card imp-card"><div class="ams" id="impAms"></div></div></div>
+          <div class="imp-col2"><div class="section">Filament<span class="imp-hum" id="impHum"></span></div><div class="ph-card imp-card"><div class="ams" id="impAms"></div></div></div>
         </div>
       </div>
     </div>
@@ -986,6 +987,13 @@
       h += '<div class="fil' + (f.actif ? ' actif' : '') + (vide ? ' vide' : '') + '"><div class="bob" style="background-color:' + (vide ? 'transparent' : esc(f.couleur || '#888')) + '"></div>' +
            '<b>' + esc(vide ? 'Vide' : f.type) + '</b><small>' + esc(f.fente) + (f.reste !== undefined && !vide ? ' · ' + f.reste + '%' : '') + '</small></div>';
     }
+    var hu = (r.humidite || [])[0], ht = '';
+    if (r.connecte && hu) {
+      if (hu.pct !== undefined) ht = '💧 ' + hu.pct + ' %';
+      else if (hu.niveau) ht = '💧 Humidité ' + hu.niveau + '/5';
+      if (hu.temp !== undefined) ht += (ht ? ' · ' : '') + Math.round(hu.temp) + '°';
+    }
+    $('impHum').textContent = ht;
     $('impAms').innerHTML = h || '<div class="bt-vide">' + (r.connecte ? 'Aucun filament détecté.' : 'Le filament s\'affichera ici.') + '</div>';
   }
   function refreshImp() { api('GET', '/api/imprimante/status', null, function (r) { if (r) { imp = r; renderImp(); } }); }
