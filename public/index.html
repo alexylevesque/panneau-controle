@@ -1451,8 +1451,8 @@
       iaOuvrir(this.getAttribute('data-id'));
     };
   }
-  function iaFil() {
-    var h = '', f = $('iaFil');
+  function iaFil(bas) {
+    var h = '', f = $('iaFil'), auBas = bas || f.scrollHeight - f.scrollTop - f.clientHeight < 80;
     $('iaSaisie').style.display = ia.cfg || !ia.cle ? 'none' : '';
     if (ia.cfg || !ia.cle) {
       f.innerHTML = '<div class="ia-cfg"><h3>' + (ia.cle ? 'Changer la clé Gemini' : 'Branche Gemini au panneau') + '</h3><ol>' +
@@ -1487,11 +1487,11 @@
       h += m.r === 'user' ? '<div class="ia-m moi"><div class="bul">' + esc(m.t) + '</div></div>'
         : '<div class="ia-m lui">' + IA_LG + '<div class="bul">' + iaMd(m.t) + '</div></div>';
     }
-    if (ia.envoi) h += '<div class="ia-m lui">' + IA_LG + '<div class="bul ia-pts"><span></span><span></span><span></span></div></div>';
+    if (ia.envoi) h += '<div class="ia-m lui">' + IA_LG + (ia.direct ? '<div class="bul">' + iaMd(ia.direct) + '</div>' : '<div class="bul ia-pts"><span></span><span></span><span></span></div>') + '</div>';
     else if (ia.err) h += '<div class="ia-m lui">' + IA_LG + '<div class="bul err">' + esc(ia.err) + '<br><a id="iaRe">Réessayer</a></div></div>';
     f.innerHTML = h;
+    if (auBas) f.scrollTop = f.scrollHeight;
     if ($('iaRe')) $('iaRe').onclick = function () { var d = ia.msgs.pop(); ia.err = ''; iaEnvoyer(d.t); };
-    f.scrollTop = f.scrollHeight;
   }
   function iaTaille() {
     var t = $('iaTxt'); t.style.height = '50px'; t.style.height = Math.min(160, t.scrollHeight) + 'px';
@@ -1499,23 +1499,36 @@
   }
   function iaEnvoyer(texte) {
     if (ia.envoi || !texte) return;
-    ia.envoi = true; ia.err = '';
+    ia.envoi = true; ia.err = ''; ia.direct = '';
     ia.msgs.push({ r: 'user', t: texte });
-    $('iaTxt').value = ''; iaTaille(); iaFil();
-    var conv = ia.conv;
-    api('POST', '/api/ia/action/envoyer', { id: conv, texte: texte }, function (r) {
-      ia.envoi = false;
-      if (ia.conv !== conv) return iaTaille();   // on a changé de conversation entre-temps
-      if (r && r.ok) { ia.conv = r.result.id; ia.msgs.push({ r: 'model', t: r.result.reponse }); if (r.result.modele) $('iaModele').textContent = r.result.modele; iaCharger(); }
-      else ia.err = (r && r.error) || 'Erreur';
-      iaFil(); iaTaille();
+    $('iaTxt').value = ''; iaTaille(); iaFil(true);
+    var fin = function (err) { ia.envoi = false; ia.direct = ''; if (err) ia.err = err; iaFil(true); iaTaille(); };
+    api('POST', '/api/ia/action/envoyer', { id: ia.conv, texte: texte }, function (r) {
+      if (!r || !r.ok) return fin((r && r.error) || 'Erreur');
+      var conv = r.result.id; ia.conv = conv;
+      if (!ia.liste.some(function (c) { return c.id === conv; })) { ia.liste.unshift({ id: conv, titre: r.result.titre, maj: Date.now() }); iaListeRender(); }
+      var rate = 0;
+      (function suite() {
+        api('POST', '/api/ia/action/suite', { id: conv }, function (s) {
+          if (ia.conv !== conv) { ia.envoi = false; ia.direct = ''; iaTaille(); return; }   // on a changé de conversation : la réponse sera dans l'historique
+          if (!s || !s.ok) { if (++rate < 5) return setTimeout(suite, 1000); return fin((s && s.error) || 'Erreur'); }
+          var x = s.result;
+          if (x.fini) {
+            if (x.erreur) return fin(x.erreur);
+            ia.msgs.push({ r: 'model', t: x.texte }); if (x.modele) $('iaModele').textContent = x.modele;
+            iaCharger(); return fin();
+          }
+          if (x.texte !== ia.direct) { ia.direct = x.texte; iaFil(); }
+          setTimeout(suite, 350);
+        });
+      })();
     });
   }
   function iaOuvrir(id) {
     if (ia.envoi) return toast('Attends la réponse de Gemini…');
     api('POST', '/api/ia/action/lire', { id: id }, function (r) {
       if (!r || !r.ok) return toast((r && r.error) || 'Erreur', true);
-      ia.conv = id; ia.msgs = r.result.messages.slice(); ia.err = ''; ia.cfg = false; iaListeRender(); iaFil();
+      ia.conv = id; ia.msgs = r.result.messages.slice(); ia.err = ''; ia.cfg = false; iaListeRender(); iaFil(true);
     });
   }
   function iaNouvelle() {
