@@ -50,8 +50,11 @@ if ! vega device install-app -d "$TELE" --packagePath "$VPKG"; then
   vega device install-app --packagePath "$VPKG"
 fi
 # ferme l'ancienne version si elle tourne encore, sinon la télé rouvre la vieille
+PKG="${COMP%.main}"
 vega device terminate-app -d "$TELE" --appName "$COMP" >/dev/null 2>&1 || true
-sleep 1
+vega exec vda shell vlcm terminate-app --appName "$COMP" >/dev/null 2>&1 || true
+vega exec vda shell "pkill -f $PKG" >/dev/null 2>&1 || true
+sleep 2
 vega device launch-app -d "$TELE" --appName "$COMP" || vega device launch-app --appName "$COMP"
 echo "   Version compilée : $(grep -o "Pont Télé v[0-9]*" "$APP" | head -1)"
 echo "✅ Pont Télé est installée et ouverte sur la télé ($COMP)."
