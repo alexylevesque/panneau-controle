@@ -42,7 +42,7 @@ const POCH_DIR = path.join(__dirname, '..', '..', 'public', 'pochettes');
 const POCH_FILE = path.join(__dirname, '..', '..', 'pochettes.json');
 let pochettes = {};   // « artiste|titre » → '/pochettes/xxx.jpg', ou { rien: date } si introuvable
 try { pochettes = JSON.parse(fs.readFileSync(POCH_FILE, 'utf8')); } catch (e) {}
-const pochEnCours = {};
+const pochEnCours = {}, vues = {};
 function lireJson(host, chemin, cb) {
   https.get({ host, path: chemin, timeout: 8000 }, res => {
     let out = ''; res.on('data', c => (out += c));
@@ -59,11 +59,27 @@ function telecharger(url, fichier, cb, essais) {
     res.on('end', () => { try { fs.mkdirSync(POCH_DIR, { recursive: true }); fs.writeFileSync(fichier, Buffer.concat(morceaux)); cb(true); } catch (e) { cb(false); } });
   }).on('error', () => cb(false)).on('timeout', function () { this.destroy(); });
 }
+// On garde au plus 300 pochettes (environ 15 Mo) : au-delà, on efface les plus vieilles
+function menage() {
+  try {
+    const fichiers = fs.readdirSync(POCH_DIR).map(f => ({ f, t: fs.statSync(path.join(POCH_DIR, f)).mtimeMs }));
+    if (fichiers.length <= 300) return;
+    fichiers.sort((a, b) => a.t - b.t).slice(0, fichiers.length - 300).forEach(x => {
+      fs.unlinkSync(path.join(POCH_DIR, x.f));
+      Object.keys(pochettes).forEach(k => { if (pochettes[k] === '/pochettes/' + x.f) delete pochettes[k]; });
+    });
+    fs.writeFileSync(POCH_FILE, JSON.stringify(pochettes));
+  } catch (e) {}
+}
 function chercherPochette(artiste, titre) {
   if (!titre) return '';
   const cle = 'dz|' + (artiste || '').toLowerCase() + '|' + titre.toLowerCase();   // « dz| » : recherche Deezer d'abord
   const v = pochettes[cle];
-  if (typeof v === 'string') return v;
+  if (typeof v === 'string') {
+    // Rejouée : on la marque comme récente pour que le ménage la garde
+    if (!vues[v]) { vues[v] = 1; try { const t = new Date(); fs.utimesSync(path.join(POCH_DIR, path.basename(v)), t, t); } catch (e) {} }
+    return v;
+  }
   if (v && Date.now() - v.rien < 24 * 3600 * 1000) return '';   // introuvable : on réessaie demain
   if (pochEnCours[cle]) return '';
   pochEnCours[cle] = true;
@@ -72,6 +88,7 @@ function chercherPochette(artiste, titre) {
     const garder = (ok, chemin) => {
       delete pochEnCours[cle];
       pochettes[cle] = ok ? chemin : { rien: Date.now() };
+      if (ok) menage();
       try { fs.writeFileSync(POCH_FILE, JSON.stringify(pochettes)); } catch (e) {}
     };
     if (!url) return garder(false);
@@ -81,10 +98,10 @@ function chercherPochette(artiste, titre) {
   // Deezer d'abord (c'est l'appli utilisée : mêmes pochettes), iTunes en plan B
   lireJson('api.deezer.com', '/search?limit=1&q=' + terme, k => {
     const d = k && k.data && k.data[0];
-    if (d && d.album && (d.album.cover_xl || d.album.cover_big)) return fini(d.album.cover_xl || d.album.cover_big);
+    if (d && d.album && (d.album.cover_big || d.album.cover_xl)) return fini(d.album.cover_big || d.album.cover_xl);   // 500 px : assez net, 3x plus léger
     lireJson('itunes.apple.com', '/search?country=ca&media=music&entity=song&limit=1&term=' + terme, j => {
       const r = j && j.results && j.results[0];
-      fini(r && r.artworkUrl100 ? String(r.artworkUrl100).replace(/\/\d+x\d+bb\./, '/600x600bb.') : '');
+      fini(r && r.artworkUrl100 ? String(r.artworkUrl100).replace(/\/\d+x\d+bb\./, '/500x500bb.') : '');
     });
   });
   return '';
