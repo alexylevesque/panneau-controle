@@ -186,18 +186,12 @@
     -webkit-animation: tourne 2.5s linear infinite; animation: tourne 2.5s linear infinite; }
   @-webkit-keyframes tourne { to { -webkit-transform: rotate(360deg); } }
   @keyframes tourne { to { transform: rotate(360deg); } }
-  .mac-alim { display: flex; align-items: center; padding: 0 18px 0 20px; height: 84px; box-sizing: border-box; flex: none; }
-  .mac-alim .ic { width: 46px; height: 46px; border-radius: 14px; background: rgba(255,255,255,.08); display: flex; align-items: center; justify-content: center; flex: none; margin-right: 14px; color: var(--muted); }
-  .mac-alim .ic svg { width: 24px; height: 24px; fill: currentColor; }
-  .mac-alim.on .ic { background: rgba(95,211,154,.16); color: var(--ok); }
-  .mac-alim .tx { flex: 1; min-width: 0; }
-  .mac-alim .tx b { display: block; font-size: 17px; font-weight: 500; }
-  .mac-alim .tx small { font-size: 13px; color: var(--muted); }
-  .inter { flex: none; width: 66px; height: 38px; border-radius: 999px; background: rgba(255,255,255,.16); position: relative; transition: background .2s; }
-  .inter::after { content: ''; position: absolute; top: 4px; left: 4px; width: 30px; height: 30px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); transition: left .2s; }
-  .inter.on { background: var(--ok); }
-  .inter.on::after { left: 32px; }
-  .inter.att { opacity: .55; }
+  .mac-off { width: 100%; height: 56px; border-radius: 18px; border: 1px solid rgba(255,107,107,.35); background: rgba(255,107,107,.10); color: #ff8f8f; font-size: 17px; font-weight: 600; font-family: inherit;
+             display: flex; align-items: center; justify-content: center; flex: none; }
+  .mac-off svg { width: 22px; height: 22px; fill: currentColor; margin-right: 10px; }
+  .mac-off:active { transform: scale(.98); background: rgba(255,107,107,.2); }
+  .mac-off:disabled { opacity: .45; }
+  .mac-off-info { color: var(--muted); font-size: 13px; text-align: center; margin-top: 8px; }
   .ring-btn { height: 64px; border-radius: 20px; border: 0; margin-bottom: 22px; color: #1b1200; font-size: 18px; font-weight: 600; font-family: inherit;
               background: linear-gradient(135deg, #ffd36b, #ffb347); display: flex; align-items: center; justify-content: center; }
   .ring-btn span { font-size: 24px; margin-right: 10px; }
@@ -565,10 +559,9 @@
           </div>
         </div>
         <button class="ring-btn" id="ringBtn"><span>🔔</span>Faire sonner</button>
-        <div class="ph-card mac-alim" id="macAlim" style="display:none">
-          <div class="ic"><svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2zm4.83 2.17-1.42 1.42A6.92 6.92 0 0 1 19 12a7 7 0 1 1-14 0 6.92 6.92 0 0 1 2.58-5.42L6.17 5.17A8.93 8.93 0 0 0 3 12a9 9 0 0 0 18 0 8.93 8.93 0 0 0-3.17-6.83z"/></svg></div>
-          <div class="tx"><b id="macAlimT">Allumé</b><small id="macAlimS"></small></div>
-          <a class="inter" id="macInter"></a>
+        <div id="macAlim" style="display:none">
+          <button class="mac-off" id="macOff"><svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2zm4.83 2.17-1.42 1.42A6.92 6.92 0 0 1 19 12a7 7 0 1 1-14 0 6.92 6.92 0 0 1 2.58-5.42L6.17 5.17A8.93 8.93 0 0 0 3 12a9 9 0 0 0 18 0 8.93 8.93 0 0 0-3.17-6.83z"/></svg><span id="macOffT">Éteindre</span></button>
+          <div class="mac-off-info" id="macOffI"></div>
         </div>
       </div>
       <!-- Colonne droite : notifications -->
@@ -946,21 +939,18 @@
   var PAGES_MAC = [
     { id: 'stats', nom: 'Stats' }
   ];
-  // Interrupteur du Mac : l'éteint pour vrai (on le rallume avec son bouton)
+  // Bouton Éteindre du Mac (le Mac reçoit l'ordre à son prochain signal, aux 3 s ; on le rallume avec son bouton)
   var alimAttente = 0;
   function alimMac(d) {
     $('macAlim').style.display = d ? '' : 'none';
     if (!d) return;
     var e = d.alim || (d.bluetooth ? 'allume' : 'eteint');
-    var att = e === 'arret' || (e === 'allume' && Date.now() - alimAttente < 4000);
-    $('macAlim').className = 'ph-card mac-alim' + (e === 'allume' ? ' on' : '');
-    $('macInter').className = 'inter' + (e === 'allume' ? ' on' : '') + (att || e === 'eteint' ? ' att' : '');
-    $('macAlimT').textContent = { allume: 'Allumé', arret: 'Arrêt en cours…', eteint: 'Éteint' }[e];
-    $('macAlimS').textContent = d.erreurArret ? 'L\'arrêt a échoué : ' + d.erreurArret
-      : e === 'allume' ? 'Touche pour l\'éteindre' : e === 'arret' ? 'Il s\'éteint dans quelques secondes' : 'Rallume-le avec son bouton';
-    $('macInter').onclick = function () {
-      if (att || e !== 'allume') return;
-      if (!confirm('Éteindre ' + d.nom + ' ? Les applis ouvertes seront fermées.')) return;
+    if (e === 'allume' && Date.now() - alimAttente < 4000) e = 'arret';
+    $('macOff').disabled = e !== 'allume';
+    $('macOffT').textContent = e === 'arret' ? 'Arrêt en cours…' : e === 'eteint' ? 'Éteint' : 'Éteindre';
+    $('macOffI').textContent = d.erreurArret ? 'L\'arrêt a échoué : ' + d.erreurArret : e === 'eteint' ? 'Rallume-le avec son bouton' : '';
+    $('macOff').onclick = function () {
+      if (e !== 'allume' || !confirm('Éteindre ' + d.nom + ' ? Les applis ouvertes seront fermées.')) return;
       alimAttente = Date.now();
       api('POST', '/api/appareils/action/eteindre', { id: d.id }, function (r) {
         if (!r || !r.ok) { alimAttente = 0; toast((r && r.error) || 'Erreur', true); }
