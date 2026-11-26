@@ -39,6 +39,12 @@ echo "   → $VPKG"
 
 echo "▶ 5/5 Installation sur la Fire TV"
 COMP=$(awk '/\[\[components.interactive\]\]/{f=1} f && /^id *=/{gsub(/.*= *"|".*/,""); print; exit}' manifest.toml)
-vega device install-app --packagePath "$VPKG"
-vega device launch-app --appName "$COMP"
+TELE="${TELE:-192.168.2.200:5555}"      # adresse de la Fire TV
+export VEGA_SERIAL="$TELE"
+vega exec vda connect "$TELE" || true
+if ! vega device install-app -d "$TELE" --packagePath "$VPKG"; then
+  echo "   (nouvel essai sans -d)"
+  vega device install-app --packagePath "$VPKG"
+fi
+vega device launch-app -d "$TELE" --appName "$COMP" || vega device launch-app --appName "$COMP"
 echo "✅ Pont Télé est installée et ouverte sur la télé ($COMP)."
