@@ -234,6 +234,46 @@
   .nt-tout { text-align: right; padding: 2px 10px 4px; }
   .nt-tout a { color: var(--muted); font-size: 13px; }
   /* Musique de l'iPhone */
+  /* Santé */
+  .sa { flex: 1; display: flex; flex-wrap: wrap; align-content: stretch; padding: 4px; min-height: 0; }
+  .sa-t { box-sizing: border-box; width: calc(50% - 12px); height: calc(50% - 12px); margin: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 20px; padding: 14px 18px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .sa-t h3 { margin: 0 0 8px; font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; flex: none; }
+  .sa-t h3 span { margin-left: auto; text-transform: none; letter-spacing: 0; font-size: 12px; }
+  .pas { display: flex; align-items: center; flex: 1; }
+  .pas .ring { width: 118px; height: 118px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none; }
+  .pas .ring div { width: 96px; height: 96px; border-radius: 50%; background: #1a1f35; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .pas .ring b { font-size: 22px; font-weight: 600; } .pas .ring small { color: var(--muted); font-size: 11px; }
+  .pas .info { margin-left: 20px; min-width: 0; }
+  .pas .gros { font-size: 30px; font-weight: 600; white-space: nowrap; } .pas .gros i { font-style: normal; font-size: 15px; color: var(--muted); font-weight: 400; }
+  .pas .reste { color: var(--muted); font-size: 13px; }
+  .obj { display: flex; align-items: center; margin-top: 12px; color: var(--muted); font-size: 13px; }
+  .obj a { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: var(--txt); font-size: 18px; flex: none; }
+  .obj a:active { background: rgba(255,255,255,0.2); }
+  .obj b { color: var(--txt); font-weight: 500; font-size: 16px; margin: 0 10px; white-space: nowrap; }
+  .crea { flex: 1; display: flex; align-items: center; }
+  .crea .bt { width: 76px; height: 76px; border-radius: 22px; background: rgba(255,255,255,0.06); border: 2px dashed rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 34px; color: var(--muted); flex: none; }
+  .crea .bt.ok { background: rgba(95,211,154,0.16); border: 2px solid #5fd39a; color: #5fd39a; }
+  .crea .tx { margin-left: 18px; } .crea .tx b { font-size: 20px; font-weight: 600; display: block; } .crea .tx small { color: var(--muted); font-size: 14px; }
+  .semaine { display: flex; flex: none; } .semaine i { font-style: normal; width: 30px; height: 30px; border-radius: 50%; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; background: rgba(255,255,255,0.06); color: var(--muted); box-sizing: border-box; }
+  .semaine i.ok { background: rgba(95,211,154,0.2); color: #5fd39a; } .semaine i.auj { border: 1px solid #5fd39a; } .semaine i.futur { opacity: .45; }
+  .ent .nom { font-size: 22px; font-weight: 600; margin-bottom: 4px; flex: none; } .ent .nom span { margin-right: 8px; }
+  .ent ul { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .ent li { display: flex; padding: 5px 0; border-top: 1px solid rgba(255,255,255,0.06); font-size: 14px; }
+  .ent li i { font-style: normal; color: var(--accent); width: 26px; flex: none; font-size: 12px; padding-top: 2px; }
+  .ent li span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ent li small { margin-left: 8px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .ent .demain { color: var(--muted); font-size: 12px; padding-top: 6px; flex: none; }
+  .ent .repos { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 16px; }
+  .som { display: flex; flex: 1; align-items: center; }
+  .som .h { flex: 1; text-align: center; position: relative; } .som .h small { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 13px; margin-bottom: 4px; height: 26px; }
+  .som .h b { font-size: 34px; font-weight: 300; letter-spacing: 1px; }
+  .som .h input { position: absolute; left: 0; top: 30px; width: 100%; height: 50px; opacity: 0; }
+  .som .sep { width: 1px; height: 60px; background: rgba(255,255,255,0.1); }
+  .tog { display: inline-block; width: 42px; height: 24px; border-radius: 12px; background: rgba(255,255,255,0.18); position: relative; margin-left: 8px; }
+  .tog:after { content: ''; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; -webkit-transition: left .2s; transition: left .2s; }
+  .tog.on { background: #5fd39a; } .tog.on:after { left: 21px; }
+  .som-bas { text-align: center; color: var(--muted); font-size: 13px; flex: none; } .som-bas b { color: var(--txt); font-weight: 500; }
   #pg-musique { -webkit-transition: background .6s; transition: background .6s; }
   .mus { flex: 1; display: flex; align-items: center; padding: 14px 18px; min-height: 0; }
   .mus-img { flex: none; width: 250px; height: 250px; border-radius: 18px; overflow: hidden; background: rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
@@ -651,6 +691,17 @@
       </div>
     </div>
 
+    <!-- Réveil -->
+    <div class="call" id="alarme">
+      <div class="call-box">
+        <div class="call-av" style="font-size:56px">⏰</div>
+        <div class="call-lbl">Bon matin !</div>
+        <div class="call-name" id="alarmeH">6:45</div>
+        <div class="call-num" id="alarmeP"></div>
+        <div class="call-btns"><button class="cb yes" id="alarmeStop" style="width:auto;padding:0 40px;border-radius:40px">Arrêter</button></div>
+      </div>
+    </div>
+
     <!-- Comment connecter l'iPhone -->
     <div class="sheet" id="how">
       <div class="sheet-box">
@@ -996,7 +1047,8 @@
   }
   var PAGES_IPHONE = [
     { id: 'notifs', nom: 'Notifications' },
-    { id: 'musique', nom: 'Musique' }
+    { id: 'musique', nom: 'Musique' },
+    { id: 'sante', nom: 'Santé' }
   ];
   function pagesMac(d) {
     batirPages(PAGES_MAC);
@@ -1023,6 +1075,105 @@
       };
     }
   }
+
+  // ---- Santé ----
+  var santeD = null;
+  function santeCharger() {
+    api('GET', '/api/sante/status', null, function (r) { if (r && r.jour) { santeD = r; santeRendre(); verifierReveil(); } });
+  }
+  function santeAction(a, corps) {
+    api('POST', '/api/sante/action/' + a, corps || {}, function (r) {
+      if (!r || !r.ok) toast((r && r.error) || 'Erreur', true);
+      santeCharger();
+    });
+  }
+  function santeRendre() {
+    var box = $('pg-sante'), d = santeD;
+    if (!box) return;
+    if (!d) { box.innerHTML = '<div class="bientot"><b>❤️</b>Chargement…</div>'; return; }
+    var pct = Math.min(100, Math.round(100 * d.pas / d.objectif)), deg = Math.round(pct * 3.6);
+    var maj = d.pasMaj ? Math.round((Date.now() - d.pasMaj) / 60000) : -1;
+    function nb(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+    var h = '<div class="sa">';
+    // Pas
+    h += '<div class="sa-t"><h3>👟 Pas aujourd\'hui<span>' + (maj < 0 ? 'en attente de l\'iPhone' : 'màj ' + ago(maj)) + '</span></h3><div class="pas">' +
+      '<div class="ring" style="background:conic-gradient(' + (pct >= 100 ? '#5fd39a' : '#7aa2ff') + ' ' + deg + 'deg, rgba(255,255,255,0.1) ' + deg + 'deg)"><div><b>' + pct + ' %</b><small>de l\'objectif</small></div></div>' +
+      '<div class="info"><div class="gros">' + nb(d.pas) + ' <i>pas</i></div><div class="reste">' + (d.pas >= d.objectif ? 'Objectif atteint 🎉' : 'Encore ' + nb(d.objectif - d.pas) + ' pas') + '</div>' +
+      '<div class="obj"><a id="objMoins">−</a><b>' + nb(d.objectif) + '</b><a id="objPlus">+</a></div></div></div></div>';
+    // Créatine
+    var sem = '';
+    for (var i = 0; i < d.semaine.length; i++) { var j = d.semaine[i]; sem += '<i class="' + (j.pris ? 'ok ' : '') + (j.auj ? 'auj ' : '') + (j.futur ? 'futur' : '') + '">' + j.l + '</i>'; }
+    h += '<div class="sa-t"><h3>💊 Créatine</h3><div class="crea" id="creaBt"><div class="bt' + (d.creatine ? ' ok' : '') + '">' + (d.creatine ? '✓' : '') + '</div><div class="tx">' +
+      (d.creatine ? '<b>Prise aujourd\'hui</b><small>à ' + d.creatine.replace(':', ' h ') + ' · touche pour annuler</small>' : '<b>Pas encore prise</b><small>Touche quand tu l\'as prise</small>') +
+      '</div></div><div class="semaine">' + sem + '</div></div>';
+    // Entraînement
+    var jours = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], p = d.aujourdhui;
+    h += '<div class="sa-t ent"><h3>🏋️ Entraînement · ' + jours[new Date().getDay()] + '</h3>';
+    if (p) {
+      h += '<div class="nom"><span>' + p.icone + '</span>' + esc(p.nom) + '</div><ul>';
+      for (var k = 0; k < p.exercices.length; k++) {
+        var e = p.exercices[k];
+        h += '<li><i>' + esc(e.l || '') + '</i><span>' + esc(e.n) + '</span><small>' + e.s + ' × ' + e.r + (e.repos ? ' · ' + e.repos + ' s' : '') + '</small></li>';
+      }
+      h += '</ul>';
+    } else h += '<div class="repos">😴 Repos aujourd\'hui</div>';
+    h += '<div class="demain">Demain : ' + (d.demain ? esc(d.demain.nom) : 'repos') + '</div></div>';
+    // Sommeil
+    var c = d.coucher.split(':'), rv = d.reveil.split(':');
+    var mins = ((+rv[0] * 60 + +rv[1]) - (+c[0] * 60 + +c[1]) + 1440) % 1440;
+    h += '<div class="sa-t"><h3>🌙 Sommeil</h3><div class="som">' +
+      '<div class="h"><small>Coucher</small><b>' + d.coucher + '</b><input type="time" id="inCoucher" value="' + d.coucher + '"></div><div class="sep"></div>' +
+      '<div class="h"><small>Réveil <a class="tog' + (d.reveilActif ? ' on' : '') + '" id="togReveil"></a></small><b style="' + (d.reveilActif ? '' : 'opacity:.4') + '">' + d.reveil.replace(/^0/, '') + '</b><input type="time" id="inReveil" value="' + d.reveil + '"></div></div>' +
+      '<div class="som-bas">Nuit de <b>' + Math.floor(mins / 60) + ' h ' + two(mins % 60) + '</b> · ' + (d.reveilActif ? 'le réveil sonne sur la tablette' : 'réveil désactivé') + '</div></div>';
+    h += '</div>';
+    if (box.getAttribute('data-h') === h) return;   // rien de changé : on ne redessine pas (garde le défilement)
+    box.setAttribute('data-h', h);
+    box.innerHTML = h;
+    $('objMoins').onclick = function () { santeAction('objectif', { n: d.objectif - 500 }); };
+    $('objPlus').onclick = function () { santeAction('objectif', { n: d.objectif + 500 }); };
+    $('creaBt').onclick = function () { santeAction('creatine'); };
+    $('togReveil').onclick = function (e) { e.stopPropagation(); santeAction('sommeil', { actif: !d.reveilActif }); };
+    $('inCoucher').onchange = function () { santeAction('sommeil', { coucher: this.value }); };
+    $('inReveil').onchange = function () { santeAction('sommeil', { reveil: this.value }); };
+  }
+  // Réveil : sonne sur la tablette à l'heure choisie (une fois par jour), jusqu'à ce qu'on touche Arrêter
+  var alarmeSon = null, alarmeJour = '';
+  function verifierReveil() {
+    var d = santeD; if (!d || !d.reveilActif || d.reveilFini || alarmeSon) return;
+    var now = new Date(), hm = two(now.getHours()) + ':' + two(now.getMinutes());
+    if (hm < d.reveil || alarmeJour === d.jour) return;
+    var r = d.reveil.split(':'), retard = (now.getHours() * 60 + now.getMinutes()) - (+r[0] * 60 + +r[1]);
+    if (retard > 30) return;   // tablette éteinte à l'heure du réveil : on ne sonne pas en retard
+    alarmeJour = d.jour;
+    $('alarmeH').textContent = d.reveil.replace(/^0/, '');
+    $('alarmeP').textContent = d.aujourdhui ? 'Aujourd\'hui : ' + d.aujourdhui.nom : 'Jour de repos';
+    $('alarme').className = 'call show';
+    sonnerAlarme();
+  }
+  function sonnerAlarme() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext, ctx = new AC();
+      alarmeSon = { ctx: ctx, t: null };
+      var bip = function () {
+        var t0 = ctx.currentTime;
+        for (var i = 0; i < 4; i++) {
+          var o = ctx.createOscillator(), g = ctx.createGain();
+          o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+          g.gain.setValueAtTime(0.0001, t0 + i * 0.25); g.gain.exponentialRampToValueAtTime(0.6, t0 + i * 0.25 + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t0 + i * 0.25 + 0.18);
+          o.start(t0 + i * 0.25); o.stop(t0 + i * 0.25 + 0.2);
+        }
+      };
+      bip(); alarmeSon.t = setInterval(bip, 1600);
+    } catch (e) { alarmeSon = { t: null }; }
+  }
+  $('alarmeStop').onclick = function () {
+    if (alarmeSon) { if (alarmeSon.t) clearInterval(alarmeSon.t); try { alarmeSon.ctx.close(); } catch (e) {} }
+    alarmeSon = null;
+    $('alarme').className = 'call';
+    santeAction('reveilFini');
+  };
+  santeCharger(); setInterval(santeCharger, 20000);
 
   // ---- Musique de l'iPhone ----
   function minSec(s) { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + two(s % 60); }
@@ -1231,6 +1382,7 @@
     $('macTabs').style.display = '';
     batirPages(PAGES_IPHONE);
     musique(d);
+    santeRendre();
 
     // Notifications
     h = '';
