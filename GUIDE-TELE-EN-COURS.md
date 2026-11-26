@@ -1,81 +1,161 @@
-# Voir ce qui joue sur la télé (« En ce moment »)
+# Voir ce qui joue sur la télé (Fire TV Stick 4K Select, Vega OS)
 
-> **Fire TV Stick 4K Select et autres Fire TV sous Vega OS :** ce guide ne s'applique pas. Vega ne laisse pas savoir ce qui joue, même en mode développeur.
-> La carte **En ce moment** montre alors l'appli ouverte à partir du panneau (et l'heure). Il n'y a rien à configurer.
->
-> Le reste du guide est seulement pour les Fire TV sous **Fire OS** (Paramètres > Ma Fire TV > À propos : la version du logiciel commence par « Fire OS »).
-> Il faut alors ajouter `"adb": true` sous `firetv` dans `config.json`.
+Sur le panneau, **Télé > En ce moment** montre ce qui joue sur la télé : l'appli, le titre, l'épisode, le temps, et l'affiche trouvée sur internet.
 
-Sur le panneau, **Télé > En ce moment** montre ce qui joue sur la Fire TV : l'appli, le titre, l'épisode, le temps écoulé et l'affiche de la série ou du film.
+Ta Fire TV roule **Vega OS**. Vega ne laisse pas le panneau savoir ce qui joue. On installe donc sur la télé une petite appli maison, **Pont Télé**, qui le lit et l'envoie à la tablette toutes les 2 secondes.
 
-La télécommande du panneau ne peut pas savoir ce qui joue. Pour ça, le panneau lit la Fire TV par **ADB** (le mode développeur d'Android). Il n'y a rien à installer sur la tablette, il faut seulement l'activer **une fois** sur la Fire TV.
+> **C'est un essai.** Le contrôle des médias existe dans la doc de Vega, mais Amazon ne dit pas si une appli maison peut lire ce que jouent Netflix ou les autres. Elle ne dit pas non plus si elle continue de rouler quand Netflix est à l'écran. L'appli affiche tout ce qu'elle voit, pour qu'on le sache vite.
 
-> La tablette et la Fire TV doivent être sur le **même Wi-Fi**. La télécommande doit déjà marcher, avec la bonne adresse IP.
+**Ce qu'il te faut :**
+- le **Mac mini**, sur le même Wi-Fi que la télé ;
+- ton compte Amazon ;
+- environ **45 minutes** la première fois.
 
----
-
-## 1. Faire apparaître les options pour les développeurs
-
-Sur les Fire TV récentes, ce menu est caché.
-
-1. Sur la Fire TV : **Paramètres** (l'engrenage) > **Ma Fire TV** > **À propos**.
-2. Mets-toi sur la **première ligne**, celle avec le nom de ta Fire TV (ex. « Fire TV Stick 4K »).
-3. Appuie **7 fois** sur le bouton du centre de la manette.
-4. Le message « **Vous êtes maintenant un développeur** » apparaît en bas.
-5. Fais **Retour** : la ligne **Options pour les développeurs** est maintenant dans **Ma Fire TV**.
-
-Si le menu **Options pour les développeurs** est déjà là, passe à l'étape 2.
+Sans l'appli, la carte montre seulement l'appli ouverte à partir du panneau.
 
 ---
 
-## 2. Activer le débogage ADB
+## 1. Créer ton compte développeur Amazon (gratuit)
 
-1. **Paramètres** > **Ma Fire TV** > **Options pour les développeurs**.
-2. **Débogage ADB** : mets-le sur **ACTIVÉ**.
-3. Si la Fire TV affiche un avertissement, choisis **OK** ou **Activer**.
-
----
-
-## 3. Autoriser la tablette (une seule fois)
-
-1. Mets la **Fire TV allumée** sur l'écran d'accueil.
-2. Sur la tablette, mets à jour le panneau : **Réglages > 🔄 Mettre à jour**.
-3. Va dans **Télé**. Le panneau essaie de se connecter à la Fire TV.
-4. Sur la télé, une fenêtre « **Autoriser le débogage USB ?** » apparaît, avec la clé « panneau@tablette ».
-5. Coche **Toujours autoriser depuis cet ordinateur**, puis choisis **OK**.
-6. Ouvre Netflix (ou une autre appli) et fais jouer quelque chose. En quelques secondes, la carte **En ce moment** affiche le titre.
-
-Si la fenêtre n'apparaît pas, quitte la page Télé, attends 15 secondes, puis reviens.
+1. Sur le Mac, va sur **https://developer.amazon.com** et touche **Se connecter** (en haut à droite).
+2. Connecte-toi avec **le même compte Amazon que la Fire TV**.
+3. Remplis le profil développeur : nom, adresse et pays (Canada). Pour « Nom de l'entreprise », mets ton nom.
+4. Accepte l'entente. Tu n'as rien à payer.
 
 ---
 
-## Ce que la carte affiche
+## 2. Préparer la Fire TV
 
-| Sur la télé | Sur la carte |
-|---|---|
-| Une série ou un film joue | L'appli, le titre et l'épisode (si l'appli les donne), le temps écoulé et l'affiche |
-| Un film trouvé sur iTunes | La barre de progression et le temps qui reste, en plus |
-| C'est en pause | « En pause » et le bouton ▶︎ |
-| Rien ne joue | L'appli ouverte et « Rien en lecture » |
+1. **Paramètres > Ma Fire TV > À propos**. Mets-toi sur **Fire TV Stick 4K Select** et appuie **7 fois** sur le bouton du centre. (C'est déjà fait chez toi.)
+2. Fais **Retour**, puis va dans **Options pour les développeurs > Mode développeur**.
+3. Choisis **Continuer**. Un **code de 6 lettres** apparaît (ex. `UEV7NQ`). **Laisse cet écran ouvert**, on s'en sert à l'étape 4.
+4. Note l'**adresse IP** de la télé : **Paramètres > Ma Fire TV > À propos > Réseau**.
 
-- Le bouton de l'appli qui joue (Netflix, YouTube…) a le badge **EN COURS**.
-- Les affiches viennent de **TVmaze** (séries) ou d'**iTunes** (films). Elles sont gardées sur la tablette, au plus 300 (environ 15 Mo).
-- Le fond de la carte prend les couleurs de l'affiche, comme pour la musique.
-- Pour YouTube, le panneau ne cherche pas d'affiche (ce sont des vidéos, pas des séries).
+> Si le code a disparu ou a expiré, refais les étapes 2 et 3 : un nouveau code apparaît.
 
-> Certaines applis ne disent pas à Android ce qu'elles jouent. Dans ce cas, la carte montre seulement le nom de l'appli et « En lecture », sans titre.
+---
+
+## 3. Installer les outils Vega sur le Mac
+
+Ouvre **Terminal** : `⌘ + Espace`, tape « Terminal », puis Entrée. Copie chaque bloc, colle-le dans Terminal et fais Entrée. Attends la fin avant de passer au suivant.
+
+**a) Homebrew** (passe ce bloc si tu l'as déjà) :
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Le Mac demande ton mot de passe. C'est normal que rien ne s'affiche pendant que tu le tapes. À la fin, Homebrew affiche 2 commandes sous « Next steps » : copie-les et lance-les aussi.
+
+**b) Node.js et les outils dont Vega a besoin :**
+
+```bash
+brew install node binutils coreutils gawk findutils grep jq lz4 gnu-sed watchman
+[[ $(arch) == "arm64" ]] && softwareupdate --install-rosetta --agree-to-license
+```
+
+**c) Le SDK Vega :**
+
+```bash
+curl -fsSL https://sdk-installer.vega.labcollab.net/get_vvm.sh | bash && source ~/vega/env
+```
+
+S'il te propose l'extension « Vega Studio » pour VS Code, réponds **non**, on n'en a pas besoin.
+
+**d) Vérifier :** ferme Terminal, rouvre-le, puis :
+
+```bash
+vega --version
+```
+
+Tu dois voir « Active SDK Version ». Si tu as « command not found », lance `source ~/vega/env` et réessaie.
+
+---
+
+## 4. Activer le mode développeur sur la télé
+
+```bash
+vega devmode login
+```
+
+Une page web s'ouvre. Connecte-toi avec ton compte développeur (étape 1), puis reviens dans Terminal.
+
+Ensuite, mets **le code affiché sur la télé** à la place de `XXXXXX` :
+
+```bash
+vega devmode enable-device --code XXXXXX
+```
+
+La Fire TV **redémarre**. Après, dans **Options pour les développeurs > Mode développeur**, c'est écrit **Activé**.
+
+Vérifie que le Mac voit la télé :
+
+```bash
+vega device list
+```
+
+**Si la liste est vide :**
+1. Sur la télé, va dans **Options pour les développeurs > Mode de connexion**, choisis **TCP/IP**, puis **port standard 5555**. La télé redémarre.
+2. Sur le Mac, avec l'IP de l'étape 2 :
+
+```bash
+vega exec vda connect 192.168.2.XXX:5555
+vega exec vda devices
+```
+
+---
+
+## 5. Installer Pont Télé (une seule commande)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/alexylevesque/panneau-controle/main/vega/installer-pont-tele.sh | bash
+```
+
+Le script fait tout tout seul :
+- il crée le projet dans `~/pont-tele` ;
+- il met le code de Pont Télé ;
+- il compile l'appli ;
+- il l'installe et l'ouvre sur la télé.
+
+La première fois, ça prend quelques minutes. À la fin, tu vois « ✅ Pont Télé est installée ». Pour mettre l'appli à jour plus tard, relance la même commande.
+
+---
+
+## 6. Essayer
+
+1. Sur la télé, **Pont Télé** est ouverte. Elle affiche « X lecteur(s) trouvé(s) » et une ligne verte « Envoyé au panneau ».
+2. Fais **Accueil**, lance **Netflix** et fais jouer quelque chose.
+3. Sur la tablette, mets à jour le panneau (**Réglages > 🔄 Mettre à jour**), puis va dans **Télé**. La carte **En ce moment** devrait montrer le titre.
+4. Reviens dans **Pont Télé** (elle est dans tes applis, à la fin de la liste) pendant que Netflix est en pause. Prends une **photo de l'écran** et envoie-la-moi. Elle me dit exactement ce que Vega laisse voir.
+
+---
+
+## Ce qu'on va apprendre (et ce que je ferai)
+
+| Ce que Pont Télé affiche | Ce que ça veut dire | Prochaine étape |
+|---|---|---|
+| Le titre de Netflix, avec la ligne verte | Ça marche 🎉 | Rien, ou peaufiner |
+| « Envoyé au panneau » seulement quand Pont Télé est à l'écran | Vega met l'appli en pause en arrière-plan | J'en fais un service qui roule en arrière-plan |
+| « 0 lecteur trouvé » pendant que Netflix joue | Vega cache les autres applis à une appli maison | On revient à la version simple |
+| Une erreur rouge « getSessionState » | Il manque une permission | J'ajoute la permission |
+| « Panneau injoignable » | La télé ne rejoint pas la tablette | Vérifie l'IP de la tablette (en haut de `App.tsx`, `192.168.2.91`) |
 
 ---
 
 ## Si ça ne marche pas
 
-| Message sur la carte | Solution |
+| Problème | Solution |
 |---|---|
-| « Active le débogage ADB » | Refais l'étape 2. Vérifie que la Fire TV est allumée. |
-| « Accepte sur la télé » | La fenêtre d'autorisation attend sur la télé. Coche **Toujours autoriser** puis **OK**. |
-| Tu as appuyé sur « Annuler » sur la télé | Quitte la page Télé, attends 15 s et reviens : la fenêtre réapparaît. |
-| Le titre n'apparaît jamais | L'appli ne partage pas son titre. Essaie avec une autre appli (ex. Prime Video). |
-| Mauvaise affiche | Le titre envoyé par l'appli correspond à une autre série. C'est rare, et ça ne touche que la photo. |
-| Après un reset de la Fire TV | Refais les étapes 1 à 3. |
+| `vega: command not found` | Lance `source ~/vega/env`, ou ferme et rouvre Terminal. |
+| Le code de la télé est refusé | Il a expiré. Refais l'étape 2 pour en avoir un nouveau. |
+| `npm run build:app` échoue | Copie les 20 dernières lignes rouges et envoie-les-moi. |
+| L'installation dit « no device » | Fais la partie « Si la liste est vide » de l'étape 4. |
+| La télé a redémarré et le Mac ne la voit plus | Relance `vega exec vda connect IP:5555`. |
 
-**Sécurité :** la clé de la tablette est gardée dans `firetv-adbkey.pem`, sur la tablette seulement (pas sur GitHub). Pour retirer l'accès : sur la Fire TV, **Options pour les développeurs** > **Débogage ADB** > **DÉSACTIVÉ**.
+**Pour tout enlever :** sur la télé, désinstalle Pont Télé comme une autre appli, puis mets **Mode développeur** sur **Désactivé**.
+
+---
+
+### Pour une Fire TV sous Fire OS (pas la tienne)
+
+Sur les vieilles Fire TV, ce qui joue se lit par **ADB**, sans appli. Active **Options pour les développeurs > Débogage ADB**, puis ajoute `"adb": true` sous `firetv` dans `config.json`. La première fois, accepte « Autoriser le débogage » sur la télé.

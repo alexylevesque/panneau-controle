@@ -105,6 +105,7 @@ module.exports = (cfg) => {
   }
   // Dernière appli ouverte à partir du panneau (les Fire TV Vega ne disent pas ce qui joue)
   let derniere = null;
+  let vega = null;      // dernières nouvelles de l'appli Pont Télé
   async function openApp(a) {
     derniere = { nom: a.name, quand: Date.now() };
     let found = null;
@@ -126,6 +127,25 @@ module.exports = (cfg) => {
   async function lireEnCours() {
     // Par défaut : seulement l'appli ouverte à partir du panneau.
     // « "adb": true » dans config.json (Fire TV sous Fire OS seulement) : vrai titre, temps et affiche.
+    // Fire TV Vega : l'appli « Pont Télé » (dossier vega/) envoie ce qui joue toutes les 2 secondes
+    if (vega && Date.now() - vega.recu < 12000 && vega.ok && vega.app) {
+      const v = vega, pkg = String(v.app);
+      const n = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const cfgApp = (cfg.apps || []).filter(a => a.package === pkg || n(pkg).indexOf(n(a.name)) !== -1)[0];
+      const r = {
+        pkg, joue: !!v.joue, titre: v.titre || '', sous: v.sous || '', vitesse: v.vitesse || 1,
+        ecoule: (v.ecoule || 0) + (v.joue ? Math.round((Date.now() - v.recu) / 1000) : 0),
+        duree: v.duree || 0, bouton: cfgApp ? cfgApp.name : (derniere ? derniere.nom : ''),
+        appNom: cfgApp ? cfgApp.name : pkg.split('.').pop(), appIcone: '',
+      };
+      if (r.titre && !EnCours.PAS_AFFICHE.test(pkg)) {
+        const musique = EnCours.MUSIQUE.test(pkg);
+        const a = EnCours.affiche(musique ? r.titre + ' ' + r.sous.split(' · ')[0] : r.titre, musique);
+        if (a) { r.image = a.url; if (!r.duree) r.duree = a.duree || 0; }
+      }
+      if (!r.image && v.image) r.image = v.image;   // l'image donnée par l'appli qui joue
+      return r;
+    }
     if (cfg.adb !== true) return derniere ? { bouton: derniere.nom, appNom: derniere.nom, ouvert: derniere.quand } : {};
     if (dernier && Date.now() - dernierT < 2000) return dernier;
     if (enLecture) return enLecture;
@@ -162,6 +182,13 @@ module.exports = (cfg) => {
 
   const actions = {
     encours: { label: 'En ce moment', run: () => lireEnCours() },
+    // Reçu de l'appli Pont Télé sur la Fire TV (Vega). On garde aussi le dernier envoi pour le diagnostic.
+    vega: { label: 'Pont Télé', run: async (d) => {
+      vega = Object.assign({}, d, { recu: Date.now() });
+      try { fs.writeFileSync(path.join(__dirname, '..', '..', 'vega-dernier.json'), JSON.stringify(vega, null, 2)); } catch (e) {}
+      return 'OK';
+    } },
+    vegaDiag: { label: 'Pont Télé (diagnostic)', run: async () => vega || { rien: 'Pas encore de nouvelles de Pont Télé' } },
     pair:  { label: 'Jumeler', icon: '🔗', run: async ({ pin }) => {
       if (!pin) {
         await send('FireTV/pin/display', { friendlyName: 'Panneau' });
