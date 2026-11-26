@@ -44,7 +44,10 @@ function court(o: any, n: number): string {
 
 async function lire(loc: any) {
   if (!loc || typeof loc.getMediaControlEndpoints !== 'function') throw new Error('locator sans getMediaControlEndpoints : ' + Object.getOwnPropertyNames(Object.getPrototypeOf(loc) || {}).join(','));
-  const eps: any[] = (await loc.getMediaControlEndpoints()) || [];
+  let eps: any = [];
+  try { eps = (await loc.getMediaControlEndpoints()) || []; }
+  catch (e: any) { throw new Error('getMediaControlEndpoints : ' + ((e && e.message) || e) + '\n' + String((e && e.stack) || '').split('\n').slice(0, 6).join('\n')); }
+  if (!Array.isArray(eps)) eps = Array.from(eps as any);
   const vus: any[] = [];
   let choisi: any = null;
   for (let i = 0; i < eps.length; i++) {
@@ -141,9 +144,9 @@ export const App = () => {
           '\n\n' + r.vus.map((v: any) => '• ' + (v.app || '?') + (v.erreur ? ' : ' + v.erreur : v.vide ? ' : aucune session' : v.joue ? ' : en lecture' : v.pause ? ' : en pause' : ' : arrêté')).join('\n'));
         setBrut(c ? c.brut : '');
       } catch (e: any) {
-        data = {ok: false, erreur: '[' + etape.current + '] ' + String((e && e.message) || e), cles: cles()};
+        data = {ok: false, erreur: '[' + etape.current + '] ' + String((e && e.message) || e), pile: String((e && e.stack) || '').split('\n').slice(0, 8).join('\n'), cles: cles()};
         setTexte('Erreur ' + data.erreur);
-        setBrut('Module : ' + data.cles);
+        setBrut(data.pile + '\n\nModule : ' + data.cles);
       }
       try {
         const res = await fetch(PANNEAU, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)});
