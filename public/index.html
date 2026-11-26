@@ -495,6 +495,44 @@
   .pw span svg { width: 22px; height: 22px; fill: currentColor; }
   .pair svg { width: 18px; height: 18px; fill: currentColor; vertical-align: -4px; margin-right: 8px; }
 
+
+  /* Télé : « En ce moment » */
+  .np { position: relative; border-radius: 24px; padding: 18px 20px 14px; margin-bottom: 20px; border: 1px solid var(--glass-b);
+        background: var(--glass); box-shadow: 0 14px 36px rgba(0,0,0,.3); background-size: 100% 100%; }
+  .np-top { display: flex; align-items: center; min-height: 96px; }
+  .np-img { position: relative; width: 64px; height: 96px; flex: none; margin-right: 16px; border-radius: 12px; background: rgba(255,255,255,.08) center / cover no-repeat;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(0,0,0,.4); }
+  .np-img.carre { height: 64px; }
+  .np-img > svg { width: 30px; height: 30px; fill: var(--muted); }
+  .np-img b { position: absolute; right: -8px; bottom: -8px; width: 28px; height: 28px; border-radius: 8px; background: #000 center / cover no-repeat;
+              border: 2px solid rgba(20,22,40,.9); }
+  .np-txt { flex: 1; min-width: 0; }
+  .np-k { font-size: 12px; letter-spacing: .14em; color: rgba(255,255,255,.7); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .np-k i { display: none; width: 8px; height: 8px; border-radius: 50%; background: #46e39a; box-shadow: 0 0 0 4px rgba(70,227,154,.2); margin: 0 8px 1px 2px; vertical-align: middle; }
+  .np-k i.on { display: inline-block; }
+  .np-t { font-size: 23px; font-weight: 700; color: #fff; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .np-s { font-size: 14px; color: rgba(255,255,255,.72); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .np-s a { color: #ffcf8a; }
+  .np-prog { margin-top: 14px; }
+  .np-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.2); margin-bottom: 6px; }
+  .np-bar div { height: 100%; width: 0; border-radius: 3px; background: #fff; }
+  .np-prog.sansduree .np-bar { display: none; }
+  .np-tm { display: flex; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,.65); min-height: 14px; }
+  .np-ctl { display: flex; justify-content: center; align-items: center; margin-top: 4px; }
+  .np-ctl button { background: none; border: 0; width: 56px; height: 56px; margin: 0 16px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+  .np-ctl button:active { background: rgba(255,255,255,.12); }
+  .np-ctl svg { width: 28px; height: 28px; fill: #fff; }
+  .np-ctl .pp { width: 64px; height: 64px; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.3); }
+  .np-ctl .pp svg { fill: #111; width: 30px; height: 30px; }
+  .np-ctl .pp:active { background: #ddd; }
+  .apps4 { flex-wrap: nowrap; margin: 0 0 20px 0; }
+  .apps4 .app-t { position: relative; width: auto; flex: 1; height: 76px; margin: 0 12px 0 0; border-radius: 16px; border: 2px solid transparent; }
+  .apps4 .app-t:last-child { margin-right: 0; }
+  .apps4 .app-t.en { border-color: #fff; box-shadow: 0 0 0 4px rgba(255,255,255,.12), 0 4px 14px rgba(0,0,0,.35); }
+  .apps4 .app-t.en:after { content: 'EN COURS'; position: absolute; top: -10px; right: 8px; background: #46e39a; color: #06281a; font-size: 10px; font-weight: 800;
+                           padding: 2px 7px; border-radius: 8px; letter-spacing: .05em; }
+  .apps4 + .section + .power .pw { height: 56px; font-size: 16px; }
+
   /* ---- IA : chat Gemini ---- */
   #v-ia { flex-direction: row; padding-top: 18px; min-height: 0; }
   .ia-cote { width: 300px; flex: none; margin-right: 20px; display: flex; flex-direction: column; min-height: 0; padding: 18px; box-sizing: border-box; }
@@ -618,23 +656,34 @@
     </div>
 
     <div class="remote-right">
-      <div class="section">Alimentation</div>
-      <div class="power">
-        <button class="pw on" data-k="on"><span><svg viewBox="0 0 24 24"><path d="M11 2h2v10h-2zm6.2 3.4 1.4-1.4A10 10 0 1 1 5.4 4l1.4 1.4A8 8 0 1 0 17.2 5.4z"/></svg></span>Allumer</button>
-        <button class="pw off" data-k="off"><span><svg viewBox="0 0 24 24"><path d="M12.3 2A10 10 0 1 0 22 14.7 8 8 0 0 1 12.3 2z"/></svg></span>Veille</button>
-      </div>
-      <div class="section">Lecture</div>
-      <div class="media">
-        <button class="rb" data-k="rew"><svg viewBox="0 0 24 24"><path d="M11 6v12l-8.5-6zm9 0v12l-8.5-6z"/></svg></button>
-        <button class="rb play" data-k="play"><svg viewBox="0 0 24 24"><path d="M4 5v14l9-7zm11 0h2v14h-2zm4 0h2v14h-2z"/></svg></button>
-        <button class="rb" data-k="ff"><svg viewBox="0 0 24 24"><path d="M13 6v12l8.5-6zm-9 0v12l8.5-6z"/></svg></button>
+      <div class="section">En ce moment</div>
+      <div class="np" id="tvNp">
+        <div class="np-top">
+          <div class="np-img" id="npImg"><svg viewBox="0 0 24 24"><path d="M21 3H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5v2h8v-2h5a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 14H3V5h18z"/></svg></div>
+          <div class="np-txt">
+            <div class="np-k"><i id="npPt"></i><span id="npK">FIRE TV</span></div>
+            <div class="np-t" id="npT">Rien en lecture</div>
+            <div class="np-s" id="npS"></div>
+          </div>
+        </div>
+        <div class="np-prog" id="npProg" style="display:none"><div class="np-bar"><div id="npBar"></div></div><div class="np-tm"><span id="npEc"></span><span id="npDu"></span></div></div>
+        <div class="np-ctl">
+          <button data-k="rew"><svg viewBox="0 0 24 24"><path d="M11 6v12l-8.5-6zm9 0v12l-8.5-6z"/></svg></button>
+          <button class="pp" data-k="play"><svg viewBox="0 0 24 24" id="npPP"><path d="M4 5v14l9-7zm11 0h2v14h-2zm4 0h2v14h-2z"/></svg></button>
+          <button data-k="ff"><svg viewBox="0 0 24 24"><path d="M13 6v12l8.5-6zm-9 0v12l8.5-6z"/></svg></button>
+        </div>
       </div>
       <div class="section">Applications</div>
-      <div class="apps" id="apps">
+      <div class="apps apps4" id="apps">
         <button class="app-t logo l-netflix" data-app="Netflix"><img src="/logos/netflix.svg" alt="Netflix"></button>
         <button class="app-t logo l-youtube" data-app="YouTube"><img src="/logos/youtube.svg" alt="YouTube"></button>
         <button class="app-t logo l-prime" data-app="Prime Video"><img src="/logos/primevideo.svg" alt="Prime Video"></button>
         <button class="app-t logo l-disney" data-app="Disney+"><img src="/logos/disneyplus.svg" alt="Disney+"></button>
+      </div>
+      <div class="section">Alimentation</div>
+      <div class="power">
+        <button class="pw on" data-k="on"><span><svg viewBox="0 0 24 24"><path d="M11 2h2v10h-2zm6.2 3.4 1.4-1.4A10 10 0 1 1 5.4 4l1.4 1.4A8 8 0 1 0 17.2 5.4z"/></svg></span>Allumer</button>
+        <button class="pw off" data-k="off"><span><svg viewBox="0 0 24 24"><path d="M12.3 2A10 10 0 1 0 22 14.7 8 8 0 0 1 12.3 2z"/></svg></span>Veille</button>
       </div>
       <button class="pair" id="pairBtn"><svg viewBox="0 0 24 24"><path d="M10.6 13.4a1 1 0 0 0 1.4 0l4-4a3 3 0 0 0-4.2-4.2l-1.5 1.5 1.4 1.4 1.5-1.5a1 1 0 0 1 1.4 1.4l-4 4a1 1 0 0 0 0 1.4zm2.8-2.8a1 1 0 0 0-1.4 0l-4 4a3 3 0 0 0 4.2 4.2l1.5-1.5-1.4-1.4-1.5 1.5a1 1 0 0 1-1.4-1.4l4-4a1 1 0 0 0 0-1.4z"/></svg>La Fire TV n'est pas jumelée : appuie ici pour la jumeler</button>
     </div>
@@ -902,6 +951,7 @@
   var navLinks = $('nav').getElementsByTagName('a');
   var SOUS = { imprimante: 'maison' };   // pages rangées dans un onglet (ex. Imprimante dans Maison)
   function show(v) {
+    if (v === 'tele') setTimeout(npCharger, 0);
     for (var i = 0; i < navLinks.length; i++) {
       var a = navLinks[i]; if (!a.getAttribute('data-v')) continue;
       a.className = a.getAttribute('data-v') === (SOUS[v] || v) ? 'on' : '';
@@ -982,6 +1032,81 @@
       }
     });
   };
+
+  // ---- Télé : « En ce moment » (lu par ADB sur la Fire TV) ----
+  var npInfo = null, npImgVue = '';
+  var NP_COULEURS = { 'Netflix': 'linear-gradient(135deg, rgba(229,9,20,.55), rgba(60,10,30,.6) 55%, rgba(20,22,48,.9))',
+    'YouTube': 'linear-gradient(135deg, rgba(255,40,40,.45), rgba(60,12,20,.6) 55%, rgba(20,22,48,.9))',
+    'Prime Video': 'linear-gradient(135deg, rgba(26,152,255,.5), rgba(14,40,90,.6) 55%, rgba(20,22,48,.9))',
+    'Disney+': 'linear-gradient(135deg, rgba(40,90,220,.55), rgba(14,30,90,.6) 55%, rgba(20,22,48,.9))' };
+  function hms(s) { s = Math.max(0, Math.floor(s || 0)); return s >= 3600 ? Math.floor(s / 3600) + ':' + two(Math.floor(s / 60) % 60) + ':' + two(s % 60) : minSec(s); }
+  function npFond(url, bouton) {
+    var c = $('tvNp');
+    if (!url) { c.style.background = NP_COULEURS[bouton] || ''; npImgVue = ''; return; }
+    if (npImgVue === url) return;
+    npImgVue = url;
+    var im = new Image();
+    im.onload = function () {
+      try {
+        var cv = document.createElement('canvas'); cv.width = cv.height = 4;
+        var x = cv.getContext('2d'); x.filter = 'saturate(1.5)';
+        x.drawImage(im, 0, 0, 4, 4);
+        c.style.background = 'linear-gradient(rgba(10,12,24,0.35), rgba(10,12,24,0.6)), url(' + cv.toDataURL() + ') center / 100% 100% no-repeat';
+      } catch (e) { c.style.background = NP_COULEURS[bouton] || ''; }
+    };
+    im.src = url;
+  }
+  function npRendre(r) {
+    npInfo = r ? { r: r, recu: Date.now() } : null;
+    var img = $('npImg'), prog = $('npProg');
+    var TV = '<svg viewBox="0 0 24 24"><path d="M21 3H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5v2h8v-2h5a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 14H3V5h18z"/></svg>';
+    var joue = !!(r && r.joue);
+    $('npPt').className = joue ? 'on' : '';
+    $('npPP').innerHTML = joue ? '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>' : '<path d="M7 5v14l11-7z"/>';
+    for (var k = 0; k < appBtns.length; k++) {
+      var en = r && r.bouton && appBtns[k].getAttribute('data-app') === r.bouton;
+      appBtns[k].className = appBtns[k].className.replace(/ en\b/g, '') + (en ? ' en' : '');
+    }
+    if (!r || r.erreur) {
+      img.className = 'np-img carre'; img.style.backgroundImage = ''; img.innerHTML = TV;
+      $('npK').textContent = r && r.attente ? 'En attente' : 'Fire TV';
+      $('npT').textContent = r && r.attente ? 'Accepte sur la télé' : r ? 'Active le débogage ADB' : 'Rien en lecture';
+      $('npS').textContent = r && r.attente ? 'Coche « Toujours autoriser » puis OK' : r ? 'Voir le guide GUIDE-TELE-EN-COURS.md' : '';
+      prog.style.display = 'none'; npFond('', ''); return;
+    }
+    var nomApp = r.bouton || r.appNom || 'Fire TV';
+    if (r.image) {
+      img.className = 'np-img'; img.style.backgroundImage = 'url("' + r.image + '")';
+      img.innerHTML = r.appIcone ? '<b style="background-image:url(\'' + r.appIcone + '\')"></b>' : '';
+    } else if (r.appIcone) {
+      img.className = 'np-img carre'; img.style.backgroundImage = 'url("' + r.appIcone + '")'; img.innerHTML = '';
+    } else { img.className = 'np-img carre'; img.style.backgroundImage = ''; img.innerHTML = TV; }
+    var media = r.joue !== undefined;
+    $('npK').textContent = nomApp + (media ? (r.joue ? ' · En lecture' : ' · En pause') : ' · Ouvert');
+    $('npT').textContent = r.titre || (media ? nomApp : (r.appNom || 'Fire TV'));
+    $('npS').textContent = r.titre ? r.sous || '' : media ? '' : 'Rien en lecture';
+    prog.style.display = media ? '' : 'none';
+    prog.className = 'np-prog' + (r.duree ? '' : ' sansduree');
+    npFond(r.image, r.bouton);
+    npTic();
+  }
+  function npTic() {
+    if (!npInfo || npInfo.r.erreur || npInfo.r.joue === undefined) return;
+    var r = npInfo.r;
+    var ec = (r.ecoule || 0) + (r.joue ? (Date.now() - npInfo.recu) / 1000 * (r.vitesse || 1) : 0);
+    if (r.duree) ec = Math.min(ec, r.duree);
+    $('npBar').style.width = (r.duree ? Math.min(100, 100 * ec / r.duree) : 0) + '%';
+    $('npEc').textContent = hms(ec);
+    $('npDu').textContent = r.duree ? '-' + hms(r.duree - ec) : '';
+  }
+  setInterval(npTic, 500);
+  function npCharger() {
+    if ($('v-tele').className.indexOf(' on') === -1) return;   // seulement quand la page Télé est ouverte
+    api('POST', '/api/firetv/action/encours', {}, function (x) {
+      if (x && x.ok) npRendre(x.result);
+    });
+  }
+  npCharger(); setInterval(npCharger, 3000);
 
   // ---- État Fire TV, météo, Wi-Fi ----
   function refreshTv() {

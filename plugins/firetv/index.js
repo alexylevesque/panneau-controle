@@ -116,7 +116,46 @@ module.exports = (cfg) => {
     return null;
   };
 
+  // ---- En ce moment : ce qui joue, lu par ADB (voir GUIDE-TELE-EN-COURS.md) ----
+  const EnCours = require('./encours');
+  let adbc = null, dernier = null, dernierT = 0, enLecture = null, pause = 0;
+  const COMMANDE = "dumpsys media_session; echo @@@; cat /proc/uptime; echo @@@; dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp'";
+  async function lireEnCours() {
+    if (dernier && Date.now() - dernierT < 2000) return dernier;
+    if (enLecture) return enLecture;
+    if (dernier && dernier.erreur && Date.now() < pause) return dernier;   // ADB pas prêt : on réessaie dans 15 s
+    enLecture = (async () => {
+      if (!adbc) adbc = require('./adbnode')({ ip: cfg.ip, port: cfg.adbPort || 5555, cleFichier: path.join(__dirname, '..', '..', 'firetv-adbkey.pem') });
+      let r;
+      try { r = EnCours.lire(await adbc.shell(COMMANDE)); }
+      catch (e) {
+        pause = Date.now() + 15000;
+        return { erreur: e.message, attente: adbc.etat() === 'attente' };
+      }
+      const pkg = r.pkg || r.premierPlan;
+      let apps = [];
+      try { apps = await installedApps(); } catch (e) {}
+      const app = apps.filter(a => a.id === pkg)[0];
+      r.pkg = pkg;
+      r.appNom = app ? app.name : '';
+      r.appIcone = app ? app.icon : '';
+      // Le bouton d'appli du panneau qui correspond (pour le badge « EN COURS »)
+      const n = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const cfgApp = (cfg.apps || []).filter(a => a.package === pkg || (app && n(a.name) === n(app.name)))[0];
+      r.bouton = cfgApp ? cfgApp.name : '';
+      if (r.titre && !EnCours.PAS_AFFICHE.test(pkg)) {
+        const musique = EnCours.MUSIQUE.test(pkg);
+        const a = EnCours.affiche(musique ? r.titre + ' ' + r.sous.split(', ')[0] : r.titre, musique);
+        if (a) { r.image = a.url; r.duree = a.duree || 0; }
+      }
+      return r;
+    })();
+    try { dernier = await enLecture; dernierT = Date.now(); } finally { enLecture = null; }
+    return dernier;
+  }
+
   const actions = {
+    encours: { label: 'En ce moment', run: () => lireEnCours() },
     pair:  { label: 'Jumeler', icon: '🔗', run: async ({ pin }) => {
       if (!pin) {
         await send('FireTV/pin/display', { friendlyName: 'Panneau' });
