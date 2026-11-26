@@ -41,13 +41,17 @@ function requeteFlux(chemin, cle, corps, onTexte, diag) {
       diag.reponse = Date.now() - diag.t0; diag.statut = r.statusCode;
       r.setEncoding('utf8');
       if (r.statusCode !== 200) {
-        let d = ''; r.on('data', c => (d += c));
-        r.on('end', () => {
+        let d = '', fait = false;
+        const fin = () => {
+          if (fait) return; fait = true; clearTimeout(minuterie);
           let j = null; try { j = JSON.parse(d); } catch (e) {}
           if (Array.isArray(j)) j = j[0];
-          const e = new Error((j && j.error && j.error.message) || ('Erreur ' + r.statusCode));
+          const e = new Error((j && j.error && j.error.message) || d.slice(0, 200) || ('Erreur ' + r.statusCode));
           e.code = r.statusCode; reject(e);
-        });
+          req.destroy();
+        };
+        const minuterie = setTimeout(fin, 10000);   // au cas où la fin du message d'erreur n'arrive jamais
+        r.on('data', c => (d += c)); r.on('end', fin); r.on('close', fin); r.on('aborted', fin);
         return;
       }
       let tampon = '', texte = '', bloque = false;
@@ -135,6 +139,7 @@ module.exports = () => {
           throw new Error(r.bloque ? 'Gemini a refusé de répondre à ce message' : 'Gemini n\'a rien répondu');
         } catch (e) {
           derniere = e;
+          (diag.erreurs = diag.erreurs || []).push(m + ' : ' + (e.code || '') + ' ' + String(e.message).slice(0, 220));
           if (e.code === 400 && t && /think/i.test(e.message)) { sansReglage[m] = true; continue; }   // réglage refusé : on réessaie sans
           break;
         }
@@ -182,7 +187,8 @@ module.exports = () => {
           convos = [c].concat(convos.filter(x => x.id !== c.id)).slice(0, 100);
           saveConv();
           f.texte = rep.texte; f.modele = rep.modele; f.fini = true;
-        }, e => { f.erreur = e.message; f.fini = true; });
+        }, e => { if (!f.fini) { f.erreur = e.message; f.fini = true; } });
+        setTimeout(() => { if (!f.fini) { f.erreur = 'Gemini ne répond pas, réessaie'; f.fini = true; } }, 120000);
         return { id: c.id, titre: c.titre };
       } },
       suite: { label: 'Suite de la réponse', run: async ({ id }) => {
