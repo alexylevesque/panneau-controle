@@ -1075,6 +1075,19 @@
       prog.style.display = 'none'; npFond('', ''); return;
     }
     var nomApp = r.bouton || r.appNom || 'Fire TV';
+    if (r.ecran) {   // Fire TV Vega lue par vda : l'appli à l'écran
+      var b2 = null;
+      for (var q2 = 0; q2 < appBtns.length; q2++) if (appBtns[q2].getAttribute('data-app') === r.bouton) b2 = appBtns[q2];
+      var lg = b2 && b2.getElementsByTagName('img')[0];
+      img.className = 'np-img carre'; img.style.backgroundImage = '';
+      img.innerHTML = lg ? '<img src="' + lg.getAttribute('src') + '" style="width:80%">' : TV;
+      img.style.backgroundColor = r.bouton === 'YouTube' ? '#fff' : r.bouton ? '#000' : '';
+      $('npK').textContent = r.appNom ? (r.media ? 'En lecture' : 'À l\'écran') : 'Fire TV';
+      $('npT').textContent = r.appNom || (r.accueil ? 'Accueil' : 'Rien d\'ouvert');
+      $('npS').textContent = r.appNom ? (r.media ? 'Session média active' : '') : '';
+      $('npPP').innerHTML = '<path d="M4 5v14l9-7zm11 0h2v14h-2zm4 0h2v14h-2z"/>';
+      prog.style.display = 'none'; npFond('', r.bouton); return;
+    }
     if (r.ouvert || !r.pkg) {   // Fire TV Vega : on sait seulement quelle appli a été ouverte à partir du panneau
       var btn = null;
       for (var q = 0; q < appBtns.length; q++) if (appBtns[q].getAttribute('data-app') === r.bouton) btn = appBtns[q];

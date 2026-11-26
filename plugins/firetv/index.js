@@ -146,6 +146,8 @@ module.exports = (cfg) => {
       if (!r.image && v.image) r.image = v.image;   // l'image donnée par l'appli qui joue
       return r;
     }
+    // Vega en mode développeur : on lit l'appli à l'écran par vda (sauf « "vega": false » dans config.json)
+    if (cfg.vega !== false && cfg.adb !== true) return lireVega();
     if (cfg.adb !== true) return derniere ? { bouton: derniere.nom, appNom: derniere.nom, ouvert: derniere.quand } : {};
     if (dernier && Date.now() - dernierT < 2000) return dernier;
     if (enLecture) return enLecture;
@@ -175,6 +177,45 @@ module.exports = (cfg) => {
         if (a) { r.image = a.url; r.duree = a.duree || 0; }
       }
       return r;
+    })();
+    try { dernier = await enLecture; dernierT = Date.now(); } finally { enLecture = null; }
+    return dernier;
+  }
+
+  // Fire TV Vega en mode développeur : « vda » sur le port 5555 parle ADB.
+  // vlcm list donne l'appli à l'écran (VISIBLE), vlcm dump-state sessions dit si elle a une session média.
+  const COMMANDE_VEGA = 'vlcm list; echo @@@; vlcm dump-state sessions';
+  const ACCUEIL = /launcher|smplighthouse/i;
+  async function lireVega() {
+    if (dernier && Date.now() - dernierT < 2000) return dernier;
+    if (enLecture) return enLecture;
+    if (dernier && dernier.erreurVega && Date.now() < pause) {
+      const r = derniere ? { bouton: derniere.nom, appNom: derniere.nom, ouvert: derniere.quand } : {};
+      r.erreurVega = dernier.erreurVega; return r;
+    }
+    enLecture = (async () => {
+      if (!adbc) adbc = require('./adbnode')({ ip: cfg.ip, port: cfg.adbPort || 5555, cleFichier: path.join(__dirname, '..', '..', 'firetv-adbkey.pem') });
+      let sortie;
+      try { sortie = await adbc.shell(COMMANDE_VEGA); }
+      catch (e) {
+        // vda pas joignable (mode développeur éteint, télé en veille…) : on garde l'appli ouverte depuis le panneau
+        pause = Date.now() + 15000;
+        const r = derniere ? { bouton: derniere.nom, appNom: derniere.nom, ouvert: derniere.quand } : {};
+        r.erreurVega = e.message; r.erreur = undefined;
+        return r;
+      }
+      const [liste, sessions] = String(sortie).split('@@@');
+      let pkg = '', pid = '';
+      String(liste || '').split('\n').forEach(l => {
+        const c = l.trim().split(/\s+/);
+        if (c.length > 4 && c[1] === 'I' && c[4] === 'VISIBLE' && !pkg) { pkg = c[0]; pid = c[2]; }
+      });
+      if (!pkg || ACCUEIL.test(pkg)) return { ecran: true, accueil: !!pkg };
+      const media = !!pid && new RegExp('Session Pid: ' + pid + '\\b').test(sessions || '');
+      const n = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const cfgApp = (cfg.apps || []).filter(a => a.package === pkg || n(pkg).indexOf(n(a.name)) !== -1)[0];
+      const nom = cfgApp ? cfgApp.name : pkg.replace(/\.main$/, '').split('.').filter(x => !/^(com|amazon|kepler|tv|app)$/.test(x))[0] || pkg;
+      return { ecran: true, pkgVega: pkg, media, bouton: cfgApp ? cfgApp.name : '', appNom: nom.charAt(0).toUpperCase() + nom.slice(1) };
     })();
     try { dernier = await enLecture; dernierT = Date.now(); } finally { enLecture = null; }
     return dernier;
