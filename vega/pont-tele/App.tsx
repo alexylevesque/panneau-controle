@@ -235,7 +235,7 @@ export const App = () => {
         if (!loc.current) loc.current = await trouverLocator();
         etape.current = 'lecture';
         const r = await lire(loc.current);
-        data = {ok: true, nb: r.nb, ...(r.choisi || {}), autres: r.vus.map((v: any) => v.app + (v.erreur ? ' (' + v.erreur + ')' : v.joue ? ' ▶' : v.pause ? ' ⏸' : ''))};
+        data = {ok: true, nb: r.nb, ...(r.choisi || {}), brut: dernierBrut, autres: r.vus.map((v: any) => v.app + (v.erreur ? ' (' + v.erreur + ')' : v.joue ? ' ▶' : v.pause ? ' ⏸' : ''))};
         const c = r.choisi;
         setTexte(r.nb + ' lecteur(s) trouvé(s)\n' + (c ? (c.joue ? '▶ ' : c.pause ? '⏸ ' : '') + (c.titre || '(pas de titre)') + '\n' + c.app + '\n' + c.ecoule + ' s / ' + (c.duree || '?') + ' s' : 'Rien en lecture') +
           '\n\n' + r.vus.map((v: any) => '• ' + (v.app || '?') + (v.erreur ? ' : ' + v.erreur : v.vide ? ' : aucune session' : v.joue ? ' : en lecture' : v.pause ? ' : en pause' : ' : arrêté')).join('\n'));
@@ -261,11 +261,11 @@ export const App = () => {
 
   return (
     <View style={s.fond}>
-      <Text style={s.titre}>📺 Pont Télé v9</Text>
+      <Text style={s.titre}>📺 Pont Télé v10</Text>
       <Text style={s.aide}>Laisse cette appli ouverte une fois, puis fais Accueil et lance Netflix : le panneau devrait voir ce qui joue.</Text>
+      <ScrollView style={s.brut}><Text style={s.brutT}>{brut}</Text></ScrollView>
       <Text style={s.texte}>{texte}</Text>
       <Text style={s.envoi}>{envoi}</Text>
-      <ScrollView style={s.brut}><Text style={s.brutT}>{brut}</Text></ScrollView>
     </View>
   );
 };
@@ -276,7 +276,7 @@ const s = StyleSheet.create({
   aide: {color: '#9aa3c7', fontSize: 24, marginTop: 10, marginBottom: 30},
   texte: {color: '#fff', fontSize: 30, lineHeight: 42},
   envoi: {color: '#46e39a', fontSize: 24, marginTop: 24},
-  brut: {marginTop: 24, maxHeight: 420},
+  brut: {marginBottom: 20, maxHeight: 300},
   brutT: {color: '#aab3d8', fontSize: 20},
 });
 
