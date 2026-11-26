@@ -24,7 +24,10 @@ vega project update-manifest --os-min 2.0 --os-version 2.0 || true
 echo "▶ 2/5 Code de l'appli"
 APP=$(find . -name 'App.tsx' -not -path './node_modules/*' | head -1)
 [ -z "$APP" ] && APP="src/App.tsx" && mkdir -p src
-curl -fsSL "$BASE/App.tsx?$(date +%s)" -o "$APP"
+# L'API GitHub donne toujours la dernière version (raw.githubusercontent garde une vieille copie ~5 min)
+curl -fsSL -H "Accept: application/vnd.github.raw" "https://api.github.com/repos/alexylevesque/panneau-controle/contents/vega/pont-tele/App.tsx?ref=main" -o "$APP" \
+  || curl -fsSL "$BASE/App.tsx?$(date +%s)" -o "$APP"
+echo "   → version : $(grep -o "Pont Télé v[0-9]*" "$APP" | head -1)"
 echo "   → $APP"
 
 echo "▶ 3/5 Modules"
