@@ -8,7 +8,7 @@ PANNEAU="__PANNEAU__"
 DOSSIER="$HOME/.panneau"
 PLIST="$HOME/Library/LaunchAgents/ca.panneau.mac.plist"
 
-[ "$1" != "maj" ] && launchctl unload "$PLIST" 2>/dev/null
+[ "$1" != "maj" ] && { launchctl bootout "gui/$(id -u)/ca.panneau.mac" 2>/dev/null || launchctl unload "$PLIST" 2>/dev/null; }
 if [ "$1" = "retirer" ]; then
   rm -rf "$DOSSIER" "$PLIST"
   echo "✔ Panneau retiré du Mac."
@@ -213,7 +213,9 @@ cat > "$PLIST" <<PL
 </dict></plist>
 PL
 [ "$1" = "maj" ] && return 0   # mise à jour : le programme redémarre tout seul avec la nouvelle version
-launchctl load "$PLIST"
+launchctl bootstrap "gui/$(id -u)" "$PLIST" 2>/dev/null || launchctl load "$PLIST"
+# On le démarre tout de suite (sinon macOS attend parfois avant de le lancer)
+launchctl kickstart -k "gui/$(id -u)/ca.panneau.mac" 2>/dev/null
 echo "✔ Installé ! Ton Mac apparaît dans le panneau (Appareils) d'ici quelques secondes."
 }
 installer "$@" < /dev/null
