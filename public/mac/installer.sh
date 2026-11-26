@@ -37,7 +37,7 @@ cat >> "$DOSSIER/agent.sh" <<'AGENT'
 NOM=$(scutil --get ComputerName 2>/dev/null || echo Mac)
 ID=$(cat "$HOME/.panneau/id" 2>/dev/null); [ -z "$ID" ] && ID=mac
 TYPE=$(cat "$HOME/.panneau/type" 2>/dev/null); [ -z "$TYPE" ] && TYPE=mac
-VERSION=14
+VERSION=15
 NCPU=$(sysctl -n hw.ncpu); MEM=$(sysctl -n hw.memsize); PS=$(pagesize)
 BOOT=$(sysctl -n kern.boottime | awk -F'[ ,]+' '{print $4}')
 SMC="$HOME/.panneau/smc"; CLES=""
@@ -73,8 +73,9 @@ while true; do
   # Interrupteur du panneau : on éteint le Mac pour vrai (comme  > Éteindre, sans la question « Voulez-vous… »)
   if echo "$R" | grep -q ETEINS; then
     arreter_son
-    if ! E=$(osascript -e 'tell application "loginwindow" to «event aevtrsdn»' 2>&1); then
-      E=$(osascript -e 'tell application "System Events" to shut down' 2>&1) || echo "$E" > "$HOME/.panneau/erreur"
+    # System Events éteint sans la fenêtre « Voulez-vous éteindre ? » (60 s) ; loginwindow en dernier recours
+    if ! E=$(osascript -e 'tell application "System Events" to shut down' 2>&1); then
+      E=$(osascript -e 'tell application "loginwindow" to «event aevtrsdn»' 2>&1) || echo "$E" > "$HOME/.panneau/erreur"
     fi
     sleep 20; continue
   fi
