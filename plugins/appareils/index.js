@@ -60,7 +60,7 @@ module.exports = (cfg) => {
   const save = () => { try { fs.writeFileSync(FILE, JSON.stringify(liste, null, 2)); } catch (e) {} };
 
   const estMac = a => a && (a.type === 'mac' || a.type === 'macmini');   // MacBook, Mac mini…
-  const MAC_VERSION = 17;   // à monter quand public/mac/installer.sh change : les Mac se mettent à jour tout seuls
+  const MAC_VERSION = 18;   // à monter quand public/mac/installer.sh change : les Mac se mettent à jour tout seuls
 
   // ---- Pushover (faire sonner) ----
   const PO_FILE = path.join(__dirname, '..', '..', 'pushover.json');

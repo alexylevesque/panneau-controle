@@ -37,7 +37,7 @@ cat >> "$DOSSIER/agent.sh" <<'AGENT'
 NOM=$(scutil --get ComputerName 2>/dev/null || echo Mac)
 ID=$(cat "$HOME/.panneau/id" 2>/dev/null); [ -z "$ID" ] && ID=mac
 TYPE=$(cat "$HOME/.panneau/type" 2>/dev/null); [ -z "$TYPE" ] && TYPE=mac
-VERSION=17
+VERSION=18
 NCPU=$(sysctl -n hw.ncpu); MEM=$(sysctl -n hw.memsize); PS=$(pagesize)
 BOOT=$(sysctl -n kern.boottime | awk -F'[ ,]+' '{print $4}')
 SMC="$HOME/.panneau/smc"; CLES=""
@@ -79,12 +79,15 @@ while true; do
     # System Events éteint sans la fenêtre « Voulez-vous éteindre ? » (60 s) ; loginwindow en dernier recours.
     # 20 s au plus par essai : si macOS attend une permission, on ne reste pas pris.
     essai() { ( osascript -e "$1" > "$HOME/.panneau/sortie" 2>&1 & P=$!; ( sleep 20; kill $P 2>/dev/null ) & W=$!; wait $P; R2=$?; kill $W 2>/dev/null; exit $R2 ); }
+    # 1) Arrêt direct (si autorisé une fois avec la commande sudoers du guide) : rien ne peut le bloquer
+    sudo -n /sbin/shutdown -h now >/dev/null 2>&1 && { sleep 30; continue; }
+    # 2) Sinon, arrêt « poli » par macOS (une appli peut l'annuler)
     if ! essai 'tell application "System Events" to shut down'; then
       essai 'tell application "loginwindow" to «event aevtrsdn»' || { echo "macOS a refusé ($(head -c 120 "$HOME/.panneau/sortie")). Regarde l'écran du Mac : il demande peut-être une permission." > "$HOME/.panneau/erreur"; continue; }
     fi
     sleep 30
     # Toujours allumé après 30 s : une appli bloque sûrement l'arrêt
-    echo "Le Mac ne s'est pas éteint : une appli bloque peut-être l'arrêt (document pas enregistré ?)" > "$HOME/.panneau/erreur"
+    echo "Le Mac ne s'est pas éteint : une appli a bloqué l'arrêt. Active l'arrêt forcé (voir le guide)." > "$HOME/.panneau/erreur"
     continue
   fi
   if echo "$R" | grep -q SONNE; then
