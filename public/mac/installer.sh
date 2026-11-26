@@ -37,7 +37,7 @@ cat >> "$DOSSIER/agent.sh" <<'AGENT'
 NOM=$(scutil --get ComputerName 2>/dev/null || echo Mac)
 ID=$(cat "$HOME/.panneau/id" 2>/dev/null); [ -z "$ID" ] && ID=mac
 TYPE=$(cat "$HOME/.panneau/type" 2>/dev/null); [ -z "$TYPE" ] && TYPE=mac
-VERSION=15
+VERSION=16
 NCPU=$(sysctl -n hw.ncpu); MEM=$(sysctl -n hw.memsize); PS=$(pagesize)
 BOOT=$(sysctl -n kern.boottime | awk -F'[ ,]+' '{print $4}')
 SMC="$HOME/.panneau/smc"; CLES=""
@@ -73,11 +73,16 @@ while true; do
   # Interrupteur du panneau : on éteint le Mac pour vrai (comme  > Éteindre, sans la question « Voulez-vous… »)
   if echo "$R" | grep -q ETEINS; then
     arreter_son
-    # System Events éteint sans la fenêtre « Voulez-vous éteindre ? » (60 s) ; loginwindow en dernier recours
-    if ! E=$(osascript -e 'tell application "System Events" to shut down' 2>&1); then
-      E=$(osascript -e 'tell application "loginwindow" to «event aevtrsdn»' 2>&1) || echo "$E" > "$HOME/.panneau/erreur"
+    # System Events éteint sans la fenêtre « Voulez-vous éteindre ? » (60 s) ; loginwindow en dernier recours.
+    # 20 s au plus par essai : si macOS attend une permission, on ne reste pas pris.
+    essai() { ( osascript -e "$1" > "$HOME/.panneau/sortie" 2>&1 & P=$!; ( sleep 20; kill $P 2>/dev/null ) & W=$!; wait $P; R2=$?; kill $W 2>/dev/null; exit $R2 ); }
+    if ! essai 'tell application "System Events" to shut down'; then
+      essai 'tell application "loginwindow" to «event aevtrsdn»' || { echo "macOS a refusé ($(head -c 120 "$HOME/.panneau/sortie")). Regarde l'écran du Mac : il demande peut-être une permission." > "$HOME/.panneau/erreur"; continue; }
     fi
-    sleep 20; continue
+    sleep 30
+    # Toujours allumé après 30 s : une appli bloque sûrement l'arrêt
+    echo "Le Mac ne s'est pas éteint : une appli bloque peut-être l'arrêt (document pas enregistré ?)" > "$HOME/.panneau/erreur"
+    continue
   fi
   if echo "$R" | grep -q SONNE; then
     if [ -z "$SONNEUR" ] || ! kill -0 "$SONNEUR" 2>/dev/null; then
