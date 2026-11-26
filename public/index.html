@@ -234,6 +234,7 @@
   .nt-tout { text-align: right; padding: 2px 10px 4px; }
   .nt-tout a { color: var(--muted); font-size: 13px; }
   /* Musique de l'iPhone */
+  #pg-musique { -webkit-transition: background .6s; transition: background .6s; }
   .mus { flex: 1; display: flex; align-items: center; padding: 14px 18px; min-height: 0; }
   .mus-img { flex: none; width: 250px; height: 250px; border-radius: 18px; overflow: hidden; background: rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
   .mus-img img { width: 100%; height: 100%; object-fit: cover; }
@@ -1040,6 +1041,7 @@
     var box = $('pg-musique'), m = d.musique;
     musInfo = m && d.bluetooth && m.titre ? { m: m, recu: Date.now(), qui: d.id } : null;
     if (!musInfo) {
+      box.style.background = '';
       box.innerHTML = '<div class="bientot"><b>🎵</b>' + (d.bluetooth ? 'Rien ne joue sur l\'iPhone en ce moment.' : 'La musique s\'affichera ici quand l\'iPhone sera connecté.') + '</div>';
       return;
     }
@@ -1064,8 +1066,37 @@
     if (img.getAttribute('data-src') !== (m.image || '')) {
       img.setAttribute('data-src', m.image || '');
       img.innerHTML = m.image ? '<img src="' + esc(m.image) + '">' : '<span>🎵</span>';
+      var im = img.getElementsByTagName('img')[0];
+      if (im) im.onload = function () { fondMusique(im); };
+      else fondMusique(null);
     }
     musTic();
+  }
+  // Fond de la page Musique : un dégradé avec les couleurs de la pochette (comme sur l'iPhone)
+  function fondMusique(im) {
+    var pg = $('pg-musique');
+    if (!pg) return;
+    if (!im) { pg.style.background = ''; return; }
+    try {
+      var c = document.createElement('canvas'); c.width = c.height = 3;
+      var x = c.getContext('2d'); x.drawImage(im, 0, 0, 3, 3);
+      var d = x.getImageData(0, 0, 3, 3).data;
+      // Couleur d'un coin, assombrie pour que le texte reste lisible
+      // Couleur d'un coin, plus vive mais assez foncée pour que le texte reste lisible (f = clarté)
+      function coul(i, f) {
+        var r = d[i * 4] / 255, g = d[i * 4 + 1] / 255, b = d[i * 4 + 2] / 255;
+        var mx = Math.max(r, g, b), mn = Math.min(r, g, b), h = 0, sa = 0, l = (mx + mn) / 2;
+        if (mx !== mn) {
+          var e = mx - mn; sa = l > 0.5 ? e / (2 - mx - mn) : e / (mx + mn);
+          h = mx === r ? (g - b) / e + (g < b ? 6 : 0) : mx === g ? (b - r) / e + 2 : (r - g) / e + 4;
+          h *= 60;
+        }
+        return 'hsl(' + Math.round(h) + ',' + Math.round(Math.min(1, sa * 1.25) * 100) + '%,' + Math.round(f * 100) + '%)';
+      }
+      pg.style.background = 'radial-gradient(ellipse at 15% 10%, ' + coul(0, 0.38) + ', transparent 70%),' +
+        'radial-gradient(ellipse at 90% 95%, ' + coul(8, 0.32) + ', transparent 65%),' +
+        'linear-gradient(160deg, ' + coul(4, 0.3) + ', ' + coul(6, 0.2) + ')';
+    } catch (e) { pg.style.background = ''; }
   }
   // La barre avance toute seule entre deux nouvelles de l'iPhone
   function musTic() {
