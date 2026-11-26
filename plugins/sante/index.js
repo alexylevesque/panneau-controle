@@ -22,12 +22,13 @@ module.exports = () => {
   s.coucher = s.coucher || '22:30';
   s.reveil = s.reveil || '06:45';
   if (s.reveilActif === undefined) s.reveilActif = true;
-  // Jour de la semaine (0 = dimanche) → jour du programme (null = repos)
-  s.semaine = s.semaine || { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: null, 0: null };
+  // Jour de la semaine (0 = dimanche) → jour du programme (null = repos). Le plan va du mardi au samedi.
+  const SEMAINE = { 0: null, 1: null, 2: 0, 3: 1, 4: 2, 5: 3, 6: 4 };
+  delete s.semaine;
   const save = () => { try { fs.writeFileSync(FILE, JSON.stringify(s, null, 2)); } catch (e) {} };
 
   function plan(d) {
-    const i = s.semaine[d.getDay()];
+    const i = SEMAINE[d.getDay()];
     return i === null || i === undefined || !PROGRAMME.jours[i] ? null : PROGRAMME.jours[i];
   }
 
