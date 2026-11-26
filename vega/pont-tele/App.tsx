@@ -43,6 +43,7 @@ function court(o: any, n: number): string {
 }
 
 async function lire(loc: any) {
+  if (!loc || typeof loc.getMediaControlEndpoints !== 'function') throw new Error('locator sans getMediaControlEndpoints : ' + Object.getOwnPropertyNames(Object.getPrototypeOf(loc) || {}).join(','));
   const eps: any[] = (await loc.getMediaControlEndpoints()) || [];
   const vus: any[] = [];
   let choisi: any = null;
@@ -85,12 +86,44 @@ async function lire(loc: any) {
   return {choisi, vus, nb: eps.length};
 }
 
+// Ce que le module de Vega contient vraiment (pour le diagnostic)
+function cles(): string {
+  const out: string[] = [];
+  Object.keys(K).forEach(k => {
+    const v = K[k];
+    let sous = '';
+    if (v && (typeof v === 'object' || typeof v === 'function')) {
+      try { sous = Object.getOwnPropertyNames(v).filter(x => !/^(length|name|prototype|caller|arguments)$/.test(x)).slice(0, 12).join(','); } catch (e) {}
+    }
+    out.push(k + (sous ? '{' + sous + '}' : ''));
+  });
+  return out.join('  ');
+}
+// Trouve la fonction qui donne le « locator », peu importe son nom exact
+async function trouverLocator(): Promise<any> {
+  const sources = [K.MediaControlComponentAsync, K.MediaControlComponent, K.default, K];
+  const noms = ['makeMediaControlEndpointLocator', 'getMediaControlEndpointLocator', 'createMediaControlEndpointLocator', 'makeMediaControlEndpointLocatorAsync'];
+  for (const src of sources) {
+    if (!src) continue;
+    for (const n of noms) if (typeof src[n] === 'function') return await src[n].call(src);
+    for (const n of Object.getOwnPropertyNames(src)) {
+      if (/locator/i.test(n) && typeof src[n] === 'function') return await src[n].call(src);
+    }
+  }
+  if (typeof K.MediaControlComponentAsync === 'function') {
+    const inst = new K.MediaControlComponentAsync();
+    for (const n of noms) if (typeof inst[n] === 'function') return await inst[n]();
+  }
+  throw new Error('aucune fonction « locator » trouvée');
+}
+
 export const App = () => {
   const [texte, setTexte] = useState('Démarrage…');
   const [envoi, setEnvoi] = useState('');
   const [brut, setBrut] = useState('');
   const loc = useRef<any>(null);
   const occupe = useRef(false);
+  const etape = useRef('');
 
   useEffect(() => {
     const tour = async () => {
@@ -98,7 +131,9 @@ export const App = () => {
       occupe.current = true;
       let data: any = {};
       try {
-        if (!loc.current) loc.current = K.MediaControlComponentAsync.makeMediaControlEndpointLocator();
+        etape.current = 'locator';
+        if (!loc.current) loc.current = await trouverLocator();
+        etape.current = 'lecture';
         const r = await lire(loc.current);
         data = {ok: true, nb: r.nb, ...(r.choisi || {}), autres: r.vus.map((v: any) => v.app + (v.erreur ? ' (' + v.erreur + ')' : v.joue ? ' ▶' : v.pause ? ' ⏸' : ''))};
         const c = r.choisi;
@@ -106,8 +141,9 @@ export const App = () => {
           '\n\n' + r.vus.map((v: any) => '• ' + (v.app || '?') + (v.erreur ? ' : ' + v.erreur : v.vide ? ' : aucune session' : v.joue ? ' : en lecture' : v.pause ? ' : en pause' : ' : arrêté')).join('\n'));
         setBrut(c ? c.brut : '');
       } catch (e: any) {
-        data = {ok: false, erreur: String((e && e.message) || e)};
-        setTexte('Erreur : ' + data.erreur);
+        data = {ok: false, erreur: '[' + etape.current + '] ' + String((e && e.message) || e), cles: cles()};
+        setTexte('Erreur ' + data.erreur);
+        setBrut('Module : ' + data.cles);
       }
       try {
         const res = await fetch(PANNEAU, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)});
