@@ -203,6 +203,7 @@ cat > "$PLIST" <<PL
   <key>ProgramArguments</key><array><string>/bin/bash</string><string>$DOSSIER/agent.sh</string></array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
+  <key>StartInterval</key><integer>60</integer>
 </dict></plist>
 PL
 [ "$1" = "maj" ] && return 0   # mise à jour : le programme redémarre tout seul avec la nouvelle version
