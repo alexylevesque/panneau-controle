@@ -684,8 +684,8 @@ public class PontService extends Service {
     private void boucleCommandes() {
         while (actif) {
             try {
-                Thread.sleep(1000);
-                if (++tours % 10 == 1) lireNoms();
+                Thread.sleep(400);   // assez souvent pour que le volume suive le slider
+                if (++tours % 25 == 1) lireNoms();
                 h.post(() -> {
                     majApercu();
                     JSONArray a = new JSONArray();

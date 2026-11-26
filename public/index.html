@@ -255,6 +255,7 @@
   .mus-btns a.mus-pp { width: 70px; height: 70px; background: var(--txt); }
   .mus-btns a.mus-pp svg { fill: #11131c; width: 36px; height: 36px; }
   .mus-vol { display: flex; align-items: center; justify-content: center; margin-top: 8px; color: var(--muted); font-size: 13px; }
+  .mus-pct { text-align: center; color: var(--muted); font-size: 14px; margin-top: -6px; font-variant-numeric: tabular-nums; }
   .mus-niv { width: 260px; padding: 18px 0; margin: 0 12px; touch-action: none; }
   .mus-niv-b { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.12); }
   .mus-niv-b div { position: relative; height: 100%; background: var(--txt); border-radius: 4px; -webkit-transition: width .2s; transition: width .2s; }
@@ -1048,7 +1049,7 @@
         '<div class="mus-d"><div class="mus-app" id="musApp"></div><div class="mus-t" id="musTitre"></div><div class="mus-a" id="musArt"></div>' +
         '<div class="mus-barre"><div id="musBarre"></div></div><div class="mus-tps"><span id="musEc"></span><span id="musDu"></span></div>' +
         '<div class="mus-btns">' + bouton('precedent') + '<a class="mus-pp" data-c="basculer" id="musPP"></a>' + bouton('suivant') + '</div>' +
-        '<div class="mus-vol">' + bouton('volMoins') + '<div class="mus-niv" id="musNiv"><div class="mus-niv-b"><div id="musVol"><i></i></div></div></div>' + bouton('volPlus') + '</div></div></div>';
+        '<div class="mus-vol">' + bouton('volMoins') + '<div class="mus-niv" id="musNiv"><div class="mus-niv-b"><div id="musVol"><i></i></div></div></div>' + bouton('volPlus') + '</div><div class="mus-pct" id="musPct"></div></div></div>';
       var bs = box.querySelectorAll('[data-c]');
       for (var i = 0; i < bs.length; i++) bs[i].onclick = function () { commandeMusique(this.getAttribute('data-c')); };
       sliderVolume($('musNiv'));
@@ -1058,7 +1059,7 @@
     $('musArt').textContent = [m.artiste, m.album].filter(function (x) { return x; }).join(' · ');
     $('musApp').textContent = m.joueur || '';
     $('musPP').innerHTML = joue ? MUS_SVG.pause : MUS_SVG.lecture;
-    if (!musVolAttente || Date.now() - musVolAttente > 2500) { musVolAttente = 0; $('musVol').style.width = Math.round(100 * (m.volume || 0)) + '%'; }
+    if (!musVolAttente || Date.now() - musVolAttente > 2500) { musVolAttente = 0; $('musVol').style.width = Math.round(100 * (m.volume || 0)) + '%'; majPct(m.volume || 0); }
     var img = $('musImg');
     if (img.getAttribute('data-src') !== (m.image || '')) {
       img.setAttribute('data-src', m.image || '');
@@ -1080,40 +1081,63 @@
   // Slider du volume : l'iPhone ne connaît que « plus fort / moins fort » (16 crans),
   // alors on envoie le nombre de crans entre le volume actuel et l'endroit où on lâche
   function sliderVolume(el) {
-    var tire = false;
+    var tire = false, envoye = 0, minuterie = null;
     function pos(e) {
       var t = e.touches && e.touches.length ? e.touches[0] : e.changedTouches && e.changedTouches.length ? e.changedTouches[0] : e;
       var r = el.getBoundingClientRect();
       return Math.max(0, Math.min(1, (t.clientX - r.left) / r.width));
     }
+    // Envoie les crans qui manquent (au plus aux 150 ms), pendant qu'on glisse
+    function envoyer(cible) {
+      if (!musInfo) return;
+      var n = cible - envoye;
+      if (!n) return;
+      envoye = cible; musInfo.m.volume = cible / 16;
+      api('POST', '/api/appareils/action/media', { id: musInfo.qui, cmd: n > 0 ? 'volPlus' : 'volMoins', n: Math.abs(n) }, function (r) {
+        if (!r || !r.ok) toast((r && r.error) || 'Erreur', true);
+      });
+    }
+    function plusTard(cible) {
+      if (minuterie) return;
+      minuterie = setTimeout(function () { minuterie = null; envoyer(el.cible); }, 150);
+    }
     function bouge(e) {
       if (!tire) return;
       e.preventDefault();
+      var v = pos(e);
       musVolAttente = Date.now();
-      $('musVol').style.width = Math.round(100 * pos(e)) + '%';
+      $('musVol').style.width = Math.round(100 * v) + '%';
+      majPct(v);
+      el.cible = Math.round(v * 16);
+      plusTard();
     }
     function lache(e) {
       if (!tire) return;
       tire = false; el.className = 'mus-niv';
-      if (!musInfo) return;
-      var cible = Math.round(pos(e) * 16), avant = Math.round((musInfo.m.volume || 0) * 16), n = cible - avant;
-      musInfo.m.volume = cible / 16; musVolAttente = Date.now();
+      if (minuterie) { clearTimeout(minuterie); minuterie = null; }
+      var cible = Math.round(pos(e) * 16);
+      envoyer(cible);
+      musVolAttente = Date.now();
       $('musVol').style.width = Math.round(100 * cible / 16) + '%';
-      if (n) api('POST', '/api/appareils/action/media', { id: musInfo.qui, cmd: n > 0 ? 'volPlus' : 'volMoins', n: Math.abs(n) }, function (r) {
-        if (!r || !r.ok) toast((r && r.error) || 'Erreur', true);
-      });
+      majPct(cible / 16);
     }
-    function debut(e) { tire = true; el.className = 'mus-niv tire'; bouge(e); }
+    function debut(e) {
+      if (!musInfo) return;
+      tire = true; el.className = 'mus-niv tire';
+      envoye = Math.round((musInfo.m.volume || 0) * 16);
+      bouge(e);
+    }
     el.addEventListener('touchstart', debut); el.addEventListener('mousedown', debut);
     document.addEventListener('touchmove', bouge, { passive: false }); document.addEventListener('mousemove', bouge);
     document.addEventListener('touchend', lache); document.addEventListener('mouseup', lache);
   }
+  function majPct(v) { if ($('musPct')) $('musPct').textContent = Math.round(100 * v) + ' %'; }
   function commandeMusique(c) {
     if (!musInfo) return;
     if (c === 'volPlus' || c === 'volMoins') {   // la barre bouge tout de suite (1/16 par clic, comme l'iPhone)
       var v = Math.max(0, Math.min(1, (musInfo.m.volume || 0) + (c === 'volPlus' ? 1 : -1) / 16));
       musInfo.m.volume = v; musVolAttente = Date.now();
-      $('musVol').style.width = Math.round(100 * v) + '%';
+      $('musVol').style.width = Math.round(100 * v) + '%'; majPct(v);
     }
     if (c === 'basculer') {   // on change le bouton tout de suite
       var m = musInfo.m;
