@@ -1,5 +1,11 @@
 # Voir ce qui joue sur la télé (« En ce moment »)
 
+> **Fire TV Stick 4K Select et autres Fire TV sous Vega OS :** ce guide ne s'applique pas. Vega ne laisse pas savoir ce qui joue, même en mode développeur.
+> La carte **En ce moment** montre alors l'appli ouverte à partir du panneau (et l'heure). Il n'y a rien à configurer.
+>
+> Le reste du guide est seulement pour les Fire TV sous **Fire OS** (Paramètres > Ma Fire TV > À propos : la version du logiciel commence par « Fire OS »).
+> Il faut alors ajouter `"adb": true` sous `firetv` dans `config.json`.
+
 Sur le panneau, **Télé > En ce moment** montre ce qui joue sur la Fire TV : l'appli, le titre, l'épisode, le temps écoulé et l'affiche de la série ou du film.
 
 La télécommande du panneau ne peut pas savoir ce qui joue. Pour ça, le panneau lit la Fire TV par **ADB** (le mode développeur d'Android). Il n'y a rien à installer sur la tablette, il faut seulement l'activer **une fois** sur la Fire TV.

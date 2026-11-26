@@ -103,7 +103,10 @@ module.exports = (cfg) => {
     return list.find(x => norm(x.name) === n) || list.find(x => x.id === a.package) ||
            list.find(x => norm(x.name).indexOf(n) !== -1 || n.indexOf(norm(x.name)) !== -1 && norm(x.name).length > 3);
   }
+  // Dernière appli ouverte à partir du panneau (les Fire TV Vega ne disent pas ce qui joue)
+  let derniere = null;
   async function openApp(a) {
+    derniere = { nom: a.name, quand: Date.now() };
     let found = null;
     try { found = await findApp(a); } catch (e) {}
     if (found && found.shortcut) return send('FireTV/shortcut/' + encodeURIComponent(found.shortcut)).then(() => null);
@@ -121,6 +124,9 @@ module.exports = (cfg) => {
   let adbc = null, dernier = null, dernierT = 0, enLecture = null, pause = 0;
   const COMMANDE = "dumpsys media_session; echo @@@; cat /proc/uptime; echo @@@; dumpsys window windows | grep -E 'mCurrentFocus|mFocusedApp'";
   async function lireEnCours() {
+    // Par défaut : seulement l'appli ouverte à partir du panneau.
+    // « "adb": true » dans config.json (Fire TV sous Fire OS seulement) : vrai titre, temps et affiche.
+    if (cfg.adb !== true) return derniere ? { bouton: derniere.nom, appNom: derniere.nom, ouvert: derniere.quand } : {};
     if (dernier && Date.now() - dernierT < 2000) return dernier;
     if (enLecture) return enLecture;
     if (dernier && dernier.erreur && Date.now() < pause) return dernier;   // ADB pas prêt : on réessaie dans 15 s
@@ -168,8 +174,8 @@ module.exports = (cfg) => {
       return 'Jumelé ✔';
     } },
     on:    { label: 'Réveiller', icon: '☀️', color: 'green', run: async () => { await wakeService(); return key('home')(); } },
-    off:   { label: 'Veille', icon: '🌙', color: 'red', run: key('sleep') },
-    home:  { label: 'Accueil', icon: '🏠', run: key('home') },
+    off:   { label: 'Veille', icon: '🌙', color: 'red', run: () => { derniere = null; return key('sleep')(); } },
+    home:  { label: 'Accueil', icon: '🏠', run: () => { derniere = null; return key('home')(); } },
     back:  { label: 'Retour', icon: '↩', run: key('back') },
     menu:  { label: 'Menu', icon: '☰', run: key('menu') },
     up:    { label: 'Haut', icon: '▲', run: key('dpad_up') },
