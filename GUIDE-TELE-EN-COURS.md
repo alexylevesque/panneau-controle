@@ -108,7 +108,7 @@ vega exec vda devices
 ## 5. Installer Pont Télé (une seule commande)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/alexylevesque/panneau-controle/main/vega/installer-pont-tele.sh | bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/alexylevesque/panneau-controle/main/vega/installer-pont-tele.sh)"
 ```
 
 Le script fait tout tout seul :

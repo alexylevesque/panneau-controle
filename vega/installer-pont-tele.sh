@@ -1,7 +1,8 @@
 #!/bin/bash
 # Crée (la première fois), compile et installe l'appli « Pont Télé » sur la Fire TV (Vega OS).
 # À lancer sur le Mac, dans Terminal :
-#   curl -fsSL https://raw.githubusercontent.com/alexylevesque/panneau-controle/main/vega/installer-pont-tele.sh | bash
+#   bash -c "$(curl -fsSL https://raw.githubusercontent.com/alexylevesque/panneau-controle/main/vega/installer-pont-tele.sh)"
+exec </dev/null   # aucune commande ne doit lire la suite du script au clavier
 set -e
 DOSSIER="$HOME/pont-tele"
 BASE="https://raw.githubusercontent.com/alexylevesque/panneau-controle/main/vega/pont-tele"
@@ -33,8 +34,8 @@ npm install "@amazon-devices/kepler-media-controls@~1.0.0" "@amazon-devices/kepl
 echo "▶ 4/5 Compilation"
 command -v watchman >/dev/null && { watchman watch-del-all >/dev/null 2>&1; watchman shutdown-server >/dev/null 2>&1; } || true
 npm run build:app
-VPKG=$(ls build/armv7-release/*.vpkg 2>/dev/null | head -1)
-[ -z "$VPKG" ] && VPKG=$(find build -name '*armv7*.vpkg' | head -1)
+VPKG=$(find build -name '*_armv7.vpkg' 2>/dev/null | head -1)
+[ -z "$VPKG" ] && VPKG=$(find build -name '*armv7*.vpkg' 2>/dev/null | head -1)
 if [ -z "$VPKG" ]; then echo "❌ Pas de fichier .vpkg dans build/. Envoie une capture de l'erreur plus haut."; exit 1; fi
 echo "   → $VPKG"
 
