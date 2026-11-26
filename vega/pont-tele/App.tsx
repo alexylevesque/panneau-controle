@@ -43,7 +43,12 @@ function court(o: any, n: number): string {
 }
 
 let dernierBrut = '';
+// Envoie l'étape en cours au panneau : si l'appli plante, on sait où
+async function ping(etape: string) {
+  try { await fetch(PANNEAU, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ok: false, etape})}); } catch (e) {}
+}
 async function lire(loc: any) {
+  await ping('liste des lecteurs');
   if (!loc || typeof loc.getMediaControlEndpoints !== 'function') throw new Error('locator sans getMediaControlEndpoints : ' + Object.getOwnPropertyNames(Object.getPrototypeOf(loc) || {}).join(','));
   let eps: any = [];
   try { eps = (await loc.getMediaControlEndpoints()) || []; }
@@ -59,11 +64,16 @@ async function lire(loc: any) {
       if (TM) { for (const k in TM) noms.push(k); try { Object.getOwnPropertyNames(TM).forEach(k => noms.push(k)); } catch (e) {} }
       throw new Error('getMediaControlEndpoints : ' + ((e1 && e1.message) || e1) + ' | module natif : ' + (TM ? noms.join(',') || '(vide)' : 'introuvable'));
     }
+    await ping('natif : appel');
     const brut: any = await TM.getMediaControlEndpoints();
-    dernierBrut = 'type=' + typeof brut + ' ' + court(brut, 400);
-    const liste: any[] = Array.isArray(brut) ? brut : brut && typeof brut.length === 'number' ? Array.from(brut) : brut && typeof brut === 'object' ? Object.values(brut) : [];
+    // Attention : ne jamais faire JSON.stringify / Object.values sur un objet natif (ça peut faire planter)
+    const longueur = brut && typeof brut.length === 'number' ? brut.length : -1;
+    dernierBrut = 'type=' + typeof brut + ' tableau=' + Array.isArray(brut) + ' longueur=' + longueur;
+    await ping('natif : ' + dernierBrut);
     eps = [];
-    for (let i = 0; i < liste.length; i++) { try { eps.push(new MCC(liste[i])); } catch (e: any) { dernierBrut += ' | client : ' + ((e && e.message) || e); } }
+    for (let i = 0; i < longueur; i++) {
+      try { eps.push(new MCC(brut[i])); } catch (e: any) { dernierBrut += ' | client : ' + ((e && e.message) || e); }
+    }
   }
   if (!Array.isArray(eps)) eps = Array.from(eps as any);
   const vus: any[] = [];
@@ -73,6 +83,7 @@ async function lire(loc: any) {
     let pkg = '';
     try { pkg = nomPaquet(ep.getEndpointPackageId()); } catch (e) {}
     let etats: any[] = [];
+    await ping('lecteur ' + i + ' (' + pkg + ') : état');
     try { etats = (await ep.getSessionState()) || []; }
     catch (e: any) { vus.push({pkg, erreur: 'getSessionState : ' + (e && e.message)}); continue; }
     if (!Array.isArray(etats)) etats = etats && typeof (etats as any).length === 'number' ? Array.from(etats as any) : etats ? Object.values(etats as any) : [];
@@ -85,7 +96,7 @@ async function lire(loc: any) {
       let meta: any = null;
       const id = info.mediaId !== undefined ? info.mediaId : info.id;
       etape = 'metadata';
-      if (id !== undefined) { try { meta = await ep.getMetadata(id); } catch (e) {} }
+      if (id !== undefined) { await ping('lecteur ' + i + ' : infos'); try { meta = await ep.getMetadata(id); } catch (e) {} }
       etape = 'position';
       const pos = ps.position || {};
       let ecoule = sec(pos.position !== undefined ? pos.position : pos);
@@ -104,12 +115,12 @@ async function lire(loc: any) {
         duree: Math.round(sec(info.duration || m.duration || ps.duration)),
         image: premiereImage(m),
         vitesse: ps.playbackSpeed || 1,
-        brut: court({session: s, meta}, 1500),
+        brut: '',
       };
       vus.push(r);
       if (!choisi || (r.joue && !choisi.joue)) choisi = r;
      } catch (e: any) {
-      vus.push({app: pkg, erreur: etape + ' : ' + ((e && e.message) || e) + ' — ' + court(etats[j], 300)});
+      vus.push({app: pkg, erreur: etape + ' : ' + ((e && e.message) || e)});
      }
     }
     if (!etats.length) vus.push({app: pkg, vide: true});
@@ -192,7 +203,7 @@ export const App = () => {
 
   return (
     <View style={s.fond}>
-      <Text style={s.titre}>📺 Pont Télé v6</Text>
+      <Text style={s.titre}>📺 Pont Télé v7</Text>
       <Text style={s.aide}>Laisse cette appli ouverte une fois, puis fais Accueil et lance Netflix : le panneau devrait voir ce qui joue.</Text>
       <Text style={s.texte}>{texte}</Text>
       <Text style={s.envoi}>{envoi}</Text>
