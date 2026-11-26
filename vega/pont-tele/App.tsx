@@ -149,7 +149,7 @@ async function trouverLocator(): Promise<any> {
 }
 
 export const App = () => {
-  const [texte, setTexte] = useState('Démarrage…');
+  const [texte, setTexte] = useState('Démarrage… première lecture dans 4 secondes');
   const [envoi, setEnvoi] = useState('');
   const [brut, setBrut] = useState('');
   const loc = useRef<any>(null);
@@ -184,14 +184,15 @@ export const App = () => {
       }
       occupe.current = false;
     };
-    tour();
-    const t = setInterval(tour, DELAI);
-    return () => clearInterval(t);
+    // On attend 4 s avant la première lecture : si l'appli plante après, c'est la lecture des médias
+    let t: any = null;
+    const d = setTimeout(() => { tour(); t = setInterval(tour, DELAI); }, 4000);
+    return () => { clearTimeout(d); if (t) clearInterval(t); };
   }, []);
 
   return (
     <View style={s.fond}>
-      <Text style={s.titre}>📺 Pont Télé <Text style={s.aide}>v5</Text></Text>
+      <Text style={s.titre}>📺 Pont Télé v6</Text>
       <Text style={s.aide}>Laisse cette appli ouverte une fois, puis fais Accueil et lance Netflix : le panneau devrait voir ce qui joue.</Text>
       <Text style={s.texte}>{texte}</Text>
       <Text style={s.envoi}>{envoi}</Text>
