@@ -80,6 +80,9 @@ public class PontService extends Service {
     static final String PANNEAU = "http://127.0.0.1:8080/api/appareils/action/";
 
     static volatile String etat = "Démarrage…";
+    static volatile PontService instance;
+    static volatile String apercu = "[]";                          // les iPhone, pour l'écran de l'appli
+    static final Map<String, String> NOMS = new java.util.concurrent.ConcurrentHashMap<>();   // id du panneau → nom
     private static final LinkedList<String> JOURNAL = new LinkedList<>();
 
     private final Handler h = new Handler(Looper.getMainLooper());
@@ -116,6 +119,33 @@ public class PontService extends Service {
         return b.toString();
     }
 
+    // Pour l'écran de l'appli (pont.html) : état, iPhone et journal
+    static String donnees(String version) {
+        try {
+            JSONObject o = new JSONObject();
+            o.put("etat", etat);
+            BluetoothAdapter ba = BluetoothAdapter.getDefaultAdapter();
+            o.put("bt", ba != null && ba.isEnabled());
+            o.put("version", version);
+            o.put("iphones", new JSONArray(apercu));
+            o.put("journal", journal());
+            return o.toString();
+        } catch (Exception e) { return "{}"; }
+    }
+
+    private void majApercu() {
+        JSONArray a = new JSONArray();
+        for (Lien l : liens.values()) {
+            if (l.qui == null && !l.relie) continue;
+            try {
+                String nom = l.qui == null ? null : NOMS.get(l.qui);
+                a.put(new JSONObject().put("nom", nom != null ? nom : l.nom()).put("pret", l.pret())
+                    .put("musique", l.amsEtape >= 4).put("pile", l.dernierePile));
+            } catch (Exception e) { }
+        }
+        apercu = a.toString();
+    }
+
     private void majEtat() {
         int n = 0;
         StringBuilder noms = new StringBuilder();
@@ -128,6 +158,7 @@ public class PontService extends Service {
 
     @Override public int onStartCommand(Intent intent, int flags, int startId) {
         premierPlan();
+        instance = this;
         if (!actif) { actif = true; initialiser(); }
         return START_STICKY;
     }
@@ -629,11 +660,34 @@ public class PontService extends Service {
 
     // Va chercher chaque seconde les commandes du panneau (accepter / refuser un appel) et les donne au bon iPhone
     private volatile String prets = "[]";
+    private int tours = 0;
+    // Les noms des appareils dans le panneau (« iPhone de … »)
+    private void lireNoms() {
+        HttpURLConnection c = null;
+        try {
+            c = (HttpURLConnection) new URL("http://127.0.0.1:8080/api/appareils/status").openConnection();
+            c.setConnectTimeout(3000); c.setReadTimeout(5000);
+            InputStream is = c.getInputStream();
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buf = new byte[4096]; int n;
+            while ((n = is.read(buf)) > 0) out.write(buf, 0, n);
+            JSONObject j = new JSONObject(out.toString("UTF-8"));
+            JSONObject res = j.optJSONObject("result");
+            JSONArray l = (res != null ? res : j).optJSONArray("appareils");
+            if (l != null) for (int i = 0; i < l.length(); i++) {
+                JSONObject x = l.getJSONObject(i);
+                if (x.has("id") && x.has("nom")) NOMS.put(x.getString("id"), x.getString("nom"));
+            }
+        } catch (Exception e) { /* panneau pas lancé */ }
+        finally { if (c != null) c.disconnect(); }
+    }
     private void boucleCommandes() {
         while (actif) {
             try {
                 Thread.sleep(1000);
+                if (++tours % 10 == 1) lireNoms();
                 h.post(() -> {
+                    majApercu();
                     JSONArray a = new JSONArray();
                     for (Lien l : liens.values()) if (l.pret()) a.put(l.qui);
                     prets = a.toString();

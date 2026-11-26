@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pont iPhone</title>
+<style>
+  :root {
+    --bg1: #0b1020; --bg2: #141a33; --glass: rgba(255,255,255,0.06); --glass-b: rgba(255,255,255,0.10);
+    --txt: #f2f4fb; --muted: #9aa3c0; --accent: #7aa2ff; --ok: #5fd39a; --bad: #ff6b6b; --warm: #ffb86b;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: Roboto, -apple-system, "Segoe UI", system-ui, sans-serif; color: var(--txt);
+    background: radial-gradient(ellipse at 15% 0%, rgba(122,162,255,0.20), transparent 55%),
+                radial-gradient(ellipse at 100% 100%, rgba(180,120,255,0.14), transparent 50%),
+                linear-gradient(160deg, var(--bg1), var(--bg2));
+    background-color: var(--bg1);
+    display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column;
+    padding: 28px 32px; overflow: hidden;
+  }
+  .haut { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin-bottom: 22px; }
+  .logo { width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(145deg, #7aa2ff, #a67bff);
+          display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
+          box-shadow: 0 8px 24px rgba(122,162,255,0.35); }
+  .logo svg { width: 32px; height: 32px; fill: #fff; }
+  .titre { margin-left: 16px; -webkit-flex: 1; flex: 1; }
+  .titre b { display: block; font-size: 26px; font-weight: 600; }
+  .titre small { color: var(--muted); font-size: 14px; }
+  .pill { display: -webkit-inline-flex; display: inline-flex; -webkit-align-items: center; align-items: center; background: var(--glass); border: 1px solid var(--glass-b);
+          padding: 9px 16px; border-radius: 999px; font-size: 15px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 9px; }
+  .dot.ok { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+  .dot.att { background: var(--warm); box-shadow: 0 0 10px var(--warm); }
+  .dot.mal { background: var(--bad); box-shadow: 0 0 10px var(--bad); }
+
+  .grille { -webkit-flex: 1; flex: 1; min-height: 0; display: -webkit-flex; display: flex; }
+  .col { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; min-height: 0; }
+  .col.g { width: 44%; margin-right: 20px; }
+  .col.d { -webkit-flex: 1; flex: 1; }
+  .carte { background: var(--glass); border: 1px solid var(--glass-b); border-radius: 24px; padding: 20px 22px; margin-bottom: 18px; }
+  .carte h2 { margin: 0 0 14px; font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+
+  .ip { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.06); }
+  .ip:first-of-type { border-top: 0; padding-top: 2px; }
+  .ip .ico { width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.08); font-size: 24px;
+             display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; }
+  .ip .n { -webkit-flex: 1; flex: 1; margin-left: 14px; min-width: 0; }
+  .ip .n b { display: block; font-size: 17px; font-weight: 500; }
+  .ip .n small { color: var(--muted); font-size: 13px; }
+  .tag { font-size: 12px; padding: 4px 10px; border-radius: 999px; margin-left: 6px; background: rgba(255,255,255,0.08); color: var(--muted); }
+  .tag.ok { background: rgba(95,211,154,0.15); color: var(--ok); }
+  .vide { color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+  .etapes { margin: 0; padding: 0; list-style: none; counter-reset: e; }
+  .etapes li { position: relative; padding: 0 0 12px 40px; color: #c9cfe6; font-size: 15px; line-height: 1.45; counter-increment: e; }
+  .etapes li:before { content: counter(e); position: absolute; left: 0; top: -2px; width: 26px; height: 26px; border-radius: 50%;
+                      background: rgba(122,162,255,0.18); color: var(--accent); font-size: 13px; font-weight: 600; text-align: center; line-height: 26px; }
+  .etapes b { color: var(--txt); font-weight: 500; }
+
+  .journal { -webkit-flex: 1; flex: 1; min-height: 0; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; margin-bottom: 0; }
+  #journal { -webkit-flex: 1; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; font-family: "Roboto Mono", monospace; font-size: 13px; line-height: 1.65; color: #b4bbd6; }
+  #journal div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #journal i { font-style: normal; color: #6b7394; margin-right: 10px; }
+  #journal .bon { color: var(--ok); }
+  #journal .mal { color: var(--warm); }
+
+  .btn { display: block; width: 100%; padding: 15px; border-radius: 16px; font-size: 16px; text-align: center;
+         background: rgba(255,107,107,0.10); border: 1px solid rgba(255,107,107,0.35); color: var(--bad); }
+  .btn:active { background: rgba(255,107,107,0.22); }
+  .bas { margin-top: auto; }
+</style>
+</head>
+<body>
+  <div class="haut">
+    <div class="logo"><svg viewBox="0 0 24 24"><path d="M17.71 7.71 12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z"/></svg></div>
+    <div class="titre"><b>Pont iPhone</b><small id="version">Relie tes iPhone au panneau par Bluetooth</small></div>
+    <div class="pill"><span class="dot" id="etatDot"></span><span id="etat">Démarrage…</span></div>
+  </div>
+
+  <div class="grille">
+    <div class="col g">
+      <div class="carte">
+        <h2>iPhone</h2>
+        <div id="iphones"></div>
+      </div>
+      <div class="carte">
+        <h2>Connecter un iPhone</h2>
+        <ol class="etapes">
+          <li>Sur l'iPhone, ouvre l'appli gratuite <b>nRF Connect</b> et touche <b>SCAN</b>.</li>
+          <li>Touche <b>CONNECT</b> à côté de <b>Panneau</b>.</li>
+          <li>Accepte le <b>jumelage</b> et <b>Partager les notifications</b>.</li>
+        </ol>
+        <div class="vide" style="font-size:13px">Laisse cette appli tourner : la notification « Pont iPhone actif » la garde en vie.</div>
+      </div>
+      <div class="bas"><a class="btn" id="oublier">Oublier les iPhone</a></div>
+    </div>
+    <div class="col d">
+      <div class="carte journal">
+        <h2>Journal</h2>
+        <div id="journal"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // Dans l'appli : window.Pont (pont Java). Ailleurs (maquette) : données d'exemple.
+  function donnees() {
+    if (window.Pont) { try { return JSON.parse(window.Pont.donnees()); } catch (e) {} }
+    return window.DEMO || { etat: 'Démarrage…', bt: true, iphones: [], journal: '' };
+  }
+  function rendre() {
+    var d = donnees();
+    $('etat').textContent = d.etat;
+    var n = 0, i;
+    for (i = 0; i < d.iphones.length; i++) if (d.iphones[i].pret) n++;
+    $('etatDot').className = 'dot ' + (!d.bt ? 'mal' : n > 0 ? 'ok' : 'att');
+    if (d.version) $('version').textContent = 'Version ' + d.version + ' · relie tes iPhone au panneau';
+
+    var h = '';
+    for (i = 0; i < d.iphones.length; i++) {
+      var p = d.iphones[i];
+      h += '<div class="ip"><div class="ico">📱</div><div class="n"><b>' + esc(p.nom) + '</b><small>' +
+           (p.pret ? 'Connecté' + (p.pile >= 0 ? ' · pile ' + p.pile + ' %' : '') : 'En attente…') + '</small></div>' +
+           (p.pret ? '<span class="tag ok">Notifs</span>' : '') + (p.musique ? '<span class="tag ok">Musique</span>' : '') + '</div>';
+    }
+    $('iphones').innerHTML = h || '<div class="vide">Aucun iPhone pour l\'instant. Suis les étapes ci-dessous.</div>';
+
+    var lignes = String(d.journal || '').split('\n'), j = '';
+    for (i = 0; i < lignes.length; i++) {
+      var l = lignes[i]; if (!l) continue;
+      var heure = l.slice(0, 8), txt = l.slice(8).replace(/^\s+/, '');
+      var cls = /✔/.test(txt) ? 'bon' : /erreur|bloqué|refusé|injoignable|impossible|déconnecté/i.test(txt) ? 'mal' : '';
+      j += '<div class="' + cls + '"><i>' + esc(heure) + '</i>' + esc(txt) + '</div>';
+    }
+    $('journal').innerHTML = j || '<div class="vide">Rien encore.</div>';
+  }
+  $('oublier').onclick = function () {
+    if (!confirm('Oublier tous les iPhone ? Il faudra les reconnecter avec nRF Connect.')) return;
+    if (window.Pont) window.Pont.oublier();
+    rendre();
+  };
+  rendre();
+  setInterval(rendre, 1000);
+</script>
+</body>
+</html>
