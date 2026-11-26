@@ -42,6 +42,48 @@ function court(o: any, n: number): string {
   return s.length > n ? s.slice(0, n) + '…' : s;
 }
 
+
+// Décrit un objet natif sans JSON.stringify ni Object.values (ça faisait planter Vega)
+function essai(f: () => any): any { try { return f(); } catch (e) { return undefined; } }
+function decrire(x: any): string {
+  if (x === null || x === undefined) return String(x);
+  const t = typeof x;
+  if (t !== 'object' && t !== 'function') return t + ':' + String(x).slice(0, 60);
+  const bouts: string[] = ['type=' + t];
+  const ctor = essai(() => x.constructor && x.constructor.name);
+  if (ctor) bouts.push('classe=' + ctor);
+  bouts.push('tableau=' + Array.isArray(x));
+  ['length', 'size', 'count'].forEach(k => { const v = essai(() => x[k]); if (v !== undefined) bouts.push(k + '=' + String(v)); });
+  ['forEach', 'map', 'then', 'values', 'get', 'at', 'toArray'].forEach(k => { if (essai(() => typeof x[k]) === 'function') bouts.push(k + '()'); });
+  if (essai(() => typeof x[Symbol.iterator]) === 'function') bouts.push('itérable');
+  ['endpoints', 'clients', 'items', 'list', 'data', 'value', 'result'].forEach(k => { const v = essai(() => x[k]); if (v !== undefined) bouts.push(k + ':' + (Array.isArray(v) ? 'tableau(' + v.length + ')' : typeof v)); });
+  const z = essai(() => x[0]);
+  if (z !== undefined) bouts.push('[0]:' + typeof z);
+  const proto = essai(() => Object.getOwnPropertyNames(Object.getPrototypeOf(x) || {}).slice(0, 15).join(','));
+  if (proto) bouts.push('proto{' + proto + '}');
+  return bouts.join(' ');
+}
+// Transforme ce que Vega renvoie en vrai tableau, en essayant les formes possibles
+function enListe(x: any): any[] {
+  if (!x) return [];
+  if (Array.isArray(x)) return x;
+  for (const k of ['endpoints', 'clients', 'items', 'list', 'data', 'value', 'result']) {
+    const v = essai(() => x[k]);
+    if (Array.isArray(v)) return v;
+  }
+  if (essai(() => typeof x[Symbol.iterator]) === 'function') { const a = essai(() => Array.from(x)); if (a) return a; }
+  if (essai(() => typeof x.forEach) === 'function') { const a: any[] = []; if (essai(() => { x.forEach((v: any) => a.push(v)); return true; })) return a; }
+  if (essai(() => typeof x.toArray) === 'function') { const a = essai(() => x.toArray()); if (Array.isArray(a)) return a; }
+  const n = essai(() => x.size !== undefined ? x.size : x.count);
+  const a: any[] = [];
+  for (let i = 0; i < (typeof n === 'number' ? n : 50); i++) {
+    const v = essai(() => (typeof x.get === 'function' ? x.get(i) : x[i]));
+    if (v === undefined) break;
+    a.push(v);
+  }
+  return a;
+}
+
 let dernierBrut = '';
 // Envoie l'étape en cours au panneau : si l'appli plante, on sait où
 async function ping(etape: string) {
@@ -66,13 +108,17 @@ async function lire(loc: any) {
     }
     await ping('natif : appel');
     const brut: any = await TM.getMediaControlEndpoints();
-    // Attention : ne jamais faire JSON.stringify / Object.values sur un objet natif (ça peut faire planter)
-    const longueur = brut && typeof brut.length === 'number' ? brut.length : -1;
-    dernierBrut = 'type=' + typeof brut + ' tableau=' + Array.isArray(brut) + ' longueur=' + longueur;
+    dernierBrut = decrire(brut);
+    await ping('natif : ' + dernierBrut);
+    const liste = enListe(brut);
+    dernierBrut += ' → ' + liste.length + ' élément(s)';
+    if (liste.length) dernierBrut += ' | 1er : ' + decrire(liste[0]);
     await ping('natif : ' + dernierBrut);
     eps = [];
-    for (let i = 0; i < longueur; i++) {
-      try { eps.push(new MCC(brut[i])); } catch (e: any) { dernierBrut += ' | client : ' + ((e && e.message) || e); }
+    for (let i = 0; i < liste.length; i++) {
+      const x = liste[i];
+      if (x && typeof x.getSessionState === 'function') { eps.push(x); continue; }
+      try { eps.push(new MCC(x)); } catch (e: any) { dernierBrut += ' | client : ' + ((e && e.message) || e); }
     }
   }
   if (!Array.isArray(eps)) eps = Array.from(eps as any);
@@ -203,7 +249,7 @@ export const App = () => {
 
   return (
     <View style={s.fond}>
-      <Text style={s.titre}>📺 Pont Télé v7</Text>
+      <Text style={s.titre}>📺 Pont Télé v8</Text>
       <Text style={s.aide}>Laisse cette appli ouverte une fois, puis fais Accueil et lance Netflix : le panneau devrait voir ce qui joue.</Text>
       <Text style={s.texte}>{texte}</Text>
       <Text style={s.envoi}>{envoi}</Text>
