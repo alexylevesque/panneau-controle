@@ -37,11 +37,13 @@ cat >> "$DOSSIER/agent.sh" <<'AGENT'
 NOM=$(scutil --get ComputerName 2>/dev/null || echo Mac)
 ID=$(cat "$HOME/.panneau/id" 2>/dev/null); [ -z "$ID" ] && ID=mac
 TYPE=$(cat "$HOME/.panneau/type" 2>/dev/null); [ -z "$TYPE" ] && TYPE=mac
-VERSION=16
+VERSION=17
 NCPU=$(sysctl -n hw.ncpu); MEM=$(sysctl -n hw.memsize); PS=$(pagesize)
 BOOT=$(sysctl -n kern.boottime | awk -F'[ ,]+' '{print $4}')
 SMC="$HOME/.panneau/smc"; CLES=""
-[ -x "$SMC" ] && CLES=$("$SMC" cles 2>/dev/null)
+# La liste des capteurs de température est longue à trouver : on la cherche en arrière-plan une seule fois et on la garde
+FCLES="$HOME/.panneau/cles"
+if [ -x "$SMC" ] && [ ! -s "$FCLES" ]; then ( "$SMC" cles > "$FCLES.tmp" 2>/dev/null && mv "$FCLES.tmp" "$FCLES" ) & fi
 # (Terminal et Fichiers retirés : on arrête l'ancien serveur de fichiers et on efface ses liens)
 pkill -f "panneau/serveur.py" 2>/dev/null
 rm -rf "$HOME/.panneau/liens" "$HOME/.panneau/serveur.py" "$HOME/.panneau/cwd" "$HOME/.panneau/essais"
@@ -58,6 +60,7 @@ while true; do
   RAM=$(vm_stat | awk -v ps="$PS" -v m="$MEM" '/Pages active/{a=$3} /Pages wired down/{w=$4} /occupied by compressor/{c=$5} END {printf "%d", (a+w+c)*ps*100/m}')
   DF=$( (df -k /System/Volumes/Data 2>/dev/null || df -k /) | awk 'NR==2{printf "%d %d", $5, $4/1048576}')
   UP=$(( $(date +%s) - BOOT ))
+  [ -z "$CLES" ] && CLES=$(cat "$FCLES" 2>/dev/null)
   CAPT=""; [ -x "$SMC" ] && CAPT=$("$SMC" $CLES 2>/dev/null)
   # Si l'arrêt demandé par le panneau a échoué, on le dit au panneau (une fois)
   ERRA=$(head -c 150 "$HOME/.panneau/erreur" 2>/dev/null | tr -d '"\\\n\r'); rm -f "$HOME/.panneau/erreur"
