@@ -229,6 +229,33 @@
   .nicon .cal { width: 100%; height: 100%; background: #fff; color: #111; text-align: center; font-size: 22px; font-weight: 300; line-height: 26px; }
   .nicon .cal small { display: block; color: #ff3b30; font-size: 9px; font-weight: 600; line-height: 14px; }
   .nt-b { flex: 1; min-width: 0; }
+  .nt-del { flex: none; width: 34px; height: 34px; margin: -4px -4px 0 6px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 15px; }
+  .nt-del:active { background: rgba(255,255,255,0.12); color: var(--txt); }
+  .nt-tout { text-align: right; padding: 2px 10px 4px; }
+  .nt-tout a { color: var(--muted); font-size: 13px; }
+  /* Musique de l'iPhone */
+  .mus { flex: 1; display: flex; align-items: center; padding: 14px 18px; min-height: 0; }
+  .mus-img { flex: none; width: 250px; height: 250px; border-radius: 18px; overflow: hidden; background: rgba(255,255,255,0.07); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+  .mus-img img { width: 100%; height: 100%; object-fit: cover; }
+  .mus-img span { font-size: 64px; opacity: .5; }
+  .mus-d { flex: 1; min-width: 0; margin-left: 26px; }
+  .mus-app { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; min-height: 15px; }
+  .mus-t { font-size: 24px; font-weight: 600; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mus-a { color: var(--muted); font-size: 16px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mus-barre { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.12); margin-top: 22px; overflow: hidden; }
+  .mus-barre div { height: 100%; background: var(--txt); border-radius: 3px; }
+  .mus-tps { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .mus-btns { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+  .mus-btns a, .mus-vol a { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .mus-btns a:active, .mus-vol a:active { background: rgba(255,255,255,0.12); }
+  .mus-btns svg, .mus-vol svg { width: 30px; height: 30px; fill: var(--txt); }
+  .mus-btns a[data-c=recule] svg, .mus-btns a[data-c=avance] svg { width: 28px; height: 28px; }
+  .mus-btns text { fill: var(--txt); }
+  .mus-btns a.mus-pp { width: 70px; height: 70px; background: var(--txt); }
+  .mus-btns a.mus-pp svg { fill: #11131c; width: 36px; height: 36px; }
+  .mus-vol { display: flex; align-items: center; justify-content: center; margin-top: 8px; color: var(--muted); font-size: 13px; }
+  .mus-vol span { margin: 0 14px; }
+  .mus-vol svg { width: 22px; height: 22px; fill: var(--muted); }
   .nt-t { display: flex; justify-content: space-between; }
   .nt-t b { font-weight: 500; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .nt-t small { flex: none; margin-left: 10px; }
@@ -960,13 +987,23 @@
       alimMac(d);
     };
   }
+  var PAGES_IPHONE = [
+    { id: 'notifs', nom: 'Notifications' },
+    { id: 'musique', nom: 'Musique' }
+  ];
   function pagesMac(d) {
+    batirPages(PAGES_MAC);
+    $('pg-stats').innerHTML = statsMac(d);
+  }
+  // On bâtit les pages une fois (par sorte d'appareil), pour ne pas perdre où on est rendu
+  function batirPages(liste) {
     var box = $('notifs');
-    if (!$('pg-stats')) {           // on bâtit les pages une fois, pour ne pas perdre où on est rendu
+    if (!$('pg-' + liste[0].id)) {
       box.className = 'ph-card notifs pages';
+      box.scrollLeft = 0;
       var h = '', t = '';
-      for (var i = 0; i < PAGES_MAC.length; i++) {
-        var p = PAGES_MAC[i];
+      for (var i = 0; i < liste.length; i++) {
+        var p = liste[i];
         t += '<a data-i="' + i + '"' + (i === 0 ? ' class="on"' : '') + '>' + p.nom + '</a>';
         h += '<div class="page" id="pg-' + p.id + '">' + (p.bientot ? '<div class="bientot"><b>' + p.bientot + '</b>' + p.nom + ' : bientôt</div>' : '') + '</div>';
       }
@@ -978,7 +1015,72 @@
         for (var j = 0; j < as.length; j++) as[j].className = j === n ? 'on' : '';
       };
     }
-    $('pg-stats').innerHTML = statsMac(d);
+  }
+
+  // ---- Musique de l'iPhone ----
+  function minSec(s) { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + two(s % 60); }
+  var MUS_SVG = {
+    precedent: '<svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>',
+    suivant: '<svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>',
+    lecture: '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+    pause: '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>',
+    recule: '<svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/><text x="12" y="15.5" font-size="6.5" text-anchor="middle" font-weight="700">15</text></svg>',
+    avance: '<svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/><text x="12" y="15.5" font-size="6.5" text-anchor="middle" font-weight="700">15</text></svg>',
+    volMoins: '<svg viewBox="0 0 24 24"><path d="M18.5 12A4.5 4.5 0 0 0 16 7.97v8.05A4.5 4.5 0 0 0 18.5 12zM5 9v6h4l5 5V4L9 9H5z"/></svg>',
+    volPlus: '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05A4.5 4.5 0 0 0 16.5 12zM14 3.23v2.06a7 7 0 0 1 0 13.42v2.06A9 9 0 0 0 14 3.23z"/></svg>'
+  };
+  var musDepuis = 0, musInfo = null;
+  function musique(d) {
+    var box = $('pg-musique'), m = d.musique;
+    musInfo = m && d.bluetooth && m.titre ? { m: m, recu: Date.now(), qui: d.id } : null;
+    if (!musInfo) {
+      box.innerHTML = '<div class="bientot"><b>🎵</b>' + (d.bluetooth ? 'Rien ne joue sur l\'iPhone en ce moment.' : 'La musique s\'affichera ici quand l\'iPhone sera connecté.') + '</div>';
+      return;
+    }
+    var joue = m.etat === 1 || (m.etat !== 0 && m.vitesse > 0);
+    if (!$('musTitre')) {
+      box.innerHTML = '<div class="mus"><div class="mus-img" id="musImg"><span>🎵</span></div>' +
+        '<div class="mus-d"><div class="mus-app" id="musApp"></div><div class="mus-t" id="musTitre"></div><div class="mus-a" id="musArt"></div>' +
+        '<div class="mus-barre"><div id="musBarre"></div></div><div class="mus-tps"><span id="musEc"></span><span id="musDu"></span></div>' +
+        '<div class="mus-btns">' + bouton('recule') + bouton('precedent') + '<a class="mus-pp" data-c="basculer" id="musPP"></a>' + bouton('suivant') + bouton('avance') + '</div>' +
+        '<div class="mus-vol">' + bouton('volMoins') + '<span>Volume</span>' + bouton('volPlus') + '</div></div></div>';
+      var bs = box.querySelectorAll('[data-c]');
+      for (var i = 0; i < bs.length; i++) bs[i].onclick = function () { commandeMusique(this.getAttribute('data-c')); };
+    }
+    function bouton(c) { return '<a data-c="' + c + '">' + MUS_SVG[c] + '</a>'; }
+    $('musTitre').textContent = m.titre;
+    $('musArt').textContent = [m.artiste, m.album].filter(function (x) { return x; }).join(' · ');
+    $('musApp').textContent = m.joueur || '';
+    $('musPP').innerHTML = joue ? MUS_SVG.pause : MUS_SVG.lecture;
+    var img = $('musImg');
+    if (img.getAttribute('data-src') !== (m.image || '')) {
+      img.setAttribute('data-src', m.image || '');
+      img.innerHTML = m.image ? '<img src="' + esc(m.image) + '">' : '<span>🎵</span>';
+    }
+    musTic();
+  }
+  // La barre avance toute seule entre deux nouvelles de l'iPhone
+  function musTic() {
+    if (!musInfo || !$('musBarre')) return;
+    var m = musInfo.m, joue = m.etat === 1;
+    var ec = (m.ecoule || 0) + (joue ? (Date.now() - musInfo.recu) / 1000 * (m.vitesse || 1) : 0);
+    if (m.duree) ec = Math.min(ec, m.duree);
+    $('musBarre').style.width = (m.duree ? Math.min(100, 100 * ec / m.duree) : 0) + '%';
+    $('musEc').textContent = minSec(ec);
+    $('musDu').textContent = m.duree ? '-' + minSec(m.duree - ec) : '';
+  }
+  setInterval(musTic, 500);
+  function commandeMusique(c) {
+    if (!musInfo) return;
+    if (c === 'basculer') {   // on change le bouton tout de suite
+      var m = musInfo.m;
+      if (m.etat === 1) m.ecoule = (m.ecoule || 0) + (Date.now() - musInfo.recu) / 1000 * (m.vitesse || 1);
+      musInfo.recu = Date.now(); m.etat = m.etat === 1 ? 0 : 1;
+      $('musPP').innerHTML = m.etat === 1 ? MUS_SVG.pause : MUS_SVG.lecture;
+    }
+    api('POST', '/api/appareils/action/media', { id: musInfo.qui, cmd: c }, function (r) {
+      if (!r || !r.ok) toast((r && r.error) || 'Erreur', true);
+    });
   }
 
   // Stats du Mac : processeur, mémoire, disque, allumé depuis
@@ -1032,8 +1134,11 @@
     $('macTabs').style.display = mac ? '' : 'none';
     alimMac(mac ? d : null);
     if (mac) pagesMac(d);
-    else {
-    $('notifs').className = 'ph-card notifs';
+    else if (!d.aucun) {
+    $('phTitre').style.display = 'none';
+    $('macTabs').style.display = '';
+    batirPages(PAGES_IPHONE);
+    musique(d);
 
     // Notifications
     h = '';
@@ -1041,14 +1146,25 @@
       var t = shown.notifs[n];
       h += '<div class="nt' + (t.nonLu ? ' unread' : '') + '" data-i="' + n + '"><div class="nicon">' + iconeApp(t) + '</div>' +
            '<div class="nt-b"><div class="nt-a">' + esc(nomApp(t)) + '</div><div class="nt-t"><b>' + esc(t.titre) + '</b><small>' + esc(t.heure) + '</small></div>' +
-           '<div class="nt-x">' + esc(t.texte) + '</div></div></div>';
+           '<div class="nt-x">' + esc(t.texte) + '</div></div><a class="nt-del" data-i="' + n + '">✕</a></div>';
     }
-    $('notifs').innerHTML = h || (mac ? '<div class="bt-vide">Pas de notifications pour le Mac : juste sa pile et « Faire sonner ».</div>'
+    if (shown.notifs.length > 1) h = '<div class="nt-tout"><a id="ntTout">Tout effacer</a></div>' + h;
+    $('pg-notifs').innerHTML = h || (mac ? '<div class="bt-vide">Pas de notifications pour le Mac : juste sa pile et « Faire sonner ».</div>'
       : d.bluetooth ? '<div class="bt-vide">Aucune notification.</div>'
       : '<div class="bt-vide">Les notifications s\'afficheront ici quand l\'iPhone sera connecté. <a id="howBtn">Comment faire</a></div>');
     if ($('howBtn')) $('howBtn').onclick = function () { $('how').className = 'sheet show'; };
-    var nts = $('notifs').getElementsByClassName('nt');
+    var nts = $('pg-notifs').getElementsByClassName('nt');
     for (var k = 0; k < nts.length; k++) nts[k].onclick = function () { openNotif(shown.notifs[+this.getAttribute('data-i')]); };
+    var dels = $('pg-notifs').getElementsByClassName('nt-del');
+    for (var q = 0; q < dels.length; q++) dels[q].onclick = function (e) {
+      e.stopPropagation(); effacerNotif(shown.notifs[+this.getAttribute('data-i')]);
+    };
+    if ($('ntTout')) $('ntTout').onclick = function () { effacerNotif(null); };
+    } else {
+    $('notifs').className = 'ph-card notifs';
+    $('notifs').scrollLeft = 0;
+    $('notifs').innerHTML = '<div class="bt-vide">Les notifications s\'afficheront ici quand l\'iPhone sera connecté. <a id="howBtn">Comment faire</a></div>';
+    $('howBtn').onclick = function () { $('how').className = 'sheet show'; };
     }
 
     // Menu du haut
@@ -1064,6 +1180,17 @@
       devSel = this.getAttribute('data-id'); try { localStorage.setItem('appareil', devSel); } catch (e) {}
       $('devMenu').className = 'devmenu'; renderDevices(); ringUi(); show('appareils');
     };
+  }
+
+  // Effacer une notif (ou toutes avec null) : du panneau seulement, elle reste sur l'iPhone
+  function effacerNotif(t) {
+    var d = shown.info;
+    d.notifs = t ? (d.notifs || []).filter(function (x) { return x !== t; }) : [];
+    api('POST', '/api/appareils/action/effacer', t ? { id: t.id, qui: d.id } : { tout: true, qui: d.id }, function (r) {
+      if (!r || !r.ok) toast((r && r.error) || 'Erreur', true);
+      refreshDevices();
+    });
+    renderDevices();
   }
 
   // Lire une notif / répondre

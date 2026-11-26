@@ -36,6 +36,59 @@ function chercherIcone(appId) {
   }).on('error', () => { delete enCours[appId]; }).on('timeout', function () { this.destroy(); });
 }
 
+// Pochette de la chanson : l'iPhone ne l'envoie pas en Bluetooth. On la cherche sur internet
+// (iTunes, sinon Deezer), puis on garde l'image sur la tablette : la prochaine fois, pas besoin d'internet.
+const POCH_DIR = path.join(__dirname, '..', '..', 'public', 'pochettes');
+const POCH_FILE = path.join(__dirname, '..', '..', 'pochettes.json');
+let pochettes = {};   // « artiste|titre » → '/pochettes/xxx.jpg', ou { rien: date } si introuvable
+try { pochettes = JSON.parse(fs.readFileSync(POCH_FILE, 'utf8')); } catch (e) {}
+const pochEnCours = {};
+function lireJson(host, chemin, cb) {
+  https.get({ host, path: chemin, timeout: 8000 }, res => {
+    let out = ''; res.on('data', c => (out += c));
+    res.on('end', () => { let j = null; try { j = JSON.parse(out); } catch (e) {} cb(j); });
+  }).on('error', () => cb(null)).on('timeout', function () { this.destroy(); });
+}
+function telecharger(url, fichier, cb, essais) {
+  https.get(url, { timeout: 10000 }, res => {
+    if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location && !(essais > 2)) {
+      res.resume(); return telecharger(res.headers.location, fichier, cb, (essais || 0) + 1);
+    }
+    if (res.statusCode !== 200) { res.resume(); return cb(false); }
+    const morceaux = []; res.on('data', c => morceaux.push(c));
+    res.on('end', () => { try { fs.mkdirSync(POCH_DIR, { recursive: true }); fs.writeFileSync(fichier, Buffer.concat(morceaux)); cb(true); } catch (e) { cb(false); } });
+  }).on('error', () => cb(false)).on('timeout', function () { this.destroy(); });
+}
+function chercherPochette(artiste, titre) {
+  if (!titre) return '';
+  const cle = (artiste || '').toLowerCase() + '|' + titre.toLowerCase();
+  const v = pochettes[cle];
+  if (typeof v === 'string') return v;
+  if (v && Date.now() - v.rien < 24 * 3600 * 1000) return '';   // introuvable : on réessaie demain
+  if (pochEnCours[cle]) return '';
+  pochEnCours[cle] = true;
+  const terme = encodeURIComponent((artiste ? artiste + ' ' : '') + titre);
+  const fini = (url) => {
+    const garder = (ok, chemin) => {
+      delete pochEnCours[cle];
+      pochettes[cle] = ok ? chemin : { rien: Date.now() };
+      try { fs.writeFileSync(POCH_FILE, JSON.stringify(pochettes)); } catch (e) {}
+    };
+    if (!url) return garder(false);
+    const nom = require('crypto').createHash('md5').update(cle).digest('hex').slice(0, 16) + '.jpg';
+    telecharger(url, path.join(POCH_DIR, nom), ok => garder(ok, '/pochettes/' + nom));
+  };
+  lireJson('itunes.apple.com', '/search?country=ca&media=music&entity=song&limit=1&term=' + terme, j => {
+    const r = j && j.results && j.results[0];
+    if (r && r.artworkUrl100) return fini(String(r.artworkUrl100).replace(/\/\d+x\d+bb\./, '/600x600bb.'));
+    lireJson('api.deezer.com', '/search?limit=1&q=' + terme, k => {
+      const d = k && k.data && k.data[0];
+      fini(d && d.album ? d.album.cover_xl || d.album.cover_big || '' : '');
+    });
+  });
+  return '';
+}
+
 module.exports = (cfg) => {
   const FILE = path.join(__dirname, '..', '..', 'appareils.json');
   const EN_LIGNE_MS = (cfg.minutesEnLigne || 20) * 60 * 1000;
@@ -167,6 +220,13 @@ module.exports = (cfg) => {
         o.erreurArret = a.erreurArret && now - a.erreurArret.t < 120000 ? a.erreurArret.msg : '';
         delete o.arret; delete o.ferme;
       }
+      delete o.masques;
+      if (o.musique) {
+        o.musique = Object.assign({}, o.musique, { image: chercherPochette(o.musique.artiste, o.musique.titre) });
+        o.musique.ecoule = (o.musique.ecoule || 0) + (o.musique.etat === 1 && o.musique.t ? (now - o.musique.t) / 1000 * (o.musique.vitesse || 1) : 0);
+        if (o.musique.duree) o.musique.ecoule = Math.min(o.musique.ecoule, o.musique.duree);
+        delete o.musique.t;
+      }
       if (o.airpods) o.airpods = Object.assign({}, o.airpods, { actifs: now - o.airpods.vu < 2 * 60 * 1000 });
       return o;
     }).sort((a, b) => b.vu - a.vu);
@@ -247,6 +307,8 @@ module.exports = (cfg) => {
         if (p.evt === 'retrait') {
           a.notifs = a.notifs.filter(n => n.id !== uid);
           if (a.appel && a.appel.uid === uid) a.appel = null;
+        } else if (p.evt && (a.masques || []).indexOf(uid) >= 0) {
+          // notif effacée sur le panneau : l'iPhone la renvoie parfois (à la reconnexion), on l'ignore
         } else if (p.evt) {
           const appel = p.categorie === 'appel' || p.categorie === 1;
           if (appel) a.appel = { uid, de: p.titre || 'Inconnu', numero: p.sousTitre || '' };
@@ -315,6 +377,41 @@ module.exports = (cfg) => {
         a.airpods = { nom: p.nom || 'AirPods', gauche: p.gauche, droite: p.droite, etui: p.etui,
                       chargeGauche: !!p.chargeGauche, chargeDroite: !!p.chargeDroite, chargeEtui: !!p.chargeEtui, vu: Date.now() };
         save();
+        return 'OK';
+      } },
+      // Effacer une notif du panneau (id) ou toutes (tout: true). Elle reste sur l'iPhone.
+      effacer: { label: 'Effacer une notification', run: async ({ id, qui, tout }) => {
+        const a = iphone(qui);
+        const ids = tout ? a.notifs.map(n => n.id) : [String(id)];
+        a.masques = (a.masques || []).concat(ids).slice(-300);
+        a.notifs = a.notifs.filter(n => ids.indexOf(n.id) < 0);
+        save(); return 'OK';
+      } },
+      // Musique qui joue sur l'iPhone (reçue du pont, service média d'Apple)
+      musique: { label: 'Musique iPhone', run: async (p) => {
+        const a = iphone(p.qui);
+        const m = a.musique || {};
+        ['joueur', 'etat', 'vitesse', 'ecoule', 'volume', 'artiste', 'album', 'titre', 'duree', 'repete', 'aleatoire'].forEach(k => {
+          if (p[k] !== undefined) m[k] = p[k];
+        });
+        if (p.ecoule !== undefined || p.etat !== undefined) m.t = Date.now();   // moment où « ecoule » était vrai
+        m.vu = Date.now();
+        a.musique = m;
+        return 'OK';
+      } },
+      // Depuis l'écran : lecture, pause, suivant… (le pont l'envoie à l'iPhone)
+      media: { label: 'Commande musique', run: async ({ id, cmd }) => {
+        const CODES = { lecture: 0, pause: 1, basculer: 2, suivant: 3, precedent: 4, volPlus: 5, volMoins: 6, avance: 9, recule: 10 };
+        if (CODES[cmd] === undefined) throw new Error('Commande inconnue');
+        const q = String(id || 'iphone');
+        const a = iphone(q);
+        if (a.musique && (cmd === 'basculer' || cmd === 'lecture' || cmd === 'pause')) {   // réaction immédiate à l'écran
+          const m = a.musique, joue = cmd === 'lecture' || (cmd === 'basculer' && m.etat !== 1);
+          if (m.etat === 1 && m.t) m.ecoule = (m.ecoule || 0) + (Date.now() - m.t) / 1000 * (m.vitesse || 1);
+          m.etat = joue ? 1 : 0; m.t = Date.now();
+        }
+        const vieux = Object.keys(ALIAS).filter(k => ALIAS[k] === q);
+        vieux.concat([q]).forEach(qq => commandes.push({ qui: qq, musique: CODES[cmd] }));
         return 'OK';
       } },
       lu: { label: 'Marquer lu', run: async ({ id, qui }) => {

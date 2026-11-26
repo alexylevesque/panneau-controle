@@ -68,6 +68,10 @@ public class PontService extends Service {
     static final UUID DATA_SOURCE = UUID.fromString("22EAC6E9-24D6-4BB5-BE44-B36ACE7C7BFB");
     static final UUID BATTERIE = UUID.fromString("0000180f-0000-1000-8000-00805f9b34fb");
     static final UUID NIVEAU = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
+    // Service média d'Apple (AMS) : la musique qui joue sur l'iPhone
+    static final UUID AMS = UUID.fromString("89D3502B-0F36-433A-8EF4-C502AD55F8DC");
+    static final UUID AMS_COMMANDE = UUID.fromString("9B3C81D8-57B1-4A8A-B8DF-0E56F7CA51C2");
+    static final UUID AMS_MAJ = UUID.fromString("2F7CABCE-808D-411F-9A0C-BB92BA96C102");
     static final UUID CCCD = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
     // Notre propre service (pour que l'iPhone nous trouve sous le nom « Panneau »)
     static final UUID MON_SERVICE = UUID.fromString("5a1e0001-7a3b-4c2d-9e10-70616e6e6561");
@@ -245,6 +249,9 @@ public class PontService extends Service {
         int etape = 0;                   // 0 = rien, 1 = Data Source activé, 2 = tout activé
         int dernierePile = -1;
         boolean relie = false;           // connexion client établie
+        int amsEtape = 0;                // musique : 0 = rien, 1 = MTU fait, 2 = abonné, 3 = lecteur demandé, 4 = prêt
+        final ArrayDeque<Integer> amsCmds = new ArrayDeque<>();
+        boolean amsEcrit = false;
 
         Lien(String adresse, boolean ancien) { this.adresse = adresse; this.ancien = ancien; }
 
@@ -262,7 +269,7 @@ public class PontService extends Service {
 
         void fermer() {
             if (gatt != null) { try { gatt.close(); } catch (Exception e) { } gatt = null; }
-            relie = false; etape = 0; enCours = null; aDemander.clear(); ecritures.clear(); ecritureEnCours = false; tampon.reset();
+            relie = false; etape = 0; amsEtape = 0; amsCmds.clear(); amsEcrit = false; enCours = null; aDemander.clear(); ecritures.clear(); ecritureEnCours = false; tampon.reset();
         }
 
         // Envoie au panneau en disant de quel iPhone il s'agit
@@ -305,7 +312,7 @@ public class PontService extends Service {
                             }
                         }, 25000);
                     } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                        log(nom() + " : hors de portée, je réessaie…");
+                        log(nom() + " : déconnecté (Bluetooth coupé ou trop loin), je me reconnecte…");
                         try { envoyer(new JSONObject().put("connecte", false)); } catch (Exception e) { }
                         fermer(); majEtat();
                         h.postDelayed(() -> connecter(true), 5000);
@@ -335,6 +342,10 @@ public class PontService extends Service {
                         return;
                     }
                     if (NIVEAU.equals(d.getCharacteristic().getUuid())) { g.readCharacteristic(d.getCharacteristic()); return; }
+                    if (AMS_MAJ.equals(d.getCharacteristic().getUuid())) {
+                        if (status != BluetoothGatt.GATT_SUCCESS) { log(nom() + " : musique indisponible (" + status + ")"); return; }
+                        amsEtape = 2; amsContinuer(); return;
+                    }
                     if (status != BluetoothGatt.GATT_SUCCESS) { log(nom() + " : erreur d'activation (" + status + ")"); return; }
                     BluetoothGattService s = g.getService(ANCS);
                     if (s == null) return;
@@ -349,8 +360,15 @@ public class PontService extends Service {
                         BluetoothGattService b = g.getService(BATTERIE);
                         if (b != null && b.getCharacteristic(NIVEAU) != null) activer(b.getCharacteristic(NIVEAU));
                         ecrireSuivant();
+                        // La musique, un peu plus tard (une seule opération Bluetooth à la fois sur Android)
+                        final BluetoothGatt gg = g;
+                        h.postDelayed(() -> { if (gatt == gg && amsEtape == 0) amsDemarrer(); }, 2500);
                     }
                 });
+            }
+
+            @Override public void onMtuChanged(BluetoothGatt g, int mtu, int status) {
+                h.post(() -> { if (gatt == g && amsEtape == 0) { amsEtape = 1; amsContinuer(); } });
             }
 
             @Override public void onCharacteristicChanged(BluetoothGatt g, BluetoothGattCharacteristic c) {
@@ -360,6 +378,7 @@ public class PontService extends Service {
                     if (NIVEAU.equals(u)) recuPile(v);
                     else if (NOTIF_SOURCE.equals(u)) recuNotif(v);
                     else if (DATA_SOURCE.equals(u)) recuDonnees(v);
+                    else if (AMS_MAJ.equals(u)) recuMusique(v);
                 });
             }
 
@@ -369,7 +388,12 @@ public class PontService extends Service {
             }
 
             @Override public void onCharacteristicWrite(BluetoothGatt g, BluetoothGattCharacteristic c, int status) {
-                h.post(() -> { ecritureEnCours = false; ecrireSuivant(); });
+                final UUID u = c.getUuid();
+                h.post(() -> {
+                    if (AMS_MAJ.equals(u)) { if (amsEtape == 2 || amsEtape == 3) { amsEtape++; amsContinuer(); } }
+                    else if (AMS_COMMANDE.equals(u)) { amsEcrit = false; amsEnvoyer(); }
+                    else { ecritureEnCours = false; ecrireSuivant(); }
+                });
             }
         };
 
@@ -460,6 +484,87 @@ public class PontService extends Service {
             log(qui + " : " + (positive ? "appel accepté" : "appel refusé"));
         }
 
+        // ---------- Musique (Apple Media Service) ----------
+        BluetoothGattService ams() { return gatt == null ? null : gatt.getService(AMS); }
+
+        void amsDemarrer() {
+            if (ams() == null) { log(nom() + " : pas de musique sur cet iPhone"); return; }
+            // Des messages plus grands, pour que les titres ne soient pas coupés
+            boolean ok = false;
+            try { ok = gatt.requestMtu(185); } catch (Exception e) { }
+            final BluetoothGatt g = gatt;
+            if (!ok) { amsEtape = 1; amsContinuer(); return; }
+            h.postDelayed(() -> { if (gatt == g && amsEtape == 0) { amsEtape = 1; amsContinuer(); } }, 3000);
+        }
+
+        void amsContinuer() {
+            BluetoothGattService s = ams();
+            if (s == null) return;
+            BluetoothGattCharacteristic maj = s.getCharacteristic(AMS_MAJ);
+            if (maj == null) return;
+            boolean ok = true;
+            if (amsEtape == 1) {
+                gatt.setCharacteristicNotification(maj, true);
+                BluetoothGattDescriptor d = maj.getDescriptor(CCCD);
+                if (d == null) return;
+                d.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                ok = gatt.writeDescriptor(d);
+            } else if (amsEtape == 2) {        // lecteur : nom, état/position, volume
+                maj.setValue(new byte[] { 0, 0, 1, 2 });
+                maj.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+                ok = gatt.writeCharacteristic(maj);
+            } else if (amsEtape == 3) {        // chanson : artiste, album, titre, durée
+                maj.setValue(new byte[] { 2, 0, 1, 2, 3 });
+                maj.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+                ok = gatt.writeCharacteristic(maj);
+            } else if (amsEtape == 4) {
+                log(qui + " : musique reliée ✔");
+                amsEnvoyer();
+                return;
+            }
+            if (!ok) { final int e = amsEtape; h.postDelayed(() -> { if (amsEtape == e) amsContinuer(); }, 400); }
+        }
+
+        // Une commande : 0 lecture, 1 pause, 2 lecture/pause, 3 suivant, 4 précédent, 5/6 volume, 9/10 avancer/reculer
+        void amsCommande(int n) { amsCmds.add(n); amsEnvoyer(); }
+
+        void amsEnvoyer() {
+            if (amsEcrit || amsCmds.isEmpty() || amsEtape < 4) return;
+            BluetoothGattService s = ams();
+            if (s == null) return;
+            BluetoothGattCharacteristic c = s.getCharacteristic(AMS_COMMANDE);
+            if (c == null) { amsCmds.clear(); return; }
+            c.setValue(new byte[] { (byte) (int) amsCmds.peek() });
+            c.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+            amsEcrit = gatt.writeCharacteristic(c);
+            if (amsEcrit) amsCmds.poll();
+            else h.postDelayed(this::amsEnvoyer, 300);
+        }
+
+        // [entité, attribut, drapeaux, valeur en texte]
+        void recuMusique(byte[] v) {
+            if (v.length < 3 || qui == null) return;
+            int ent = v[0] & 0xff, att = v[1] & 0xff;
+            String val = new String(v, 3, v.length - 3, Charset.forName("UTF-8"));
+            try {
+                JSONObject o = new JSONObject();
+                if (ent == 0 && att == 0) o.put("joueur", val);
+                else if (ent == 0 && att == 1) {
+                    String[] p = val.split(",");
+                    o.put("etat", p.length > 0 && !p[0].isEmpty() ? Integer.parseInt(p[0].trim()) : 0);
+                    if (p.length > 1 && !p[1].isEmpty()) o.put("vitesse", Double.parseDouble(p[1].trim()));
+                    if (p.length > 2 && !p[2].isEmpty()) o.put("ecoule", Double.parseDouble(p[2].trim()));
+                } else if (ent == 0 && att == 2) { if (!val.isEmpty()) o.put("volume", Double.parseDouble(val.trim())); }
+                else if (ent == 2 && att == 0) o.put("artiste", val);
+                else if (ent == 2 && att == 1) o.put("album", val);
+                else if (ent == 2 && att == 2) o.put("titre", val);
+                else if (ent == 2 && att == 3) { o.put("duree", val.isEmpty() ? 0 : Double.parseDouble(val.trim())); }
+                else return;
+                o.put("qui", qui);
+                PontService.this.envoyer("musique", o.toString());
+            } catch (Exception e) { /* valeur illisible : on l'ignore */ }
+        }
+
         void ecrire(byte[] data) { ecritures.add(data); ecrireSuivant(); }
 
         void ecrireSuivant() {
@@ -540,6 +645,12 @@ public class PontService extends Service {
                 if (l == null) continue;
                 for (int i = 0; i < l.length(); i++) {
                     JSONObject o = l.getJSONObject(i);
+                    if (o.has("musique")) {
+                        final int cmd = o.getInt("musique");
+                        final String q = o.optString("qui", "iphone");
+                        h.post(() -> { for (Lien x : liens.values()) if (q.equals(x.qui)) { x.amsCommande(cmd); return; } });
+                        continue;
+                    }
                     final long uid = o.getLong("uid");
                     final boolean pos = "positive".equals(o.optString("action"));
                     final String qui = o.optString("qui", "iphone");
