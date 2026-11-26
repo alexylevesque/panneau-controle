@@ -15,7 +15,9 @@ Idées notées pour le panneau, à faire quand Alexy le demande.
 - [x] Imprimante (Bambu Lab P1S) : progression, temps restant, températures, ventilos, filament AMS, caméra, pause/arrêt/lumière/vitesse, alerte de fin sur l'iPhone
 - [x] Maison : page avec des tuiles. Wi-Fi fait (Internet en direct, appareils branchés, QR pour partager ; test de vitesse retiré à sa demande)
 - [ ] Maison : Lumières, Température, Prises (prise intelligente pour rallumer le Mac mini)
+- [ ] Maison : télécommande infrarouge Broadlink RM4 mini (avec câble capteur HTS2) — basses/volume de la barre de son JBL Bar 2.1 Deep Bass, autres télécommandes, température + humidité. En attente de l'achat.
 - [x] Section IA : vrai chat avec Gemini (API gratuite) dans le panneau. Conversations créées automatiquement et gardées sur la tablette (ia-convos.json), clé dans ia.json. Le modèle « flash » le plus récent est choisi tout seul. (Avant : boutons qui ouvraient les sites dans Firefox, abandonné car les réponses sortaient du panneau.)
 
 ## Objets à imprimer
 - [ ] Support mural (STL) pour la tablette (Galaxy Tab A 10.1, SM-T580 : 254,2 × 155,3 × 8,2 mm, port USB-C en bas) avec passage pour le chargeur, à imprimer sur la P1S
+- [x] Appareils iPhone : page Musique (pochette Deezer gardée sur la tablette, fond flouté, volume en slider), ✕ sur les notifs, appareils coupés > 5 min cachés
