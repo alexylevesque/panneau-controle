@@ -7,7 +7,7 @@ Ta Fire TV roule **Vega OS**. Vega ne laisse pas le panneau savoir ce qui joue. 
 > **C'est un essai.** Le contrôle des médias existe dans la doc de Vega, mais Amazon ne dit pas si une appli maison peut lire ce que jouent Netflix ou les autres. Elle ne dit pas non plus si elle continue de rouler quand Netflix est à l'écran. L'appli affiche tout ce qu'elle voit, pour qu'on le sache vite.
 
 **Ce qu'il te faut :**
-- le **Mac mini**, sur le même Wi-Fi que la télé ;
+- un **Mac** (n'importe lequel), sur le même Wi-Fi que la télé. Toutes les commandes se font sur ce Mac ;
 - ton compte Amazon ;
 - environ **45 minutes** la première fois.
 
