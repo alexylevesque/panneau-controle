@@ -31,6 +31,7 @@ npm install
 npm install "@amazon-devices/kepler-media-controls@~1.0.0" "@amazon-devices/kepler-media-types@~1.0.0"
 
 echo "▶ 4/5 Compilation"
+command -v watchman >/dev/null && { watchman watch-del-all >/dev/null 2>&1; watchman shutdown-server >/dev/null 2>&1; } || true
 npm run build:app
 VPKG=$(ls build/armv7-release/*.vpkg 2>/dev/null | head -1)
 [ -z "$VPKG" ] && VPKG=$(find build -name '*armv7*.vpkg' | head -1)
