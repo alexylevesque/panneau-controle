@@ -42,11 +42,28 @@ function court(o: any, n: number): string {
   return s.length > n ? s.slice(0, n) + '…' : s;
 }
 
+let dernierBrut = '';
 async function lire(loc: any) {
   if (!loc || typeof loc.getMediaControlEndpoints !== 'function') throw new Error('locator sans getMediaControlEndpoints : ' + Object.getOwnPropertyNames(Object.getPrototypeOf(loc) || {}).join(','));
   let eps: any = [];
   try { eps = (await loc.getMediaControlEndpoints()) || []; }
-  catch (e: any) { throw new Error('getMediaControlEndpoints : ' + ((e && e.message) || e) + '\n' + String((e && e.stack) || '').split('\n').slice(0, 6).join('\n')); }
+  catch (e1: any) {
+    // Plan B : on parle directement au module natif de Vega (sa réponse n'est peut-être pas un vrai tableau)
+    let TM: any = null, MCC: any = null;
+    try {
+      TM = require('@amazon-devices/kepler-media-controls/dist/turbo-modules/KeplerMediaControlsClientTM').default;
+      MCC = require('@amazon-devices/kepler-media-controls/dist/MediaControlClientAsync').MediaControlClientAsync;
+    } catch (e) {}
+    if (!TM || typeof TM.getMediaControlEndpoints !== 'function') {
+      const noms: string[] = [];
+      if (TM) { for (const k in TM) noms.push(k); try { Object.getOwnPropertyNames(TM).forEach(k => noms.push(k)); } catch (e) {} }
+      throw new Error('getMediaControlEndpoints : ' + ((e1 && e1.message) || e1) + ' | module natif : ' + (TM ? noms.join(',') || '(vide)' : 'introuvable'));
+    }
+    const brut: any = await TM.getMediaControlEndpoints();
+    dernierBrut = 'type=' + typeof brut + ' ' + court(brut, 400);
+    const liste: any[] = Array.isArray(brut) ? brut : brut && typeof brut.length === 'number' ? Array.from(brut) : brut && typeof brut === 'object' ? Object.values(brut) : [];
+    eps = liste.map((x: any) => new MCC(x));
+  }
   if (!Array.isArray(eps)) eps = Array.from(eps as any);
   const vus: any[] = [];
   let choisi: any = null;
@@ -142,7 +159,7 @@ export const App = () => {
         const c = r.choisi;
         setTexte(r.nb + ' lecteur(s) trouvé(s)\n' + (c ? (c.joue ? '▶ ' : c.pause ? '⏸ ' : '') + (c.titre || '(pas de titre)') + '\n' + c.app + '\n' + c.ecoule + ' s / ' + (c.duree || '?') + ' s' : 'Rien en lecture') +
           '\n\n' + r.vus.map((v: any) => '• ' + (v.app || '?') + (v.erreur ? ' : ' + v.erreur : v.vide ? ' : aucune session' : v.joue ? ' : en lecture' : v.pause ? ' : en pause' : ' : arrêté')).join('\n'));
-        setBrut(c ? c.brut : '');
+        setBrut((dernierBrut ? 'Liste brute : ' + dernierBrut + '\n' : '') + (c ? c.brut : ''));
       } catch (e: any) {
         data = {ok: false, erreur: '[' + etape.current + '] ' + String((e && e.message) || e), pile: String((e && e.stack) || '').split('\n').slice(0, 8).join('\n'), cles: cles()};
         setTexte('Erreur ' + data.erreur);
