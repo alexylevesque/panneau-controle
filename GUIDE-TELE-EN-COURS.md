@@ -96,10 +96,10 @@ vega device list
 
 **Si la liste est vide :**
 1. Sur la télé, va dans **Options pour les développeurs > Mode de connexion**, choisis **TCP/IP**, puis **port standard 5555**. La télé redémarre.
-2. Sur le Mac, avec l'IP de l'étape 2 :
+2. Sur le Mac (192.168.2.200 = ta Fire TV) :
 
 ```bash
-vega exec vda connect 192.168.2.XXX:5555
+vega exec vda connect 192.168.2.200:5555
 vega exec vda devices
 ```
 
@@ -150,7 +150,7 @@ La première fois, ça prend quelques minutes. À la fin, tu vois « ✅ Pont T�
 | Le code de la télé est refusé | Il a expiré. Refais l'étape 2 pour en avoir un nouveau. |
 | `npm run build:app` échoue | Copie les 20 dernières lignes rouges et envoie-les-moi. |
 | L'installation dit « no device » | Fais la partie « Si la liste est vide » de l'étape 4. |
-| La télé a redémarré et le Mac ne la voit plus | Relance `vega exec vda connect IP:5555`. |
+| La télé a redémarré et le Mac ne la voit plus | Relance `vega exec vda connect 192.168.2.200:5555`. |
 
 **Pour tout enlever :** sur la télé, désinstalle Pont Télé comme une autre appli, puis mets **Mode développeur** sur **Désactivé**.
 
