@@ -245,7 +245,8 @@
   .mus-barre { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.12); margin-top: 22px; overflow: hidden; }
   .mus-barre div { height: 100%; background: var(--txt); border-radius: 3px; }
   .mus-tps { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-top: 6px; }
-  .mus-btns { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+  .mus-btns { display: flex; align-items: center; justify-content: center; margin-top: 14px; }
+  .mus-btns a { margin: 0 22px; }
   .mus-btns a, .mus-vol a { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
   .mus-btns a:active, .mus-vol a:active { background: rgba(255,255,255,0.12); }
   .mus-btns svg, .mus-vol svg { width: 30px; height: 30px; fill: var(--txt); }
@@ -1043,7 +1044,7 @@
       box.innerHTML = '<div class="mus"><div class="mus-img" id="musImg"><span>🎵</span></div>' +
         '<div class="mus-d"><div class="mus-app" id="musApp"></div><div class="mus-t" id="musTitre"></div><div class="mus-a" id="musArt"></div>' +
         '<div class="mus-barre"><div id="musBarre"></div></div><div class="mus-tps"><span id="musEc"></span><span id="musDu"></span></div>' +
-        '<div class="mus-btns">' + bouton('recule') + bouton('precedent') + '<a class="mus-pp" data-c="basculer" id="musPP"></a>' + bouton('suivant') + bouton('avance') + '</div>' +
+        '<div class="mus-btns">' + bouton('precedent') + '<a class="mus-pp" data-c="basculer" id="musPP"></a>' + bouton('suivant') + '</div>' +
         '<div class="mus-vol">' + bouton('volMoins') + '<div class="mus-niv"><div id="musVol"></div></div>' + bouton('volPlus') + '</div></div></div>';
       var bs = box.querySelectorAll('[data-c]');
       for (var i = 0; i < bs.length; i++) bs[i].onclick = function () { commandeMusique(this.getAttribute('data-c')); };
