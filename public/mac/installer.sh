@@ -67,7 +67,8 @@ while true; do
   # Nouvelle version du programme sur le panneau : on se met à jour tout seul
   if echo "$R" | grep -q MAJ; then
     curl -s -m 10 "$PANNEAU/mac/installer.sh" -o /tmp/panneau.sh && bash /tmp/panneau.sh maj >/dev/null 2>&1
-    exit 0
+    # On repart tout de suite avec la nouvelle version (sans attendre que macOS relance le programme)
+    exec /bin/bash "$HOME/.panneau/agent.sh"
   fi
   # Interrupteur du panneau : on éteint le Mac pour vrai (comme  > Éteindre, sans la question « Voulez-vous… »)
   if echo "$R" | grep -q ETEINS; then
