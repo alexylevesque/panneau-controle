@@ -1302,7 +1302,8 @@
   function refreshDevices() {
     api('GET', '/api/appareils/status', null, function (r) {
       if (!r) return;
-      devices = r.appareils || [];
+      // Les appareils coupés depuis plus de 5 min sont cachés ; ils reviennent dès qu'ils se reconnectent
+      devices = (r.appareils || []).filter(function (x) { return !x.cache; });
       // Un appel sur n'importe quel iPhone relié ouvre l'écran d'appel
       var c = null;
       for (var i = 0; i < devices.length; i++) if (devices[i].appel) { c = devices[i]; break; }

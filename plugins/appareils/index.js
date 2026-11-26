@@ -221,6 +221,8 @@ module.exports = (cfg) => {
         delete o.arret; delete o.ferme;
       }
       delete o.masques;
+      // Coupé depuis plus de 5 min : caché de la liste (on le garde en mémoire, il revient dès qu'il se reconnecte)
+      o.cache = !o.bluetooth && now - (a.vu || 0) > 5 * 60 * 1000;
       if (o.musique) {
         o.musique = Object.assign({}, o.musique, { image: chercherPochette(o.musique.artiste, o.musique.titre) });
         o.musique.ecoule = (o.musique.ecoule || 0) + (o.musique.etat === 1 && o.musique.t ? (now - o.musique.t) / 1000 * (o.musique.vitesse || 1) : 0);
