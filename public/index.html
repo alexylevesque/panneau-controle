@@ -255,8 +255,11 @@
   .mus-btns a.mus-pp { width: 70px; height: 70px; background: var(--txt); }
   .mus-btns a.mus-pp svg { fill: #11131c; width: 36px; height: 36px; }
   .mus-vol { display: flex; align-items: center; justify-content: center; margin-top: 8px; color: var(--muted); font-size: 13px; }
-  .mus-niv { width: 220px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.12); margin: 0 12px; overflow: hidden; }
-  .mus-niv div { height: 100%; background: var(--muted); border-radius: 3px; -webkit-transition: width .2s; transition: width .2s; }
+  .mus-niv { width: 260px; padding: 18px 0; margin: 0 12px; touch-action: none; }
+  .mus-niv-b { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.12); }
+  .mus-niv-b div { position: relative; height: 100%; background: var(--txt); border-radius: 4px; -webkit-transition: width .2s; transition: width .2s; }
+  .mus-niv.tire .mus-niv-b div { -webkit-transition: none; transition: none; }
+  .mus-niv-b i { position: absolute; right: -11px; top: -7px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
   .mus-vol svg { width: 22px; height: 22px; fill: var(--muted); }
   .nt-t { display: flex; justify-content: space-between; }
   .nt-t b { font-weight: 500; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
@@ -1045,9 +1048,10 @@
         '<div class="mus-d"><div class="mus-app" id="musApp"></div><div class="mus-t" id="musTitre"></div><div class="mus-a" id="musArt"></div>' +
         '<div class="mus-barre"><div id="musBarre"></div></div><div class="mus-tps"><span id="musEc"></span><span id="musDu"></span></div>' +
         '<div class="mus-btns">' + bouton('precedent') + '<a class="mus-pp" data-c="basculer" id="musPP"></a>' + bouton('suivant') + '</div>' +
-        '<div class="mus-vol">' + bouton('volMoins') + '<div class="mus-niv"><div id="musVol"></div></div>' + bouton('volPlus') + '</div></div></div>';
+        '<div class="mus-vol">' + bouton('volMoins') + '<div class="mus-niv" id="musNiv"><div class="mus-niv-b"><div id="musVol"><i></i></div></div></div>' + bouton('volPlus') + '</div></div></div>';
       var bs = box.querySelectorAll('[data-c]');
       for (var i = 0; i < bs.length; i++) bs[i].onclick = function () { commandeMusique(this.getAttribute('data-c')); };
+      sliderVolume($('musNiv'));
     }
     function bouton(c) { return '<a data-c="' + c + '">' + MUS_SVG[c] + '</a>'; }
     $('musTitre').textContent = m.titre;
@@ -1073,6 +1077,37 @@
     $('musDu').textContent = m.duree ? '-' + minSec(m.duree - ec) : '';
   }
   setInterval(musTic, 500);
+  // Slider du volume : l'iPhone ne connaît que « plus fort / moins fort » (16 crans),
+  // alors on envoie le nombre de crans entre le volume actuel et l'endroit où on lâche
+  function sliderVolume(el) {
+    var tire = false;
+    function pos(e) {
+      var t = e.touches && e.touches.length ? e.touches[0] : e.changedTouches && e.changedTouches.length ? e.changedTouches[0] : e;
+      var r = el.getBoundingClientRect();
+      return Math.max(0, Math.min(1, (t.clientX - r.left) / r.width));
+    }
+    function bouge(e) {
+      if (!tire) return;
+      e.preventDefault();
+      musVolAttente = Date.now();
+      $('musVol').style.width = Math.round(100 * pos(e)) + '%';
+    }
+    function lache(e) {
+      if (!tire) return;
+      tire = false; el.className = 'mus-niv';
+      if (!musInfo) return;
+      var cible = Math.round(pos(e) * 16), avant = Math.round((musInfo.m.volume || 0) * 16), n = cible - avant;
+      musInfo.m.volume = cible / 16; musVolAttente = Date.now();
+      $('musVol').style.width = Math.round(100 * cible / 16) + '%';
+      if (n) api('POST', '/api/appareils/action/media', { id: musInfo.qui, cmd: n > 0 ? 'volPlus' : 'volMoins', n: Math.abs(n) }, function (r) {
+        if (!r || !r.ok) toast((r && r.error) || 'Erreur', true);
+      });
+    }
+    function debut(e) { tire = true; el.className = 'mus-niv tire'; bouge(e); }
+    el.addEventListener('touchstart', debut); el.addEventListener('mousedown', debut);
+    document.addEventListener('touchmove', bouge, { passive: false }); document.addEventListener('mousemove', bouge);
+    document.addEventListener('touchend', lache); document.addEventListener('mouseup', lache);
+  }
   function commandeMusique(c) {
     if (!musInfo) return;
     if (c === 'volPlus' || c === 'volMoins') {   // la barre bouge tout de suite (1/16 par clic, comme l'iPhone)

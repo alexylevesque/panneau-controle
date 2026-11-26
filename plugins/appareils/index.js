@@ -400,7 +400,7 @@ module.exports = (cfg) => {
         return 'OK';
       } },
       // Depuis l'écran : lecture, pause, suivant… (le pont l'envoie à l'iPhone)
-      media: { label: 'Commande musique', run: async ({ id, cmd }) => {
+      media: { label: 'Commande musique', run: async ({ id, cmd, n }) => {
         const CODES = { lecture: 0, pause: 1, basculer: 2, suivant: 3, precedent: 4, volPlus: 5, volMoins: 6, avance: 9, recule: 10 };
         if (CODES[cmd] === undefined) throw new Error('Commande inconnue');
         const q = String(id || 'iphone');
@@ -411,7 +411,11 @@ module.exports = (cfg) => {
           m.etat = joue ? 1 : 0; m.t = Date.now();
         }
         const vieux = Object.keys(ALIAS).filter(k => ALIAS[k] === q);
-        vieux.concat([q]).forEach(qq => commandes.push({ qui: qq, musique: CODES[cmd] }));
+        // n = combien de fois (le slider du volume envoie plusieurs crans d'un coup ; l'iPhone a 16 crans)
+        const fois = Math.max(1, Math.min(16, Math.round(+n || 1)));
+        if (a.musique && (cmd === 'volPlus' || cmd === 'volMoins'))
+          a.musique.volume = Math.max(0, Math.min(1, (a.musique.volume || 0) + (cmd === 'volPlus' ? fois : -fois) / 16));
+        for (let i = 0; i < fois; i++) vieux.concat([q]).forEach(qq => commandes.push({ qui: qq, musique: CODES[cmd] }));
         return 'OK';
       } },
       lu: { label: 'Marquer lu', run: async ({ id, qui }) => {
