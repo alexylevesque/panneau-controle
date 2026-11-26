@@ -1,5 +1,7 @@
 # Voir ce qui joue sur la télé (Fire TV Stick 4K Select, Vega OS)
 
+> ⏸ **En pause (26 novembre 2026).** Pont Télé s'installe et roule (v11), mais Vega OS refuse de lui donner la liste des lecteurs : `Active Clusters query transaction 20 failed with status: 126`. C'est un bug connu de Vega. Pour l'instant, il semble réserver cette lecture aux applis signées par Amazon ([fil chez Amazon](https://community.amazondeveloper.com/t/vega-0-24-vvd-media-controls-client-discovery-fails-with-active-clusters-status-126/29205)). En attendant, le panneau montre l'appli ouverte depuis la tablette. Après une mise à jour de Vega, relance l'installeur (étape 5) pour réessayer.
+
 Sur le panneau, **Télé > En ce moment** montre ce qui joue sur la télé : l'appli, le titre, l'épisode, le temps, et l'affiche trouvée sur internet.
 
 Ta Fire TV roule **Vega OS**. Vega ne laisse pas le panneau savoir ce qui joue. On installe donc sur la télé une petite appli maison, **Pont Télé**, qui le lit et l'envoie à la tablette toutes les 2 secondes.
