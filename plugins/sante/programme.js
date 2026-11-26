@@ -3,7 +3,7 @@
 module.exports = {
   nom: 'ALEXY_1',
   jours: [
-    { nom: 'Pectoraux et triceps', icone: '💪', exercices: [
+    { nom: 'Pectoraux et triceps', court: 'Pecs', icone: '💪', exercices: [
       { l: 'A', n: 'Cable Standing Chest Press', s: 3, r: 15, repos: 60 },
       { l: 'B', n: 'Smith Machine Incline Press', s: 4, r: 15, repos: 90 },
       { l: 'C1', n: 'Dumbbell Incline Bench Press', s: 4, r: 12, tempo: '2111' },
@@ -12,7 +12,7 @@ module.exports = {
       { l: 'E', n: 'Pec Deck Machine', s: 4, r: 12, repos: 90 },
       { l: 'F', n: 'Cable One Arm Side Triceps', s: 3, r: 15, repos: 60 },
     ] },
-    { nom: 'Dos et biceps', icone: '🏋️', exercices: [
+    { nom: 'Dos et biceps', court: 'Dos', icone: '🏋️', exercices: [
       { l: 'A', n: 'Assisted Pull-ups', s: 3, r: 15, repos: 90 },
       { l: 'B1', n: 'Wide Grip Lat Pulldown', s: 4, r: 12 },
       { l: 'B2', n: 'Bent Straight Arm Pulldown', s: 4, r: 12, repos: 180 },
@@ -20,7 +20,7 @@ module.exports = {
       { l: 'D', n: 'Dumbbell One Arm Row', s: 3, r: 12, repos: 90 },
       { l: 'E', n: 'Cable One Arm Biceps Curl', s: 3, r: 15, repos: 60 },
     ] },
-    { nom: 'Jambes', icone: '🦵', exercices: [
+    { nom: 'Jambes', court: 'Jambes', icone: '🦵', exercices: [
       { l: 'A1', n: 'Thigh Abductor', s: 3, r: 15 },
       { l: 'A2', n: 'Thigh Adductor', s: 3, r: 15 },
       { l: 'B', n: 'Standing One Leg Curl', s: 4, r: 12, repos: 90 },
@@ -30,7 +30,7 @@ module.exports = {
       { l: 'E', n: 'Leg Extension', s: 3, r: 15, repos: 90 },
       { l: 'F', n: 'Standing Calf Raises', s: 3, r: 10, repos: 90, tempo: '3422' },
     ] },
-    { nom: 'Épaules et abdos', icone: '🤸', exercices: [
+    { nom: 'Épaules et abdos', court: 'Épaules', icone: '🤸', exercices: [
       { l: 'A1', n: 'Reverse Pec Deck', s: 4, r: 12, tempo: '3221' },
       { l: 'A2', n: 'Barbell Rear Delt Row', s: 4, r: 10, repos: 120 },
       { l: 'B', n: 'Shoulder Press Machine', s: 4, r: 12, repos: 90 },
@@ -39,7 +39,7 @@ module.exports = {
       { l: 'E1', n: 'Ab Roller', s: 3, r: 10 },
       { l: 'E2', n: 'Russian Twist', s: 3, r: 20, repos: 120 },
     ] },
-    { nom: 'Bras', icone: '💪', exercices: [
+    { nom: 'Bras', court: 'Bras', icone: '💪', exercices: [
       { l: 'A', n: 'Alternate Incline Dumbbell Curl', s: 3, r: 25, repos: 90 },
       { l: 'B', n: 'Cable Reverse Grip Pushdown', s: 3, r: 25, repos: 90 },
       { l: 'C', n: 'Alternate Dumbbell Hammer Curl', s: 3, r: 25, repos: 90 },

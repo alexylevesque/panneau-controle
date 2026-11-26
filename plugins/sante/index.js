@@ -31,7 +31,11 @@ module.exports = () => {
 
   function plan(d) {
     const i = SEMAINE[d.getDay()];
-    return i === null || i === undefined || !PROGRAMME.jours[i] ? null : PROGRAMME.jours[i];
+    const p = i === null || i === undefined ? null : PROGRAMME.jours[i];
+    if (!p) return null;
+    // Durée approximative : ~45 s par série + le repos
+    const sec = p.exercices.reduce((t, e) => t + e.s * (45 + (e.repos || 30)), 0);
+    return Object.assign({ series: p.exercices.reduce((t, e) => t + e.s, 0), minutes: Math.round(sec / 300) * 5 }, p);
   }
 
   // Réveil sur l'iPhone : le panneau le fait sonner par Pushover (comme « Faire sonner ») à l'heure choisie.
@@ -101,7 +105,15 @@ module.exports = () => {
         const d = new Date(lundi); d.setDate(lundi.getDate() + k);
         semaine.push({ l: 'LMMJVSD'[k], pris: !!s.creatine[jour(d)], entraine: !!s.fait[jour(d)], auj: jour(d) === j, futur: d > maintenant && jour(d) !== j });
       }
+      // Semaine d'entraînement (les jours avec un plan), pour la tuile
+      const entSemaine = [];
+      for (let k = 0; k < 7; k++) {
+        const d = new Date(lundi); d.setDate(lundi.getDate() + k);
+        const pl = plan(d);
+        if (pl) entSemaine.push({ j: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][d.getDay()], court: pl.court || pl.nom, fait: !!s.fait[jour(d)], auj: jour(d) === j });
+      }
       return {
+        entSemaine,
         jour: j,
         pas: s.pas.date === j ? s.pas.n : 0,
         pasMaj: s.pas.date === j ? s.pas.maj : 0,

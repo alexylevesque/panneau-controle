@@ -266,6 +266,23 @@
   a.fait { padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,0.08); color: var(--txt); font-size: 12px; letter-spacing: 0; }
   a.fait.ok { background: rgba(95,211,154,0.2); color: #5fd39a; font-weight: 600; }
   .ent .fini { opacity: .5; }
+  .ent-big { display: flex; align-items: center; flex: 1; min-height: 0; }
+  .ent-big .e { font-size: 52px; margin-right: 16px; }
+  .ent-big b { font-size: 30px; font-weight: 600; display: block; } .ent-big small { color: var(--muted); font-size: 14px; line-height: 1.5; }
+  .ent-big:active { opacity: .7; }
+  .ent-sem { display: flex; flex: none; }
+  .ent-sem div { flex: 1; margin-right: 6px; text-align: center; font-size: 11px; color: var(--muted); }
+  .ent-sem div:last-child { margin-right: 0; }
+  .ent-sem div i { display: block; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); margin-bottom: 6px; }
+  .ent-sem div.ok i { background: #5fd39a; } .ent-sem div.auj i { background: #ff8a6a; } .ent-sem div.auj.ok i { background: #5fd39a; }
+  .ent-sem div.auj { color: var(--txt); font-weight: 600; }
+  .ent-box { width: 760px; }
+  .ent-t { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 15px; }
+  .ent-t th { text-align: left; color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; padding: 6px 8px; }
+  .ent-t td { padding: 9px 8px; border-top: 1px solid rgba(255,255,255,0.07); }
+  .ent-t td.l { color: var(--accent); font-weight: 600; width: 30px; }
+  .ent-t tr.sup td { background: rgba(122,162,255,0.06); }
+  .ent-note { color: var(--muted); font-size: 12px; margin-top: 12px; }
   .ent .demain { color: var(--muted); font-size: 12px; padding-top: 6px; flex: none; }
   .ent .repos { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 16px; }
   .som { display: flex; flex: 1; align-items: center; }
@@ -694,6 +711,15 @@
       </div>
     </div>
 
+    <!-- Plan d'entraînement du jour -->
+    <div class="sheet" id="entSheet">
+      <div class="sheet-box ent-box">
+        <div class="sheet-top"><div class="sheet-meta"><b id="entTitre">Jambes</b><small id="entSous"></small></div><button class="x" id="entClose">✕</button></div>
+        <table class="ent-t" id="entTable"></table>
+        <div class="ent-note">Les lettres avec un chiffre (A1, A2…) se font en superset.</div>
+      </div>
+    </div>
+
     <!-- Réveil -->
     <div class="call" id="alarme">
       <div class="call-box">
@@ -1109,18 +1135,17 @@
     h += '<div class="sa-t"><h3>💊 Créatine</h3><div class="crea" id="creaBt"><div class="bt' + (d.creatine ? ' ok' : '') + '">' + (d.creatine ? '✓' : '') + '</div><div class="tx">' +
       (d.creatine ? '<b>Prise aujourd\'hui</b><small>à ' + d.creatine.replace(':', ' h ') + ' · touche pour annuler</small>' : '<b>Pas encore prise</b><small>Touche quand tu l\'as prise</small>') +
       '</div></div><div class="semaine">' + sem + '</div></div>';
-    // Entraînement
+    // Entraînement : gros titre + la semaine ; on touche pour voir le plan complet
     var jours = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], p = d.aujourdhui;
-    h += '<div class="sa-t ent"><h3>🏋️ Entraînement · ' + jours[new Date().getDay()] + (p ? '<span><a class="fait' + (d.fait ? ' ok' : '') + '" id="faitBt">' + (d.fait ? '✓ Fait' : 'Marquer fait') + '</a></span>' : '') + '</h3>';
-    if (p) {
-      h += '<div class="nom' + (d.fait ? ' fini' : '') + '"><span>' + p.icone + '</span>' + esc(p.nom) + '</div><ul' + (d.fait ? ' class="fini"' : '') + '>';
-      for (var k = 0; k < p.exercices.length; k++) {
-        var e = p.exercices[k];
-        h += '<li><i>' + esc(e.l || '') + '</i><span>' + esc(e.n) + '</span><small>' + e.s + ' × ' + e.r + (e.repos ? ' · ' + e.repos + ' s' : '') + '</small></li>';
-      }
-      h += '</ul>';
-    } else h += '<div class="repos">😴 Repos aujourd\'hui</div>';
-    h += '<div class="demain">Demain : ' + (d.demain ? esc(d.demain.nom) : 'repos') + '</div></div>';
+    h += '<div class="sa-t ent"><h3>🏋️ Entraînement · semaine' + (p ? '<span><a class="fait' + (d.fait ? ' ok' : '') + '" id="faitBt">' + (d.fait ? '✓ Fait' : 'Marquer fait') + '</a></span>' : '') + '</h3>';
+    h += '<div class="ent-big' + (p ? '' : ' repos') + '" id="entBig"><div class="e">' + (p ? p.icone : '😴') + '</div><div><b>' + (p ? esc(p.nom) : 'Repos') + '</b><small>' +
+      (p ? p.exercices.length + ' exercices · ' + p.series + ' séries · ~' + p.minutes + ' min<br>Touche pour voir le détail' : 'Demain : ' + (d.demain ? esc(d.demain.nom) : 'repos')) + '</small></div></div>';
+    h += '<div class="ent-sem">';
+    for (var w = 0; w < (d.entSemaine || []).length; w++) {
+      var x = d.entSemaine[w];
+      h += '<div class="' + (x.fait ? 'ok ' : '') + (x.auj ? 'auj' : '') + '"><i></i>' + x.j + '<br>' + esc(x.court) + '</div>';
+    }
+    h += '</div></div>';
     // Sommeil
     var c = d.coucher.split(':'), rv = d.reveil.split(':');
     var mins = ((+rv[0] * 60 + +rv[1]) - (+c[0] * 60 + +c[1]) + 1440) % 1440;
@@ -1137,6 +1162,7 @@
     $('objPlus').onclick = function () { santeAction('objectif', { n: d.objectif + 500 }); };
     $('creaBt').onclick = function () { santeAction('creatine'); };
     if ($('faitBt')) $('faitBt').onclick = function () { santeAction('fait'); };
+    if (d.aujourdhui) $('entBig').onclick = function () { detailEntrainement(d.aujourdhui); };
     $('togReveil').onclick = function (e) { e.stopPropagation(); santeAction('sommeil', { actif: !d.reveilActif }); };
     $('inCoucher').onchange = function () { santeAction('sommeil', { coucher: this.value }); };
     if ($('ouBt')) $('ouBt').onclick = function () {   // iPhone → tablette → les deux
@@ -1145,6 +1171,20 @@
     };
     $('inReveil').onchange = function () { santeAction('sommeil', { reveil: this.value }); };
   }
+  // Le plan complet du jour, dans une fenêtre
+  function detailEntrainement(p) {
+    var h = '';
+    for (var k = 0; k < p.exercices.length; k++) {
+      var e = p.exercices[k], sup = /\d/.test(e.l || '');
+      h += '<tr' + (sup ? ' class="sup"' : '') + '><td class="l">' + esc(e.l || '') + '</td><td>' + esc(e.n) + '</td><td>' + e.s + '</td><td>' + e.r + '</td><td>' + (e.repos ? e.repos + ' s' : '–') + '</td><td>' + (e.tempo || '–') + '</td></tr>';
+    }
+    $('entTitre').textContent = p.icone + ' ' + p.nom;
+    $('entSous').textContent = p.exercices.length + ' exercices · ' + p.series + ' séries · ~' + p.minutes + ' min';
+    $('entTable').innerHTML = '<tr><th></th><th>Exercice</th><th>Séries</th><th>Reps</th><th>Repos</th><th>Tempo</th></tr>' + h;
+    $('entSheet').className = 'sheet show';
+  }
+  $('entClose').onclick = function () { $('entSheet').className = 'sheet'; };
+
   // Réveil : sonne sur la tablette à l'heure choisie (une fois par jour), jusqu'à ce qu'on touche Arrêter
   var alarmeSon = null, alarmeJour = '';
   function verifierReveil() {
