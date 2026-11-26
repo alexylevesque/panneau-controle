@@ -301,6 +301,19 @@
   .mus-img span { font-size: 64px; opacity: .5; }
   .mus-d { flex: 1; min-width: 0; margin-left: 26px; }
   .mus-app { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; min-height: 15px; }
+  .mus-app { display: flex; align-items: center; }
+  .mus-favs { margin-left: auto; text-transform: none; letter-spacing: 0; font-size: 13px; color: #ff7a9a; padding: 4px 10px; border-radius: 999px; background: rgba(255,122,154,0.12); }
+  .mus-favs:empty { display: none; }
+  .mus-tl { display: flex; align-items: center; }
+  .mus-tl .mus-t { flex: 1; min-width: 0; }
+  .mus-coeur { flex: none; width: 46px; height: 46px; margin-left: 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--txt); }
+  .mus-coeur.on { color: #ff5f7e; }
+  .mus-coeur:active { background: rgba(255,255,255,0.12); }
+  .fav-liste { max-height: 520px; overflow-y: auto; -webkit-overflow-scrolling: touch; margin-top: 14px; }
+  .fav { display: flex; align-items: center; padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.07); }
+  .fav-img { width: 52px; height: 52px; border-radius: 10px; overflow: hidden; background: rgba(255,255,255,0.08); flex: none; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .fav-img img { width: 100%; height: 100%; object-fit: cover; }
+  .fav-t { margin-left: 14px; min-width: 0; } .fav-t b { display: block; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .fav-t small { color: var(--muted); font-size: 13px; }
   .mus-t { font-size: 24px; font-weight: 600; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mus-a { color: var(--muted); font-size: 16px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mus-barre { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.12); margin-top: 22px; overflow: hidden; }
@@ -708,6 +721,14 @@
           <button class="cb yes" id="callYes"><span>✆</span>Accepter</button>
         </div>
         <div class="call-hint">Si tu acceptes, tu parles dans ton iPhone, pas dans la tablette.</div>
+      </div>
+    </div>
+
+    <!-- Chansons favorites -->
+    <div class="sheet" id="favSheet">
+      <div class="sheet-box">
+        <div class="sheet-top"><div class="sheet-meta"><b>♥ Chansons favorites</b><small>Gardées sur la tablette</small></div><button class="x" id="favClose">✕</button></div>
+        <div class="fav-liste" id="favListe"></div>
       </div>
     </div>
 
@@ -1248,18 +1269,30 @@
     var joue = m.etat === 1 || (m.etat !== 0 && m.vitesse > 0);
     if (!$('musTitre')) {
       box.innerHTML = '<div class="mus"><div class="mus-img" id="musImg"><span>🎵</span></div>' +
-        '<div class="mus-d"><div class="mus-app" id="musApp"></div><div class="mus-t" id="musTitre"></div><div class="mus-a" id="musArt"></div>' +
+        '<div class="mus-d"><div class="mus-app"><span id="musApp"></span><a class="mus-favs" id="musFavs"></a></div><div class="mus-tl"><div class="mus-t" id="musTitre"></div><a class="mus-coeur" id="musCoeur"></a></div><div class="mus-a" id="musArt"></div>' +
         '<div class="mus-barre"><div id="musBarre"></div></div><div class="mus-tps"><span id="musEc"></span><span id="musDu"></span></div>' +
         '<div class="mus-btns">' + bouton('precedent') + '<a class="mus-pp" data-c="basculer" id="musPP"></a>' + bouton('suivant') + '</div>' +
         '<div class="mus-vol">' + bouton('volMoins') + '<div class="mus-niv" id="musNiv"><div class="mus-niv-b"><div id="musVol"><i></i></div></div></div>' + bouton('volPlus') + '</div><div class="mus-pct" id="musPct"></div></div></div>';
       var bs = box.querySelectorAll('[data-c]');
       for (var i = 0; i < bs.length; i++) bs[i].onclick = function () { commandeMusique(this.getAttribute('data-c')); };
       sliderVolume($('musNiv'));
+      $('musCoeur').onclick = function () {
+        var on = this.className.indexOf(' on') < 0;
+        this.className = 'mus-coeur' + (on ? ' on' : ''); this.innerHTML = on ? '♥' : '♡';
+        api('POST', '/api/appareils/action/favori', { id: musInfo.qui }, function (r) {
+          if (!r || !r.ok) toast((r && r.error) || 'Erreur', true);
+          else toast(r.result ? 'Ajoutée aux favoris ♥' : 'Retirée des favoris');
+          refreshDevices();
+        });
+      };
+      $('musFavs').onclick = listeFavoris;
     }
     function bouton(c) { return '<a data-c="' + c + '">' + MUS_SVG[c] + '</a>'; }
     $('musTitre').textContent = m.titre;
     $('musArt').textContent = [m.artiste, m.album].filter(function (x) { return x; }).join(' · ');
     $('musApp').textContent = m.joueur || '';
+    $('musCoeur').className = 'mus-coeur' + (m.favori ? ' on' : ''); $('musCoeur').innerHTML = m.favori ? '♥' : '♡';
+    $('musFavs').textContent = m.nbFavoris ? '♥ Favoris (' + m.nbFavoris + ')' : '';
     $('musPP').innerHTML = joue ? MUS_SVG.pause : MUS_SVG.lecture;
     if (!musVolAttente || Date.now() - musVolAttente > 2500) { musVolAttente = 0; afficherVol(m.volume || 0); }
     var img = $('musImg');
@@ -1272,6 +1305,20 @@
     }
     musTic();
   }
+  // Liste des chansons favorites
+  function listeFavoris() {
+    api('POST', '/api/appareils/action/favoris', {}, function (r) {
+      var l = (r && r.result) || [], h = '';
+      for (var i = 0; i < l.length; i++) {
+        var f = l[i];
+        h += '<div class="fav"><div class="fav-img">' + (f.image ? '<img src="' + esc(f.image) + '">' : '🎵') + '</div><div class="fav-t"><b>' + esc(f.titre) + '</b><small>' + esc([f.artiste, f.album].filter(function (x) { return x; }).join(' · ')) + '</small></div></div>';
+      }
+      $('favListe').innerHTML = h || '<div class="bt-vide">Aucun favori pour l\'instant. Touche ♡ pendant qu\'une chanson joue.</div>';
+      $('favSheet').className = 'sheet show';
+    });
+  }
+  $('favClose').onclick = function () { $('favSheet').className = 'sheet'; };
+
   // Fond de la page Musique : un dégradé avec les couleurs de la pochette (comme sur l'iPhone)
   // (une toute petite copie de la pochette, étirée : le navigateur la lisse en un flou de couleurs, sans calcul lourd)
   function fondMusique(im) {

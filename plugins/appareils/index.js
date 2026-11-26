@@ -199,6 +199,12 @@ module.exports = (cfg) => {
     }).on('error', () => {}).on('timeout', function () { this.destroy(); });
   }
 
+  // Chansons favorites (sur la tablette)
+  const FAV_FILE = path.join(__dirname, '..', '..', 'favoris.json');
+  let favoris = [];
+  try { favoris = JSON.parse(fs.readFileSync(FAV_FILE, 'utf8')); } catch (e) {}
+  const saveFav = () => { try { fs.writeFileSync(FAV_FILE, JSON.stringify(favoris)); } catch (e) {} };
+
   // ---- Pont Bluetooth (appli Android sur la tablette) ----
   // Notifs et appels arrivent de l'appli ; les commandes (accepter/refuser) attendent qu'elle les ramasse.
   let commandes = [];
@@ -245,7 +251,8 @@ module.exports = (cfg) => {
       // Coupé depuis plus de 5 min : caché de la liste (on le garde en mémoire, il revient dès qu'il se reconnecte)
       o.cache = !o.bluetooth && now - (a.vu || 0) > 5 * 60 * 1000;
       if (o.musique) {
-        o.musique = Object.assign({}, o.musique, { image: chercherPochette(o.musique.artiste, o.musique.titre) });
+        const cleFav = (o.musique.artiste || '') + '|' + o.musique.titre;
+        o.musique = Object.assign({}, o.musique, { image: chercherPochette(o.musique.artiste, o.musique.titre), favori: favoris.some(f => f.cle === cleFav), nbFavoris: favoris.length });
         o.musique.ecoule = (o.musique.ecoule || 0) + (o.musique.etat === 1 && o.musique.t ? (now - o.musique.t) / 1000 * (o.musique.vitesse || 1) : 0);
         if (o.musique.duree) o.musique.ecoule = Math.min(o.musique.ecoule, o.musique.duree);
         delete o.musique.t;
@@ -424,7 +431,7 @@ module.exports = (cfg) => {
       } },
       // Depuis l'écran : lecture, pause, suivant… (le pont l'envoie à l'iPhone)
       media: { label: 'Commande musique', run: async ({ id, cmd, n }) => {
-        const CODES = { lecture: 0, pause: 1, basculer: 2, suivant: 3, precedent: 4, volPlus: 5, volMoins: 6, avance: 9, recule: 10 };
+        const CODES = { lecture: 0, pause: 1, basculer: 2, suivant: 3, precedent: 4, volPlus: 5, volMoins: 6, avance: 9, recule: 10, jaime: 12 };
         if (CODES[cmd] === undefined) throw new Error('Commande inconnue');
         const q = String(id || 'iphone');
         const a = iphone(q);
@@ -441,6 +448,20 @@ module.exports = (cfg) => {
         for (let i = 0; i < fois; i++) vieux.concat([q]).forEach(qq => commandes.push({ qui: qq, musique: CODES[cmd] }));
         return 'OK';
       } },
+      // Favoris : gardés sur la tablette (+ « J'aime » envoyé à l'iPhone ; Apple Music le comprend, Deezer souvent pas)
+      favori: { label: 'Favori musique', run: async ({ id }) => {
+        const a = iphone(id), m = a.musique;
+        if (!m || !m.titre) throw new Error('Rien ne joue');
+        const cle = (m.artiste || '') + '|' + m.titre;
+        const i = favoris.findIndex(f => f.cle === cle);
+        if (i >= 0) { favoris.splice(i, 1); saveFav(); return false; }
+        favoris.unshift({ cle, titre: m.titre, artiste: m.artiste || '', album: m.album || '', image: chercherPochette(m.artiste, m.titre), quand: Date.now() });
+        saveFav();
+        const q = String(id || 'iphone');
+        Object.keys(ALIAS).filter(k => ALIAS[k] === q).concat([q]).forEach(qq => commandes.push({ qui: qq, musique: 12 }));
+        return true;
+      } },
+      favoris: { label: 'Liste des favoris', run: async () => favoris.map(f => Object.assign({}, f, { image: f.image || chercherPochette(f.artiste, f.titre) })) },
       lu: { label: 'Marquer lu', run: async ({ id, qui }) => {
         const a = iphone(qui); a.notifs.forEach(n => { if (n.id === String(id)) n.nonLu = false; }); save(); return 'OK';
       } },
