@@ -254,7 +254,8 @@
   .mus-btns a.mus-pp { width: 70px; height: 70px; background: var(--txt); }
   .mus-btns a.mus-pp svg { fill: #11131c; width: 36px; height: 36px; }
   .mus-vol { display: flex; align-items: center; justify-content: center; margin-top: 8px; color: var(--muted); font-size: 13px; }
-  .mus-vol span { margin: 0 14px; }
+  .mus-niv { width: 220px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.12); margin: 0 12px; overflow: hidden; }
+  .mus-niv div { height: 100%; background: var(--muted); border-radius: 3px; -webkit-transition: width .2s; transition: width .2s; }
   .mus-vol svg { width: 22px; height: 22px; fill: var(--muted); }
   .nt-t { display: flex; justify-content: space-between; }
   .nt-t b { font-weight: 500; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
@@ -1029,7 +1030,7 @@
     volMoins: '<svg viewBox="0 0 24 24"><path d="M18.5 12A4.5 4.5 0 0 0 16 7.97v8.05A4.5 4.5 0 0 0 18.5 12zM5 9v6h4l5 5V4L9 9H5z"/></svg>',
     volPlus: '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05A4.5 4.5 0 0 0 16.5 12zM14 3.23v2.06a7 7 0 0 1 0 13.42v2.06A9 9 0 0 0 14 3.23z"/></svg>'
   };
-  var musDepuis = 0, musInfo = null;
+  var musDepuis = 0, musInfo = null, musVolAttente = 0;
   function musique(d) {
     var box = $('pg-musique'), m = d.musique;
     musInfo = m && d.bluetooth && m.titre ? { m: m, recu: Date.now(), qui: d.id } : null;
@@ -1043,7 +1044,7 @@
         '<div class="mus-d"><div class="mus-app" id="musApp"></div><div class="mus-t" id="musTitre"></div><div class="mus-a" id="musArt"></div>' +
         '<div class="mus-barre"><div id="musBarre"></div></div><div class="mus-tps"><span id="musEc"></span><span id="musDu"></span></div>' +
         '<div class="mus-btns">' + bouton('recule') + bouton('precedent') + '<a class="mus-pp" data-c="basculer" id="musPP"></a>' + bouton('suivant') + bouton('avance') + '</div>' +
-        '<div class="mus-vol">' + bouton('volMoins') + '<span>Volume</span>' + bouton('volPlus') + '</div></div></div>';
+        '<div class="mus-vol">' + bouton('volMoins') + '<div class="mus-niv"><div id="musVol"></div></div>' + bouton('volPlus') + '</div></div></div>';
       var bs = box.querySelectorAll('[data-c]');
       for (var i = 0; i < bs.length; i++) bs[i].onclick = function () { commandeMusique(this.getAttribute('data-c')); };
     }
@@ -1052,6 +1053,7 @@
     $('musArt').textContent = [m.artiste, m.album].filter(function (x) { return x; }).join(' · ');
     $('musApp').textContent = m.joueur || '';
     $('musPP').innerHTML = joue ? MUS_SVG.pause : MUS_SVG.lecture;
+    if (!musVolAttente || Date.now() - musVolAttente > 2500) { musVolAttente = 0; $('musVol').style.width = Math.round(100 * (m.volume || 0)) + '%'; }
     var img = $('musImg');
     if (img.getAttribute('data-src') !== (m.image || '')) {
       img.setAttribute('data-src', m.image || '');
@@ -1072,6 +1074,11 @@
   setInterval(musTic, 500);
   function commandeMusique(c) {
     if (!musInfo) return;
+    if (c === 'volPlus' || c === 'volMoins') {   // la barre bouge tout de suite (1/16 par clic, comme l'iPhone)
+      var v = Math.max(0, Math.min(1, (musInfo.m.volume || 0) + (c === 'volPlus' ? 1 : -1) / 16));
+      musInfo.m.volume = v; musVolAttente = Date.now();
+      $('musVol').style.width = Math.round(100 * v) + '%';
+    }
     if (c === 'basculer') {   // on change le bouton tout de suite
       var m = musInfo.m;
       if (m.etat === 1) m.ecoule = (m.ecoule || 0) + (Date.now() - musInfo.recu) / 1000 * (m.vitesse || 1);
