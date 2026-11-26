@@ -33,6 +33,7 @@ npm install "@amazon-devices/kepler-media-controls@~1.0.0" "@amazon-devices/kepl
 
 echo "▶ 4/5 Compilation"
 command -v watchman >/dev/null && { watchman watch-del-all >/dev/null 2>&1; watchman shutdown-server >/dev/null 2>&1; } || true
+rm -rf build   # sinon on risque de réinstaller un vieux .vpkg
 npm run build:app
 VPKG=$(find build -name '*_armv7.vpkg' 2>/dev/null | head -1)
 [ -z "$VPKG" ] && VPKG=$(find build -name '*armv7*.vpkg' 2>/dev/null | head -1)
@@ -48,5 +49,9 @@ if ! vega device install-app -d "$TELE" --packagePath "$VPKG"; then
   echo "   (nouvel essai sans -d)"
   vega device install-app --packagePath "$VPKG"
 fi
+# ferme l'ancienne version si elle tourne encore, sinon la télé rouvre la vieille
+vega device terminate-app -d "$TELE" --appName "$COMP" >/dev/null 2>&1 || true
+sleep 1
 vega device launch-app -d "$TELE" --appName "$COMP" || vega device launch-app --appName "$COMP"
+echo "   Version compilée : $(grep -o "Pont Télé v[0-9]*" "$APP" | head -1)"
 echo "✅ Pont Télé est installée et ouverte sur la télé ($COMP)."
