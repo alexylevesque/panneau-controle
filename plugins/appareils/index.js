@@ -59,12 +59,12 @@ function telecharger(url, fichier, cb, essais) {
     res.on('end', () => { try { fs.mkdirSync(POCH_DIR, { recursive: true }); fs.writeFileSync(fichier, Buffer.concat(morceaux)); cb(true); } catch (e) { cb(false); } });
   }).on('error', () => cb(false)).on('timeout', function () { this.destroy(); });
 }
-// On garde au plus 300 pochettes (environ 15 Mo) : au-delà, on efface les plus vieilles
+// On garde au plus 1000 pochettes (environ 50 Mo) : au-delà, on efface les plus vieilles
 function menage() {
   try {
     const fichiers = fs.readdirSync(POCH_DIR).map(f => ({ f, t: fs.statSync(path.join(POCH_DIR, f)).mtimeMs }));
-    if (fichiers.length <= 300) return;
-    fichiers.sort((a, b) => a.t - b.t).slice(0, fichiers.length - 300).forEach(x => {
+    if (fichiers.length <= 1000) return;
+    fichiers.sort((a, b) => a.t - b.t).slice(0, fichiers.length - 1000).forEach(x => {
       fs.unlinkSync(path.join(POCH_DIR, x.f));
       Object.keys(pochettes).forEach(k => { if (pochettes[k] === '/pochettes/' + x.f) delete pochettes[k]; });
     });
