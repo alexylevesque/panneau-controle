@@ -32,11 +32,13 @@ function requete(methode, chemin, cle, corps) {
 }
 
 // Réponse en direct (SSE) : onTexte reçoit le texte au fur et à mesure
-function requeteFlux(chemin, cle, corps, onTexte) {
+function requeteFlux(chemin, cle, corps, onTexte, diag) {
+  diag = diag || {};
   return new Promise((resolve, reject) => {
     const data = Buffer.from(JSON.stringify(corps));
     const req = https.request({ host: HOTE, port: +PORT || 443, method: 'POST', path: chemin, timeout: 90000,
       headers: { 'x-goog-api-key': cle, 'User-Agent': 'panneau', 'Content-Type': 'application/json', 'Content-Length': data.length } }, r => {
+      diag.reponse = Date.now() - diag.t0; diag.statut = r.statusCode;
       r.setEncoding('utf8');
       if (r.statusCode !== 200) {
         let d = ''; r.on('data', c => (d += c));
@@ -50,6 +52,7 @@ function requeteFlux(chemin, cle, corps, onTexte) {
       }
       let tampon = '', texte = '', bloque = false;
       r.on('data', c => {
+        diag.octets = (diag.octets || 0) + c.length; if (!diag.premier) diag.premier = Date.now() - diag.t0;
         tampon += c;
         let i;
         while ((i = tampon.indexOf('\n')) > -1) {
@@ -65,6 +68,7 @@ function requeteFlux(chemin, cle, corps, onTexte) {
       r.on('end', () => resolve({ texte, bloque }));
       r.on('error', reject);
     });
+    req.on('socket', so => so.on('connect', () => { diag.connecte = Date.now() - diag.t0; }));
     req.on('error', reject).on('timeout', () => req.destroy(new Error('Gemini ne répond pas (délai dépassé)')));
     req.write(data); req.end();
   });
@@ -113,7 +117,7 @@ module.exports = () => {
     if (sansReglage[m] || !v) return undefined;
     return v >= 3 ? { thinkingLevel: 'minimal' } : { thinkingBudget: 0 };
   }
-  async function demander(historique, onTexte) {
+  async function demander(historique, onTexte, diag) {
     if (!cfg.cle) throw new Error('Ajoute d\'abord ta clé Gemini');
     const liste = await choisirModeles(cfg.cle);
     let derniere;
@@ -125,7 +129,8 @@ module.exports = () => {
         };
         const t = reflexion(m); if (t) corps.generationConfig = { thinkingConfig: t };
         try {
-          const r = await requeteFlux('/v1beta/models/' + encodeURIComponent(m) + ':streamGenerateContent?alt=sse', cfg.cle, corps, onTexte);
+          diag.modele = m; diag.t0 = Date.now(); diag.essais = (diag.essais || 0) + 1;
+          const r = await requeteFlux('/v1beta/models/' + encodeURIComponent(m) + ':streamGenerateContent?alt=sse', cfg.cle, corps, onTexte, diag);
           if (r.texte) { dernierModele = m; return { texte: r.texte, modele: m }; }
           throw new Error(r.bloque ? 'Gemini a refusé de répondre à ce message' : 'Gemini n\'a rien répondu');
         } catch (e) {
@@ -169,9 +174,9 @@ module.exports = () => {
           c = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), titre: t.length > 48 ? t.slice(0, 46).replace(/\s+\S*$/, '') + '…' : t, cree: Date.now(), messages: [] };
         }
         if (flux[c.id] && !flux[c.id].fini) throw new Error('Gemini répond déjà dans cette conversation');
-        const f = flux[c.id] = { texte: '', fini: false, erreur: '', modele: '', titre: c.titre, d: Date.now() };
+        const f = flux[c.id] = { texte: '', fini: false, erreur: '', modele: '', titre: c.titre, d: Date.now(), diag: {} };
         const essai = c.messages.concat([{ r: 'user', t: texte, d: Date.now() }]);
-        demander(essai, t => { f.texte = t; }).then(rep => {   // si Gemini échoue, rien n'est sauvegardé : on peut renvoyer
+        demander(essai, t => { f.texte = t; }, f.diag).then(rep => {   // si Gemini échoue, rien n'est sauvegardé : on peut renvoyer
           c.messages = essai.concat([{ r: 'model', t: rep.texte, d: Date.now() }]);
           c.maj = Date.now();
           convos = [c].concat(convos.filter(x => x.id !== c.id)).slice(0, 100);
@@ -183,7 +188,7 @@ module.exports = () => {
       suite: { label: 'Suite de la réponse', run: async ({ id }) => {
         const f = flux[id]; if (!f) throw new Error('Aucune réponse en cours');
         if (f.fini) delete flux[id];
-        return { texte: f.texte, fini: f.fini, erreur: f.erreur, modele: f.modele };
+        return { texte: f.texte, fini: f.fini, erreur: f.erreur, modele: f.modele, diag: Object.assign({ depuis: Date.now() - f.d }, f.diag, { t0: undefined }) };
       } },
       supprimer: { label: 'Supprimer une conversation', run: async ({ id }) => {
         convos = convos.filter(x => x.id !== id); saveConv(); return 'OK';
