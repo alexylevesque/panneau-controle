@@ -158,7 +158,7 @@ module.exports = (cfg) => {
   function toutArreter() {
     return pushover('/1/receipts/cancel_by_tag/panneau.json', { token: po.token }).catch(() => {});
   }
-  async function sonner(qui) {
+  async function sonner(qui, texte) {
     // Chaque iPhone = un appareil dans le même compte Pushover, nommé comme son id (ex. iphone, iphone2)
     qui = String(qui || 'iphone').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 25) || 'iphone';
     // Un Mac sonne lui-même : son petit programme demande au panneau aux 3 s s'il doit sonner
@@ -169,7 +169,7 @@ module.exports = (cfg) => {
       return;
     }
     if (!po.user || !po.token) throw new Error('Configure Pushover d\'abord');
-    const msg = { token: po.token, user: po.user, title: 'Panneau', message: '📍 Ton iPhone est ici!',
+    const msg = { token: po.token, user: po.user, title: texte ? 'Réveil' : 'Panneau', message: texte || '📍 Ton iPhone est ici!',
       priority: 2, retry: 30, expire: 600, sound: 'updown', device: qui, tags: 'panneau' };   // seulement ce cell, pas le Mac
     // Une sonnerie d'avant (même sur l'autre iPhone) continuerait aux 30 s : on l'arrête d'abord
     await toutArreter();
@@ -177,6 +177,9 @@ module.exports = (cfg) => {
     po.receipt = r.receipt; po.depuis = Date.now(); po.qui = qui;
     fs.writeFileSync(PO_FILE, JSON.stringify(po));
   }
+
+  // Le réveil (page Santé) fait sonner l'iPhone avec la même sonnerie insistante
+  global.panneauSonner = sonner;
 
   // L'as-tu arrêtée sur l'iPhone ? On demande à Pushover (au plus aux 5 s)
   let verifie = 0;

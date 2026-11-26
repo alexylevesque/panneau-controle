@@ -1127,7 +1127,8 @@
     h += '<div class="sa-t"><h3>🌙 Sommeil</h3><div class="som">' +
       '<div class="h"><small>Coucher</small><b>' + d.coucher + '</b><input type="time" id="inCoucher" value="' + d.coucher + '"></div><div class="sep"></div>' +
       '<div class="h"><small>Réveil <a class="tog' + (d.reveilActif ? ' on' : '') + '" id="togReveil"></a></small><b style="' + (d.reveilActif ? '' : 'opacity:.4') + '">' + d.reveil.replace(/^0/, '') + '</b><input type="time" id="inReveil" value="' + d.reveil + '"></div></div>' +
-      '<div class="som-bas">Nuit de <b>' + Math.floor(mins / 60) + ' h ' + two(mins % 60) + '</b> · ' + (d.reveilActif ? 'le réveil sonne sur la tablette' : 'réveil désactivé') + '</div></div>';
+      '<div class="som-bas">Nuit de <b>' + Math.floor(mins / 60) + ' h ' + two(mins % 60) + '</b> · ' +
+      (d.reveilActif ? 'sonne sur <a class="fait ok" id="ouBt">' + ({ iphone: '📱 iPhone', tablette: '🖥️ Tablette', deux: '📱 + 🖥️ les deux' })[d.ou || 'iphone'] + '</a>' : 'réveil désactivé') + '</div></div>';
     h += '</div>';
     if (box.getAttribute('data-h') === h) return;   // rien de changé : on ne redessine pas (garde le défilement)
     box.setAttribute('data-h', h);
@@ -1138,12 +1139,16 @@
     if ($('faitBt')) $('faitBt').onclick = function () { santeAction('fait'); };
     $('togReveil').onclick = function (e) { e.stopPropagation(); santeAction('sommeil', { actif: !d.reveilActif }); };
     $('inCoucher').onchange = function () { santeAction('sommeil', { coucher: this.value }); };
+    if ($('ouBt')) $('ouBt').onclick = function () {   // iPhone → tablette → les deux
+      var suite = { iphone: 'tablette', tablette: 'deux', deux: 'iphone' };
+      santeAction('sommeil', { ou: suite[d.ou || 'iphone'] });
+    };
     $('inReveil').onchange = function () { santeAction('sommeil', { reveil: this.value }); };
   }
   // Réveil : sonne sur la tablette à l'heure choisie (une fois par jour), jusqu'à ce qu'on touche Arrêter
   var alarmeSon = null, alarmeJour = '';
   function verifierReveil() {
-    var d = santeD; if (!d || !d.reveilActif || d.reveilFini || alarmeSon) return;
+    var d = santeD; if (!d || !d.reveilActif || d.reveilFini || alarmeSon || d.ou === 'iphone') return;
     var now = new Date(), hm = two(now.getHours()) + ':' + two(now.getMinutes());
     if (hm < d.reveil || alarmeJour === d.jour) return;
     var r = d.reveil.split(':'), retard = (now.getHours() * 60 + now.getMinutes()) - (+r[0] * 60 + +r[1]);

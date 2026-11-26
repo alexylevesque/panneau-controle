@@ -23,6 +23,7 @@ module.exports = () => {
   s.coucher = s.coucher || '22:30';
   s.reveil = s.reveil || '06:45';
   if (s.reveilActif === undefined) s.reveilActif = true;
+  s.ou = s.ou || 'iphone';             // où sonne le réveil : iphone, tablette ou deux
   // Jour de la semaine (0 = dimanche) → jour du programme (null = repos). Le plan va du mardi au samedi.
   const SEMAINE = { 0: null, 1: null, 2: 0, 3: 1, 4: 2, 5: 3, 6: 4 };
   delete s.semaine;
@@ -32,6 +33,20 @@ module.exports = () => {
     const i = SEMAINE[d.getDay()];
     return i === null || i === undefined || !PROGRAMME.jours[i] ? null : PROGRAMME.jours[i];
   }
+
+  // Réveil sur l'iPhone : le panneau le fait sonner par Pushover (comme « Faire sonner ») à l'heure choisie.
+  // Ça marche même si l'écran de la tablette est éteint. On ne sonne pas plus de 30 min en retard.
+  setInterval(() => {
+    if (!s.reveilActif || s.ou === 'tablette') return;
+    const now = new Date(), j = jour(now);
+    if (s.reveilEnvoye === j) return;
+    const r = s.reveil.split(':'), retard = now.getHours() * 60 + now.getMinutes() - (+r[0] * 60 + +r[1]);
+    if (retard < 0 || retard > 30) return;
+    s.reveilEnvoye = j; save();
+    const p = plan(now);
+    if (typeof global.panneauSonner === 'function')
+      global.panneauSonner('iphone', '⏰ Bon matin ! ' + (p ? 'Aujourd\'hui : ' + p.nom : 'Jour de repos')).catch(e => console.log('Réveil iPhone : ' + e.message));
+  }, 15000);
 
   return {
     name: 'Santé',
@@ -65,9 +80,10 @@ module.exports = () => {
         save();
         return s.fait[j] || '';
       } },
-      sommeil: { label: 'Sommeil', run: async ({ coucher, reveil, actif }) => {
+      sommeil: { label: 'Sommeil', run: async ({ coucher, reveil, actif, ou }) => {
+        if (['iphone', 'tablette', 'deux'].indexOf(ou) >= 0) s.ou = ou;
         if (hhmm(coucher)) s.coucher = hhmm(coucher);
-        if (hhmm(reveil)) s.reveil = hhmm(reveil);
+        if (hhmm(reveil) && hhmm(reveil) !== s.reveil) { s.reveil = hhmm(reveil); delete s.reveilEnvoye; }
         if (actif !== undefined) s.reveilActif = !!actif;
         save();
         return 'OK';
@@ -96,7 +112,7 @@ module.exports = () => {
         programme: PROGRAMME.nom,
         aujourdhui: plan(maintenant),
         demain: plan(demain),
-        coucher: s.coucher, reveil: s.reveil, reveilActif: s.reveilActif,
+        coucher: s.coucher, reveil: s.reveil, reveilActif: s.reveilActif, ou: s.ou,
         reveilFini: s.reveilFini === j,
       };
     },
