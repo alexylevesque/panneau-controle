@@ -49,7 +49,10 @@ function decrire(x: any): string {
   if (x === null || x === undefined) return String(x);
   const t = typeof x;
   if (t !== 'object' && t !== 'function') return t + ':' + String(x).slice(0, 60);
-  const bouts: string[] = ['type=' + t];
+  const bouts: string[] = [];
+  const cl = essai(() => Object.keys(x));
+  bouts.push(cl ? 'clés(' + cl.length + ')=[' + cl.slice(0, 10).map((k: string) => k + ':' + essai(() => typeof x[k])).join(',') + ']' : 'clés=?');
+  bouts.push('type=' + t);
   const ctor = essai(() => x.constructor && x.constructor.name);
   if (ctor) bouts.push('classe=' + ctor);
   bouts.push('tableau=' + Array.isArray(x));
@@ -74,6 +77,14 @@ function enListe(x: any): any[] {
   if (essai(() => typeof x[Symbol.iterator]) === 'function') { const a = essai(() => Array.from(x)); if (a) return a; }
   if (essai(() => typeof x.forEach) === 'function') { const a: any[] = []; if (essai(() => { x.forEach((v: any) => a.push(v)); return true; })) return a; }
   if (essai(() => typeof x.toArray) === 'function') { const a = essai(() => x.toArray()); if (Array.isArray(a)) return a; }
+  const cles = essai(() => Object.keys(x)) || [];
+  if (cles.length) {
+    // une seule clé qui contient la vraie liste
+    if (cles.length === 1) { const v = essai(() => x[cles[0]]); if (v && typeof v === 'object' && v !== x) { const r = enListe(v); if (r.length) return r; } }
+    const vals: any[] = [];
+    cles.forEach((k: string) => { const v = essai(() => x[k]); if (v && typeof v === 'object') vals.push(v); });
+    if (vals.length) return vals;
+  }
   const n = essai(() => x.size !== undefined ? x.size : x.count);
   const a: any[] = [];
   for (let i = 0; i < (typeof n === 'number' ? n : 50); i++) {
@@ -110,6 +121,7 @@ async function lire(loc: any) {
     const brut: any = await TM.getMediaControlEndpoints();
     dernierBrut = decrire(brut);
     await ping('natif : ' + dernierBrut);
+    await ping('natif : liste');
     const liste = enListe(brut);
     dernierBrut += ' → ' + liste.length + ' élément(s)';
     if (liste.length) dernierBrut += ' | 1er : ' + decrire(liste[0]);
@@ -249,7 +261,7 @@ export const App = () => {
 
   return (
     <View style={s.fond}>
-      <Text style={s.titre}>📺 Pont Télé v8</Text>
+      <Text style={s.titre}>📺 Pont Télé v9</Text>
       <Text style={s.aide}>Laisse cette appli ouverte une fois, puis fais Accueil et lance Netflix : le panneau devrait voir ce qui joue.</Text>
       <Text style={s.texte}>{texte}</Text>
       <Text style={s.envoi}>{envoi}</Text>
@@ -264,8 +276,8 @@ const s = StyleSheet.create({
   aide: {color: '#9aa3c7', fontSize: 24, marginTop: 10, marginBottom: 30},
   texte: {color: '#fff', fontSize: 30, lineHeight: 42},
   envoi: {color: '#46e39a', fontSize: 24, marginTop: 24},
-  brut: {marginTop: 24, maxHeight: 260},
-  brutT: {color: '#6b7398', fontSize: 18},
+  brut: {marginTop: 24, maxHeight: 420},
+  brutT: {color: '#aab3d8', fontSize: 20},
 });
 
 export default App;
