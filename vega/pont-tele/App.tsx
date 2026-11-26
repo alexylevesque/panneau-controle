@@ -120,6 +120,13 @@ async function lire(loc: any) {
     await ping('natif : appel');
     const brut: any = await TM.getMediaControlEndpoints();
     dernierBrut = decrire(brut);
+    // Vega renvoie parfois une réponse d'erreur au lieu de la liste
+    if (brut && brut.isSuccess === false) {
+      const msg = 'Vega refuse : code=' + String(brut.errorCode) + ' type=' + String(brut.errorTypes) + ' message=' + String(brut.errorMessage);
+      dernierBrut = msg;
+      await ping(msg);
+      throw new Error(msg);
+    }
     await ping('natif : ' + dernierBrut);
     await ping('natif : liste');
     const liste = enListe(brut);
@@ -261,7 +268,7 @@ export const App = () => {
 
   return (
     <View style={s.fond}>
-      <Text style={s.titre}>📺 Pont Télé v10</Text>
+      <Text style={s.titre}>📺 Pont Télé v11</Text>
       <Text style={s.aide}>Laisse cette appli ouverte une fois, puis fais Accueil et lance Netflix : le panneau devrait voir ce qui joue.</Text>
       <ScrollView style={s.brut}><Text style={s.brutT}>{brut}</Text></ScrollView>
       <Text style={s.texte}>{texte}</Text>
