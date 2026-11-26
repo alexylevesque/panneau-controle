@@ -73,6 +73,9 @@ function requeteFlux(chemin, cle, corps, onTexte, diag) {
       r.on('error', reject);
     });
     req.on('socket', so => so.on('connect', () => { diag.connecte = Date.now() - diag.t0; }));
+    // Pas de début de réponse en 15 s : ce modèle est surchargé, on passe au suivant
+    const attente = setTimeout(() => { const e = new Error('Gemini met trop de temps à répondre'); e.code = 'LENT'; reject(e); req.destroy(); }, 15000);
+    req.on('response', () => clearTimeout(attente)); req.on('close', () => clearTimeout(attente));
     req.on('error', reject).on('timeout', () => req.destroy(new Error('Gemini ne répond pas (délai dépassé)')));
     req.write(data); req.end();
   });
@@ -124,7 +127,7 @@ module.exports = () => {
   async function demander(historique, onTexte, diag) {
     if (!cfg.cle) throw new Error('Ajoute d\'abord ta clé Gemini');
     // Le dernier modèle qui a marché passe en premier ; ceux qui viennent d'échouer passent en dernier (1 h)
-    const liste = (await choisirModeles(cfg.cle)).slice(0, 4);
+    const liste = (await choisirModeles(cfg.cle)).slice(0, 6);
     const maintenant = Date.now();
     const ordre = liste.slice().sort((a, b) => ((a === dernierModele ? -2 : 0) + ((echecs[a] || 0) > maintenant - 3600e3 ? 5 : 0)) -
                                                ((b === dernierModele ? -2 : 0) + ((echecs[b] || 0) > maintenant - 3600e3 ? 5 : 0)));
@@ -148,8 +151,9 @@ module.exports = () => {
           break;
         }
       }
-      echecs[m] = Date.now();
-      if (!(derniere.code === 429 || derniere.code === 404 || derniere.code === 500 || derniere.code === 503)) break;   // modèle suivant seulement dans ces cas
+      // Ce modèle a échoué : on le met de côté (1 h, ou 24 h s'il refuse carrément la demande) et on essaie le suivant
+      echecs[m] = Date.now() + (derniere.code === 400 || derniere.code === 403 || derniere.code === 404 ? 23 * 3600e3 : 0);
+      if (derniere.code === 401 || /API key/i.test(derniere.message)) break;   // clé refusée : inutile d'essayer les autres
     }
     throw new Error(messageClair(derniere));
   }
