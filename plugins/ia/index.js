@@ -115,7 +115,7 @@ module.exports = () => {
   let dernierModele = '';
 
   // Moins de « réflexion » = réponse beaucoup plus rapide (on l'enlève si un modèle ne comprend pas le réglage)
-  let sansReglage = {};
+  let sansReglage = {}, echecs = {};
   function reflexion(m) {
     const v = parseFloat((m.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1]);
     if (sansReglage[m] || !v) return undefined;
@@ -123,9 +123,13 @@ module.exports = () => {
   }
   async function demander(historique, onTexte, diag) {
     if (!cfg.cle) throw new Error('Ajoute d\'abord ta clé Gemini');
-    const liste = await choisirModeles(cfg.cle);
+    // Le dernier modèle qui a marché passe en premier ; ceux qui viennent d'échouer passent en dernier (1 h)
+    const liste = (await choisirModeles(cfg.cle)).slice(0, 4);
+    const maintenant = Date.now();
+    const ordre = liste.slice().sort((a, b) => ((a === dernierModele ? -2 : 0) + ((echecs[a] || 0) > maintenant - 3600e3 ? 5 : 0)) -
+                                               ((b === dernierModele ? -2 : 0) + ((echecs[b] || 0) > maintenant - 3600e3 ? 5 : 0)));
     let derniere;
-    for (const m of liste.slice(0, 4)) {
+    for (const m of ordre) {
       for (let essai = 0; essai < 2; essai++) {
         const corps = {
           systemInstruction: { parts: [{ text: CONSIGNE }] },
@@ -135,7 +139,7 @@ module.exports = () => {
         try {
           diag.modele = m; diag.t0 = Date.now(); diag.essais = (diag.essais || 0) + 1;
           const r = await requeteFlux('/v1beta/models/' + encodeURIComponent(m) + ':streamGenerateContent?alt=sse', cfg.cle, corps, onTexte, diag);
-          if (r.texte) { dernierModele = m; return { texte: r.texte, modele: m }; }
+          if (r.texte) { dernierModele = m; delete echecs[m]; return { texte: r.texte, modele: m }; }
           throw new Error(r.bloque ? 'Gemini a refusé de répondre à ce message' : 'Gemini n\'a rien répondu');
         } catch (e) {
           derniere = e;
@@ -144,6 +148,7 @@ module.exports = () => {
           break;
         }
       }
+      echecs[m] = Date.now();
       if (!(derniere.code === 429 || derniere.code === 404 || derniere.code === 500 || derniere.code === 503)) break;   // modèle suivant seulement dans ces cas
     }
     throw new Error(messageClair(derniere));
