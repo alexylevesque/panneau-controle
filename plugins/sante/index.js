@@ -17,7 +17,8 @@ module.exports = () => {
   let s = {};
   try { s = JSON.parse(fs.readFileSync(FILE, 'utf8')); } catch (e) {}
   s.objectif = s.objectif || 10000;
-  s.creatine = s.creatine || {};       // { '2026-11-26': '08:12' }
+  s.creatine = s.creatine || {};
+  s.fait = s.fait || {};               // entraînements faits { '2026-11-26': '13:57' }       // { '2026-11-26': '08:12' }
   s.pas = s.pas || {};                 // { date, n, maj }
   s.coucher = s.coucher || '22:30';
   s.reveil = s.reveil || '06:45';
@@ -56,6 +57,14 @@ module.exports = () => {
         save();
         return s.creatine[j] || '';
       } },
+      // Touche : entraînement du jour fait / pas fait
+      fait: { label: 'Entraînement fait', run: async () => {
+        const j = jour();
+        if (s.fait[j]) delete s.fait[j]; else s.fait[j] = heure();
+        Object.keys(s.fait).sort().slice(0, -60).forEach(k => delete s.fait[k]);
+        save();
+        return s.fait[j] || '';
+      } },
       sommeil: { label: 'Sommeil', run: async ({ coucher, reveil, actif }) => {
         if (hhmm(coucher)) s.coucher = hhmm(coucher);
         if (hhmm(reveil)) s.reveil = hhmm(reveil);
@@ -74,7 +83,7 @@ module.exports = () => {
       const semaine = [];
       for (let k = 0; k < 7; k++) {
         const d = new Date(lundi); d.setDate(lundi.getDate() + k);
-        semaine.push({ l: 'LMMJVSD'[k], pris: !!s.creatine[jour(d)], auj: jour(d) === j, futur: d > maintenant && jour(d) !== j });
+        semaine.push({ l: 'LMMJVSD'[k], pris: !!s.creatine[jour(d)], entraine: !!s.fait[jour(d)], auj: jour(d) === j, futur: d > maintenant && jour(d) !== j });
       }
       return {
         jour: j,
@@ -82,6 +91,7 @@ module.exports = () => {
         pasMaj: s.pas.date === j ? s.pas.maj : 0,
         objectif: s.objectif,
         creatine: s.creatine[j] || '',
+        fait: s.fait[j] || '',
         semaine,
         programme: PROGRAMME.nom,
         aujourdhui: plan(maintenant),

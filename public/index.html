@@ -263,6 +263,9 @@
   .ent li i { font-style: normal; color: var(--accent); width: 26px; flex: none; font-size: 12px; padding-top: 2px; }
   .ent li span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ent li small { margin-left: 8px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+  a.fait { padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,0.08); color: var(--txt); font-size: 12px; letter-spacing: 0; }
+  a.fait.ok { background: rgba(95,211,154,0.2); color: #5fd39a; font-weight: 600; }
+  .ent .fini { opacity: .5; }
   .ent .demain { color: var(--muted); font-size: 12px; padding-top: 6px; flex: none; }
   .ent .repos { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 16px; }
   .som { display: flex; flex: 1; align-items: center; }
@@ -1108,9 +1111,9 @@
       '</div></div><div class="semaine">' + sem + '</div></div>';
     // Entraînement
     var jours = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'], p = d.aujourdhui;
-    h += '<div class="sa-t ent"><h3>🏋️ Entraînement · ' + jours[new Date().getDay()] + '</h3>';
+    h += '<div class="sa-t ent"><h3>🏋️ Entraînement · ' + jours[new Date().getDay()] + (p ? '<span><a class="fait' + (d.fait ? ' ok' : '') + '" id="faitBt">' + (d.fait ? '✓ Fait' : 'Marquer fait') + '</a></span>' : '') + '</h3>';
     if (p) {
-      h += '<div class="nom"><span>' + p.icone + '</span>' + esc(p.nom) + '</div><ul>';
+      h += '<div class="nom' + (d.fait ? ' fini' : '') + '"><span>' + p.icone + '</span>' + esc(p.nom) + '</div><ul' + (d.fait ? ' class="fini"' : '') + '>';
       for (var k = 0; k < p.exercices.length; k++) {
         var e = p.exercices[k];
         h += '<li><i>' + esc(e.l || '') + '</i><span>' + esc(e.n) + '</span><small>' + e.s + ' × ' + e.r + (e.repos ? ' · ' + e.repos + ' s' : '') + '</small></li>';
@@ -1132,6 +1135,7 @@
     $('objMoins').onclick = function () { santeAction('objectif', { n: d.objectif - 500 }); };
     $('objPlus').onclick = function () { santeAction('objectif', { n: d.objectif + 500 }); };
     $('creaBt').onclick = function () { santeAction('creatine'); };
+    if ($('faitBt')) $('faitBt').onclick = function () { santeAction('fait'); };
     $('togReveil').onclick = function (e) { e.stopPropagation(); santeAction('sommeil', { actif: !d.reveilActif }); };
     $('inCoucher').onchange = function () { santeAction('sommeil', { coucher: this.value }); };
     $('inReveil').onchange = function () { santeAction('sommeil', { reveil: this.value }); };
