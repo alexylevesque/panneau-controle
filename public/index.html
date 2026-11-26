@@ -1059,7 +1059,7 @@
     $('musArt').textContent = [m.artiste, m.album].filter(function (x) { return x; }).join(' · ');
     $('musApp').textContent = m.joueur || '';
     $('musPP').innerHTML = joue ? MUS_SVG.pause : MUS_SVG.lecture;
-    if (!musVolAttente || Date.now() - musVolAttente > 2500) { musVolAttente = 0; $('musVol').style.width = Math.round(100 * (m.volume || 0)) + '%'; majPct(m.volume || 0); }
+    if (!musVolAttente || Date.now() - musVolAttente > 2500) { musVolAttente = 0; afficherVol(m.volume || 0); }
     var img = $('musImg');
     if (img.getAttribute('data-src') !== (m.image || '')) {
       img.setAttribute('data-src', m.image || '');
@@ -1106,7 +1106,7 @@
       e.preventDefault();
       var v = pos(e);
       musVolAttente = Date.now();
-      $('musVol').style.width = Math.round(100 * v) + '%';
+      $('musVol').style.width = (100 * v) + '%';
       majPct(v);
       el.cible = Math.round(v * 16);
       plusTard();
@@ -1115,11 +1115,11 @@
       if (!tire) return;
       tire = false; el.className = 'mus-niv';
       if (minuterie) { clearTimeout(minuterie); minuterie = null; }
-      var cible = Math.round(pos(e) * 16);
+      var v = pos(e), cible = Math.round(v * 16);
       envoyer(cible);
-      musVolAttente = Date.now();
-      $('musVol').style.width = Math.round(100 * cible / 16) + '%';
-      majPct(cible / 16);
+      musInfo.m.volume = v; musVolAff = v; musVolAttente = Date.now();
+      $('musVol').style.width = (100 * v) + '%';
+      majPct(v);
     }
     function debut(e) {
       if (!musInfo) return;
@@ -1131,12 +1131,19 @@
     document.addEventListener('touchmove', bouge, { passive: false }); document.addEventListener('mousemove', bouge);
     document.addEventListener('touchend', lache); document.addEventListener('mouseup', lache);
   }
+  // Le volume de l'iPhone va par crans de 1/16 : si on est à moins d'un cran de ce que l'iPhone dit,
+  // on garde l'endroit exact où on a lâché (sinon la barre saute d'un cran à l'autre)
+  var musVolAff = -1;
+  function afficherVol(v) {
+    if (musVolAff >= 0 && Math.abs(v - musVolAff) <= 1 / 16 + 0.001) v = musVolAff; else musVolAff = -1;
+    $('musVol').style.width = (100 * v) + '%'; majPct(v);
+  }
   function majPct(v) { if ($('musPct')) $('musPct').textContent = Math.round(100 * v) + ' %'; }
   function commandeMusique(c) {
     if (!musInfo) return;
     if (c === 'volPlus' || c === 'volMoins') {   // la barre bouge tout de suite (1/16 par clic, comme l'iPhone)
       var v = Math.max(0, Math.min(1, (musInfo.m.volume || 0) + (c === 'volPlus' ? 1 : -1) / 16));
-      musInfo.m.volume = v; musVolAttente = Date.now();
+      musInfo.m.volume = v; musVolAff = -1; musVolAttente = Date.now();
       $('musVol').style.width = Math.round(100 * v) + '%'; majPct(v);
     }
     if (c === 'basculer') {   // on change le bouton tout de suite

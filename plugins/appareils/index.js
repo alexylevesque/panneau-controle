@@ -37,7 +37,7 @@ function chercherIcone(appId) {
 }
 
 // Pochette de la chanson : l'iPhone ne l'envoie pas en Bluetooth. On la cherche sur internet
-// (iTunes, sinon Deezer), puis on garde l'image sur la tablette : la prochaine fois, pas besoin d'internet.
+// (Deezer, sinon iTunes), puis on garde l'image sur la tablette : la prochaine fois, pas besoin d'internet.
 const POCH_DIR = path.join(__dirname, '..', '..', 'public', 'pochettes');
 const POCH_FILE = path.join(__dirname, '..', '..', 'pochettes.json');
 let pochettes = {};   // « artiste|titre » → '/pochettes/xxx.jpg', ou { rien: date } si introuvable
@@ -61,7 +61,7 @@ function telecharger(url, fichier, cb, essais) {
 }
 function chercherPochette(artiste, titre) {
   if (!titre) return '';
-  const cle = (artiste || '').toLowerCase() + '|' + titre.toLowerCase();
+  const cle = 'dz|' + (artiste || '').toLowerCase() + '|' + titre.toLowerCase();   // « dz| » : recherche Deezer d'abord
   const v = pochettes[cle];
   if (typeof v === 'string') return v;
   if (v && Date.now() - v.rien < 24 * 3600 * 1000) return '';   // introuvable : on réessaie demain
@@ -78,12 +78,13 @@ function chercherPochette(artiste, titre) {
     const nom = require('crypto').createHash('md5').update(cle).digest('hex').slice(0, 16) + '.jpg';
     telecharger(url, path.join(POCH_DIR, nom), ok => garder(ok, '/pochettes/' + nom));
   };
-  lireJson('itunes.apple.com', '/search?country=ca&media=music&entity=song&limit=1&term=' + terme, j => {
-    const r = j && j.results && j.results[0];
-    if (r && r.artworkUrl100) return fini(String(r.artworkUrl100).replace(/\/\d+x\d+bb\./, '/600x600bb.'));
-    lireJson('api.deezer.com', '/search?limit=1&q=' + terme, k => {
-      const d = k && k.data && k.data[0];
-      fini(d && d.album ? d.album.cover_xl || d.album.cover_big || '' : '');
+  // Deezer d'abord (c'est l'appli utilisée : mêmes pochettes), iTunes en plan B
+  lireJson('api.deezer.com', '/search?limit=1&q=' + terme, k => {
+    const d = k && k.data && k.data[0];
+    if (d && d.album && (d.album.cover_xl || d.album.cover_big)) return fini(d.album.cover_xl || d.album.cover_big);
+    lireJson('itunes.apple.com', '/search?country=ca&media=music&entity=song&limit=1&term=' + terme, j => {
+      const r = j && j.results && j.results[0];
+      fini(r && r.artworkUrl100 ? String(r.artworkUrl100).replace(/\/\d+x\d+bb\./, '/600x600bb.') : '');
     });
   });
   return '';
