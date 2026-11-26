@@ -62,7 +62,8 @@ async function lire(loc: any) {
     const brut: any = await TM.getMediaControlEndpoints();
     dernierBrut = 'type=' + typeof brut + ' ' + court(brut, 400);
     const liste: any[] = Array.isArray(brut) ? brut : brut && typeof brut.length === 'number' ? Array.from(brut) : brut && typeof brut === 'object' ? Object.values(brut) : [];
-    eps = liste.map((x: any) => new MCC(x));
+    eps = [];
+    for (let i = 0; i < liste.length; i++) { try { eps.push(new MCC(liste[i])); } catch (e: any) { dernierBrut += ' | client : ' + ((e && e.message) || e); } }
   }
   if (!Array.isArray(eps)) eps = Array.from(eps as any);
   const vus: any[] = [];
@@ -74,24 +75,31 @@ async function lire(loc: any) {
     let etats: any[] = [];
     try { etats = (await ep.getSessionState()) || []; }
     catch (e: any) { vus.push({pkg, erreur: 'getSessionState : ' + (e && e.message)}); continue; }
+    if (!Array.isArray(etats)) etats = etats && typeof (etats as any).length === 'number' ? Array.from(etats as any) : etats ? Object.values(etats as any) : [];
     for (let j = 0; j < etats.length; j++) {
+     let etape = 'session';
+     try {
       const s = etats[j] || {};
       const ps = s.playbackState || {};
       const info = s.mediaInfo || {};
       let meta: any = null;
       const id = info.mediaId !== undefined ? info.mediaId : info.id;
+      etape = 'metadata';
       if (id !== undefined) { try { meta = await ep.getMetadata(id); } catch (e) {} }
+      etape = 'position';
       const pos = ps.position || {};
       let ecoule = sec(pos.position !== undefined ? pos.position : pos);
       const maj = sec(pos.updatedAtTime);
       if (joue(ps.playbackStatus) && maj > 1e9) ecoule += Math.max(0, Date.now() / 1000 - maj) * (ps.playbackSpeed || 1);
       const m = meta || {};
+      etape = 'résultat';
+      const artistes = Array.isArray(m.artists) ? m.artists.join(', ') : m.artists ? String(m.artists) : '';
       const r = {
         app: pkg,
         joue: joue(ps.playbackStatus),
         pause: enPause(ps.playbackStatus),
         titre: m.title || info.title || '',
-        sous: m.description || [m.album, (m.artists || []).join(', ')].filter(Boolean).join(' · ') || '',
+        sous: String(m.description || [m.album, artistes].filter(x => x && typeof x !== 'object').join(' · ') || ''),
         ecoule: Math.round(ecoule),
         duree: Math.round(sec(info.duration || m.duration || ps.duration)),
         image: premiereImage(m),
@@ -100,6 +108,9 @@ async function lire(loc: any) {
       };
       vus.push(r);
       if (!choisi || (r.joue && !choisi.joue)) choisi = r;
+     } catch (e: any) {
+      vus.push({app: pkg, erreur: etape + ' : ' + ((e && e.message) || e) + ' — ' + court(etats[j], 300)});
+     }
     }
     if (!etats.length) vus.push({app: pkg, vide: true});
   }
@@ -180,7 +191,7 @@ export const App = () => {
 
   return (
     <View style={s.fond}>
-      <Text style={s.titre}>📺 Pont Télé</Text>
+      <Text style={s.titre}>📺 Pont Télé <Text style={s.aide}>v5</Text></Text>
       <Text style={s.aide}>Laisse cette appli ouverte une fois, puis fais Accueil et lance Netflix : le panneau devrait voir ce qui joue.</Text>
       <Text style={s.texte}>{texte}</Text>
       <Text style={s.envoi}>{envoi}</Text>
